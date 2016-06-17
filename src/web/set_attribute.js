@@ -1,5 +1,5 @@
 import {isNumber, isString, isBoolean, isFunction} from '../util/index'
-import events from 'events'
+import events from './events'
 import {removeEventListener, addEventListener, setAttribute as setNodeAttribute} from './dom'
 
 export function removeAttribute (node, name, oldValue) {

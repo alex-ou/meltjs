@@ -1,17 +1,25 @@
-// var app = Opal.app({
-//     el: '#app',
-//     model: 0,
-//     update: function (state, action) {
-//         switch (action.type) {
-//             case 'INCREMENT':
-//                 return state + 1;
-//             case 'DECREMENT':
-//                 return state - 1;
-//             default:
-//                 return state;
-//         }
-//     }
-// });
-
 import Opal from './src/index'
-Opal()
+
+var h = Opal.h
+
+Opal.app({
+  el: '#app',
+  render: function (model, dispatch) {
+    return h('div', {}, [
+      model,
+      h('button', {'onClick': () => dispatch({'type': 'INCREMENT'})}, 'Increase'),
+      h('button', {'onClick': () => dispatch({'type': 'DECREMENT'})}, 'Decrease')
+    ])
+  },
+  model: 0,
+  update: function (model, action) {
+    switch (action.type) {
+      case 'INCREMENT':
+        return model + 1
+      case 'DECREMENT':
+        return model - 1
+      default:
+        return model
+    }
+  }
+})

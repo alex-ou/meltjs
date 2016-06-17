@@ -1,4 +1,4 @@
-import {has, isUndefined} from '../util/index'
+import {has, isUndefined, isString} from '../util/index'
 
 export const namespaceMap = {
   svg: 'http://www.w3.org/2000/svg',
@@ -89,16 +89,24 @@ export function replaceNode (newNode, node) {
   }
 }
 
-export function nextSibling (node) {
-  return node.nextSibling
+export function emptyElement (el) {
+  let node
+  while ((node = el.firstChild)) {
+    el.removeChild(node)
+  }
+  return el
+}
+
+export function query (el) {
+  if (isString((el))) {
+    return document.querySelector(el)
+  }
+
+  return el
 }
 
 export function tagName (node) {
   return node.tagName
-}
-
-export function setTextContent (node, text) {
-  node.textContent = text
 }
 
 export function childNode (node, i) {
