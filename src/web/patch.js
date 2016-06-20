@@ -103,7 +103,7 @@ function updateAttributes (domElem, oldNode, newNode) {
   }
 
   for (let name in oldAttrs) {
-    if (!has(name, newAttrs)) {
+    if (!has(newAttrs, name)) {
       removeAttribute(domElem, name, oldAttrs[name])
     }
   }

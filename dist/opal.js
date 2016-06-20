@@ -52,27 +52,40 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var h = _index2.default.h;
+	var increaseAsync = function increaseAsync(step, model, actions) {
+	  setTimeout(function () {
+	    actions.increase(step);
+	  }, 2000);
+	  return model;
+	};
+
+	var increase = function increase(step, model) {
+	  return model + step;
+	};
+
+	var decrease = function decrease(step, model) {
+	  return model - step;
+	};
 
 	_index2.default.app({
 	  el: '#app',
-	  render: function render(model, dispatch) {
-	    return h('div', {}, [model, h('button', { 'onClick': function onClick() {
-	        return dispatch({ 'type': 'INCREMENT' });
-	      } }, 'Increase'), h('button', { 'onClick': function onClick() {
-	        return dispatch({ 'type': 'DECREMENT' });
-	      } }, 'Decrease')]);
+	  render: function render(h) {
+	    var _actions = this.actions;
+	    var increaseAsync = _actions.increaseAsync;
+	    var decrease = _actions.decrease;
+
+
+	    return h('div', {}, [this.model, h('button', { 'onClick': function onClick() {
+	        return increaseAsync(2);
+	      } }, '+'), h('button', { 'onClick': function onClick() {
+	        return decrease(2);
+	      } }, '-')]);
 	  },
 	  model: 0,
-	  update: function update(model, action) {
-	    switch (action.type) {
-	      case 'INCREMENT':
-	        return model + 1;
-	      case 'DECREMENT':
-	        return model - 1;
-	      default:
-	        return model;
-	    }
+	  update: {
+	    increase: increase,
+	    increaseAsync: increaseAsync,
+	    decrease: decrease
 	  }
 	});
 
@@ -85,74 +98,22 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 	exports.default = Opal;
-
-	var _patch = __webpack_require__(2);
-
-	var _patch2 = _interopRequireDefault(_patch);
-
-	var _create_element = __webpack_require__(10);
-
-	var _create_element2 = _interopRequireDefault(_create_element);
 
 	var _create = __webpack_require__(13);
 
 	var _create2 = _interopRequireDefault(_create);
 
-	var _dom = __webpack_require__(9);
+	var _app = __webpack_require__(18);
+
+	var _app2 = _interopRequireDefault(_app);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var OpalApp = function () {
-	  function OpalApp(options) {
-	    _classCallCheck(this, OpalApp);
-
-	    this.model = options.model;
-	    this.render = options.render;
-	    this.updateModel = options.update;
-
-	    this.root = options.el && (0, _dom.query)(options.el);
-	    (0, _dom.emptyElement)(this.root);
-
-	    this.renderDom();
-	  }
-
-	  _createClass(OpalApp, [{
-	    key: 'renderDom',
-	    value: function renderDom() {
-	      var newVnode = this.render(this.model, this.dispatch.bind(this));
-
-	      var domElem = void 0;
-	      if (!this._elem) {
-	        domElem = (0, _create_element2.default)(newVnode);
-	        (0, _dom.appendChild)(this.root, domElem);
-	      } else {
-	        domElem = (0, _patch2.default)(this._elem, this._vnode, newVnode);
-	      }
-	      this._elem = domElem;
-	      this._vnode = newVnode;
-	    }
-	  }, {
-	    key: 'dispatch',
-	    value: function dispatch(action) {
-	      this.model = this.updateModel(this.model, action);
-	      this.renderDom();
-	    }
-	  }]);
-
-	  return OpalApp;
-	}();
-
 	function Opal() {}
-	Opal.h = _create2.default;
-
+	Opal.createElement = _create2.default;
 	Opal.app = function (options) {
-	  return new OpalApp(options);
+	  return new _app2.default(options);
 	};
 
 /***/ },
@@ -297,7 +258,7 @@
 	  }
 
 	  for (var _name in oldAttrs) {
-	    if (!(0, _index.has)(_name, newAttrs)) {
+	    if (!(0, _index.has)(newAttrs, _name)) {
 	      (0, _set_attribute.removeAttribute)(domElem, _name, oldAttrs[_name]);
 	    }
 	  }
@@ -490,18 +451,29 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 	exports.isString = isString;
 	exports.isNumber = isNumber;
 	exports.isNull = isNull;
 	exports.isUndefined = isUndefined;
-	exports.has = has;
+	exports.isObject = isObject;
 	exports.isFunction = isFunction;
 	exports.isBoolean = isBoolean;
+	exports.has = has;
+	exports.getKeys = getKeys;
+	exports.getValues = getValues;
+	exports.each = each;
 	/**
 	 * Check if string
 	 * @param  {Mixed}  value
 	 * @return {Boolean}
 	 */
+	var ObjProto = Object.prototype;
+	var toString = ObjProto.toString;
+	var nativeKeys = Object.keys;
+
 	function isString(value) {
 	  return typeof value === 'string';
 	}
@@ -518,9 +490,8 @@
 	  return typeof value === 'undefined';
 	}
 
-	var hasOwn = Object.prototype.hasOwnProperty;
-	function has(prop, obj) {
-	  return hasOwn.call(obj, prop);
+	function isObject(value) {
+	  return isFunction(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && !!value;
 	}
 
 	function isFunction(value) {
@@ -529,6 +500,55 @@
 
 	function isBoolean(value) {
 	  return typeof value === 'boolean';
+	}
+
+	var isArray = exports.isArray = Array.isArray || function isArray(obj) {
+	  return toString.call(obj) === '[object Array]';
+	};
+
+	var hasOwn = ObjProto.hasOwnProperty;
+	function has(obj, prop) {
+	  return hasOwn.call(obj, prop);
+	}
+
+	function getKeys(obj) {
+	  if (!isObject(obj)) return [];
+
+	  if (nativeKeys) return nativeKeys(obj);
+
+	  var result = [];
+	  for (var key in obj) {
+	    if (has(obj, key)) {
+	      result.push(key);
+	    }
+	  }
+	  return result;
+	}
+
+	function getValues(obj) {
+	  var result = [];
+	  var keys = getKeys(obj);
+	  for (var i = 0; i < keys.length; i++) {
+	    var key = keys[i];
+	    if (has(obj, key)) {
+	      result.push(obj[key]);
+	    }
+	  }
+	  return result;
+	}
+
+	function each(obj, func) {
+	  if (isArray(obj)) {
+	    for (var i = 0; i < obj.length; i++) {
+	      func(obj[i], i);
+	    }
+	  } else if (isObject(obj)) {
+	    var keys = getKeys(obj);
+	    for (var _i = 0; _i < keys.length; _i++) {
+	      var key = keys[_i];
+	      func(obj[key], key, obj);
+	    }
+	  }
 	}
 
 /***/ },
@@ -673,7 +693,7 @@
 	}
 
 	function isSvgElement(name) {
-	  return (0, _index.has)(name, svgMap);
+	  return (0, _index.has)(svgMap, name);
 	}
 
 	function createElement(tagName) {
@@ -1187,6 +1207,309 @@
 	  onWaiting: 'waiting',
 	  onWheel: 'wheel'
 	};
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(16);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _store2.default;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _index = __webpack_require__(4);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var OpalStore = function () {
+	  function OpalStore(initialModel, updater) {
+	    _classCallCheck(this, OpalStore);
+
+	    this.model = initialModel;
+	    this.modelUpdater = updater;
+
+	    this.listeners = [];
+	  }
+
+	  _createClass(OpalStore, [{
+	    key: 'getModel',
+	    value: function getModel() {
+	      return this.model;
+	    }
+	  }, {
+	    key: 'dispatch',
+	    value: function dispatch(action) {
+	      var update = this.modelUpdater;
+	      var oldModel = this.model;
+
+	      this.model = update(oldModel, action);
+
+	      this.listeners.forEach(function (listener) {
+	        listener();
+	      });
+	    }
+	  }, {
+	    key: 'subscribe',
+	    value: function subscribe(listener) {
+	      if (!(0, _index.isFunction)(listener)) {
+	        throw new Error('Invalid argument: listener needs to be a function');
+	      }
+
+	      var allListeners = this.listeners;
+	      allListeners.push(listener);
+
+	      return function unsubscribe() {
+	        var index = allListeners.indexOf(listener);
+
+	        if (index >= 0) {
+	          allListeners.splice(index, 1);
+	        }
+	      };
+	    }
+	  }]);
+
+	  return OpalStore;
+	}();
+
+	exports.default = OpalStore;
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.bindActionCreator = bindActionCreator;
+	exports.bindActionCreators = bindActionCreators;
+	exports.createActionCreator = createActionCreator;
+	exports.createActionCreators = createActionCreators;
+	exports.createModelUpdater = createModelUpdater;
+
+	var _index = __webpack_require__(4);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	function bindActionCreator(action, dispatch) {
+	  return function () {
+	    return dispatch(action.apply(undefined, arguments));
+	  };
+	}
+
+	function bindActionCreators(actions, dispatch) {
+	  if (!(0, _index.isObject)(actions) || (0, _index.isNull)(actions)) {
+	    throw Error('actions must be an object');
+	  }
+
+	  var result = {};
+	  var keys = (0, _index.getKeys)(actions);
+	  for (var i = 0; i < keys.length; i++) {
+	    var key = keys[i];
+	    result[key] = bindActionCreator(actions[key], dispatch);
+	  }
+	  return result;
+	}
+
+	/**
+	 * Create an action creator given the action type. the returned action creator can take any parameters
+	 * @param actionType
+	 * @returns {function()}
+	 */
+	function createActionCreator(actionType) {
+	  return function () {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+
+	    return {
+	      type: actionType,
+	      params: args
+	    };
+	  };
+	}
+	/**
+	 * Create an object whose keys are actions types and values the action creators. And all the actions creators will be
+	 * wrapped with the dispatch call, so they can be called directly to dispatch an action
+	 * @param actionTypes, array of action types
+	 */
+	function createActionCreators(actionTypes) {
+	  var actionCreators = {};
+	  (0, _index.each)(actionTypes, function (actionType) {
+	    if ((0, _index.has)(actionCreators, actionType)) {
+	      throw new Error('Duplicated action type found in' + actionType);
+	    }
+	    actionCreators[actionType] = createActionCreator(actionType);
+	  });
+	  return actionCreators;
+	}
+
+	/**
+	 * Create an update function which will handle the actions created by calling createActionCreator
+	 * @param actionHandlerMap, an object which has all the action handlers in format of {actionType: handler}, e.g.
+	 * {
+	   *  'Increase': (model) => model + 1,
+	   *  'Decrease': (model) => model - 1
+	   *  }
+	 * @returns {update}, the update function used by the OpalStore
+	 */
+	function createModelUpdater(actionHandlerMap) {
+	  return function update(model, action) {
+	    var newModel = model;
+	    // Only update the model if the action type exists
+	    if ((0, _index.has)(actionHandlerMap, action.type)) {
+	      var handler = actionHandlerMap[action.type];
+	      newModel = handler.apply(undefined, _toConsumableArray(action.params).concat([model]));
+	    }
+	    return newModel;
+	  };
+	}
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _index = __webpack_require__(4);
+
+	var _patch = __webpack_require__(2);
+
+	var _patch2 = _interopRequireDefault(_patch);
+
+	var _create_element = __webpack_require__(10);
+
+	var _create_element2 = _interopRequireDefault(_create_element);
+
+	var _dom = __webpack_require__(9);
+
+	var _index2 = __webpack_require__(15);
+
+	var _index3 = _interopRequireDefault(_index2);
+
+	var _action = __webpack_require__(17);
+
+	var _create = __webpack_require__(13);
+
+	var _create2 = _interopRequireDefault(_create);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var OpalApp = function () {
+	  function OpalApp(options) {
+	    _classCallCheck(this, OpalApp);
+
+	    this.model = options.model;
+	    this.render = options.render;
+
+	    this.createStore(options);
+
+	    this.root = options.el && (0, _dom.query)(options.el);
+	    (0, _dom.emptyElement)(this.root);
+	    this.updateView();
+	  }
+
+	  _createClass(OpalApp, [{
+	    key: 'createStore',
+	    value: function createStore(options) {
+	      var _this = this;
+
+	      var modelUpdator = options.update || {};
+	      if (!(0, _index.isFunction)(modelUpdator)) {
+	        modelUpdator = (0, _action.createModelUpdater)(this.enhanceHandler(options.update));
+	        var actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
+	        this.actions = (0, _action.bindActionCreators)(actions, this.dispatch.bind(this));
+	      }
+
+	      this.store = new _index3.default(options.model, modelUpdator);
+	      this.store.subscribe(function () {
+	        _this.model = _this.store.getModel();
+	        _this.updateView();
+	      });
+	    }
+
+	    // Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
+
+	  }, {
+	    key: 'enhanceHandler',
+	    value: function enhanceHandler(actionHandlerMap) {
+	      var _this2 = this;
+
+	      var enhanced = {};
+	      (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
+	        var newHandler = function newHandler() {
+	          for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+	            params[_key] = arguments[_key];
+	          }
+
+	          // inject 1 more param to the handler, and execute the original handler in the application context
+	          return actionHandler.apply(_this2, [].concat(params, [_this2.actions]));
+	        };
+	        enhanced[actionType] = newHandler;
+	      });
+	      return enhanced;
+	    }
+	  }, {
+	    key: 'updateView',
+	    value: function updateView() {
+	      var oldVnode = this._vnode;
+	      // Inject the createElement function to the render function
+	      var newVnode = this.render(_create2.default);
+
+	      var domElem = this._elem;
+	      if (!domElem) {
+	        // First time rendering
+	        domElem = (0, _create_element2.default)(newVnode);
+	        (0, _dom.appendChild)(this.root, domElem);
+	      } else {
+	        // Patch the DOM
+	        domElem = (0, _patch2.default)(this._elem, oldVnode, newVnode);
+	      }
+
+	      this._elem = domElem;
+	      this._vnode = newVnode;
+	    }
+	  }, {
+	    key: 'dispatch',
+	    value: function dispatch(action) {
+	      this.store.dispatch(action);
+	    }
+	  }]);
+
+	  return OpalApp;
+	}();
+
+	exports.default = OpalApp;
 
 /***/ }
 /******/ ]);

@@ -1,25 +1,35 @@
 import Opal from './src/index'
 
-var h = Opal.h
+var increaseAsync = function (step, model, actions) {
+  setTimeout(() => {
+    actions.increase(step)
+  }, 2000)
+  return model
+}
+
+var increase = function (step, model) {
+  return model + step
+}
+
+var decrease = function (step, model) {
+  return model - step
+}
 
 Opal.app({
   el: '#app',
-  render: function (model, dispatch) {
+  render: function (h) {
+    let {increaseAsync, decrease} = this.actions
+
     return h('div', {}, [
-      model,
-      h('button', {'onClick': () => dispatch({'type': 'INCREMENT'})}, 'Increase'),
-      h('button', {'onClick': () => dispatch({'type': 'DECREMENT'})}, 'Decrease')
+      this.model,
+      h('button', {'onClick': () => increaseAsync(2)}, '+'),
+      h('button', {'onClick': () => decrease(2)}, '-')
     ])
   },
   model: 0,
-  update: function (model, action) {
-    switch (action.type) {
-      case 'INCREMENT':
-        return model + 1
-      case 'DECREMENT':
-        return model - 1
-      default:
-        return model
-    }
+  update: {
+    increase,
+    increaseAsync,
+    decrease
   }
 })

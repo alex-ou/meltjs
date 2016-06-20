@@ -51,7 +51,7 @@ export function setAttribute (node, key, val) {
 }
 
 export function isSvgElement (name) {
-  return has(name, svgMap)
+  return has(svgMap, name)
 }
 
 export function createElement (tagName) {
