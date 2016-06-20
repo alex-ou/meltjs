@@ -67,7 +67,7 @@ export function createTextNode (str) {
 }
 
 export function insertBefore (parentNode, newNode, referenceNode) {
-  let refNode = referenceNode;
+  let refNode = referenceNode
   if (isUndefined(refNode)) {
     refNode = null
   }
