@@ -37,19 +37,19 @@ describe('action', () => {
     }).toThrow()
   })
 
-  it('', () => {
+  it('should trigger the right action', () => {
     let actionHanlder = {}
     actionHanlder[INCREASE] = model => {
       return model + 1
     }
     actionHanlder[DECREASE] = model => model - 1
-    let updater = createModelUpdater(actionHanlder)
+    let update = createModelUpdater(actionHanlder)
 
     let increaseAction = createActionCreator(INCREASE)
     let decreaseAction = createActionCreator(DECREASE)
-    let model = updater(1, increaseAction())
+    let model = update(1, increaseAction())
     expect(model).toBe(2)
-    model = updater(1, decreaseAction())
+    model = update(1, decreaseAction())
     expect(model).toBe(0)
   })
 })
