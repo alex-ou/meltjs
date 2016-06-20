@@ -100,11 +100,11 @@
 	});
 	exports.default = Opal;
 
-	var _create = __webpack_require__(13);
+	var _create = __webpack_require__(2);
 
 	var _create2 = _interopRequireDefault(_create);
 
-	var _app = __webpack_require__(18);
+	var _app = __webpack_require__(8);
 
 	var _app2 = _interopRequireDefault(_app);
 
@@ -125,24 +125,531 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.default = patchNode;
-	exports.patchChildren = patchChildren;
+	exports.default = create;
 
-	var _set_attribute = __webpack_require__(3);
+	var _index = __webpack_require__(3);
 
-	var _create_element = __webpack_require__(10);
+	var _vnode = __webpack_require__(7);
+
+	var _vnode2 = _interopRequireDefault(_vnode);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function create(tag, attrs) {
+	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+	    children[_key - 2] = arguments[_key];
+	  }
+
+	  children = children.reduce(reduceChildren, []);
+	  return new _vnode2.default(_vnode2.default.Element, tag, attrs, children);
+	}
+
+	function reduceChildren(acc, vnode) {
+	  if ((0, _index.isUndefined)(vnode)) {
+	    throw new Error('vnode cannot be undefined');
+	  }
+
+	  var result = vnode;
+	  if ((0, _index.isString)(vnode) || (0, _index.isNumber)(vnode)) {
+	    result = new _vnode2.default(_vnode2.default.Text, vnode);
+	  } else if ((0, _index.isNull)(vnode)) {
+	    result = new _vnode2.default(_vnode2.default.Empty);
+	  } else if (Array.isArray(vnode)) {
+	    result = vnode.reduce(reduceChildren, []);
+	  }
+	  return acc.concat(result);
+	}
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _debug = __webpack_require__(4);
+
+	Object.keys(_debug).forEach(function (key) {
+	  if (key === "default") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _debug[key];
+	    }
+	  });
+	});
+
+	var _type = __webpack_require__(5);
+
+	Object.keys(_type).forEach(function (key) {
+	  if (key === "default") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _type[key];
+	    }
+	  });
+	});
+
+	var _bitset = __webpack_require__(6);
+
+	Object.keys(_bitset).forEach(function (key) {
+	  if (key === "default") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _bitset[key];
+	    }
+	  });
+	});
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.warn = warn;
+	exports.error = error;
+	var hasConsole = typeof console !== 'undefined';
+
+	function warn() {
+	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	    args[_key] = arguments[_key];
+	  }
+
+	  hasConsole && console.warn.apply(console, args);
+	}
+	function error() {
+	  for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+	    args[_key2] = arguments[_key2];
+	  }
+
+	  hasConsole && console.error.apply(console, args);
+	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	exports.isString = isString;
+	exports.isNumber = isNumber;
+	exports.isNull = isNull;
+	exports.isUndefined = isUndefined;
+	exports.isObject = isObject;
+	exports.isFunction = isFunction;
+	exports.isBoolean = isBoolean;
+	exports.has = has;
+	exports.getKeys = getKeys;
+	exports.getValues = getValues;
+	exports.each = each;
+	/**
+	 * Check if string
+	 * @param  {Mixed}  value
+	 * @return {Boolean}
+	 */
+	var ObjProto = Object.prototype;
+	var toString = ObjProto.toString;
+	var nativeKeys = Object.keys;
+
+	function isString(value) {
+	  return typeof value === 'string';
+	}
+
+	function isNumber(value) {
+	  return typeof value === 'number';
+	}
+
+	function isNull(value) {
+	  return value === null;
+	}
+
+	function isUndefined(value) {
+	  return typeof value === 'undefined';
+	}
+
+	function isObject(value) {
+	  return isFunction(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && !!value;
+	}
+
+	function isFunction(value) {
+	  return typeof value === 'function';
+	}
+
+	function isBoolean(value) {
+	  return typeof value === 'boolean';
+	}
+
+	var isArray = exports.isArray = Array.isArray || function isArray(obj) {
+	  return toString.call(obj) === '[object Array]';
+	};
+
+	var hasOwn = ObjProto.hasOwnProperty;
+	function has(obj, prop) {
+	  return hasOwn.call(obj, prop);
+	}
+
+	function getKeys(obj) {
+	  if (!isObject(obj)) return [];
+
+	  if (nativeKeys) return nativeKeys(obj);
+
+	  var result = [];
+	  for (var key in obj) {
+	    if (has(obj, key)) {
+	      result.push(key);
+	    }
+	  }
+	  return result;
+	}
+
+	function getValues(obj) {
+	  var result = [];
+	  var keys = getKeys(obj);
+	  for (var i = 0; i < keys.length; i++) {
+	    var key = keys[i];
+	    if (has(obj, key)) {
+	      result.push(obj[key]);
+	    }
+	  }
+	  return result;
+	}
+
+	function each(obj, func) {
+	  if (isArray(obj)) {
+	    for (var i = 0; i < obj.length; i++) {
+	      func(obj[i], i);
+	    }
+	  } else if (isObject(obj)) {
+	    var keys = getKeys(obj);
+	    for (var _i = 0; _i < keys.length; _i++) {
+	      var key = keys[_i];
+	      func(obj[key], key, obj);
+	    }
+	  }
+	}
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _type = __webpack_require__(5);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	/**
+	 * Use typed arrays if we can
+	 */
+	var FastArray = (0, _type.isUndefined)(Uint32Array) ? Array : Uint32Array;
+
+	/**
+	 * Bitset
+	 */
+
+	var Bitset = function () {
+	  function Bitset(sizeInBits) {
+	    _classCallCheck(this, Bitset);
+
+	    this.bits = new FastArray(Math.ceil(sizeInBits / 32));
+	  }
+
+	  _createClass(Bitset, [{
+	    key: 'setBit',
+	    value: function setBit(idx) {
+	      var id = Bitset.id(idx);
+	      this.bits[id.p] |= 1 << id.r;
+	    }
+	  }, {
+	    key: 'clearBit',
+	    value: function clearBit(idx) {
+	      var id = Bitset.id(idx);
+	      this.bits[id.p] &= ~(1 << id.r);
+	    }
+	  }, {
+	    key: 'getBit',
+	    value: function getBit(idx) {
+	      var id = Bitset.id(idx);
+	      return !!(this.bits[id.p] & 1 << id.r);
+	    }
+	  }], [{
+	    key: 'id',
+	    value: function id(idx) {
+	      var r = idx % 32;
+	      var p = (idx - r) / 32;
+
+	      return { r: r, p: p };
+	    }
+	  }]);
+
+	  return Bitset;
+	}();
+
+	exports.default = Bitset;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	exports.groupByKey = groupByKey;
+
+	var _index = __webpack_require__(3);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	/**
+	 * This function lets us create virtual nodes using a simple syntax.
+	 *
+	 * let node = h('div', { id: 'foo' }, [
+	 *   h('a', { href: 'http://google.com' },
+	 *     h('span', {}, 'Google'),
+	 *     h('b', {}, 'Link')
+	 *   )
+	 * ])
+	 */
+
+	var VNode = function () {
+	  function VNode(type, tagName, attrs, children) {
+	    _classCallCheck(this, VNode);
+
+	    this.type = type;
+	    if (type === VNode.Text) {
+	      this.nodeValue = tagName;
+	    } else {
+	      this.tagName = tagName;
+	    }
+
+	    attrs = attrs || {};
+	    if ((0, _index.isString)(attrs.key) || (0, _index.isNumber)(attrs.key)) {
+	      this.key = attrs.key;
+	    }
+	    delete attrs.key;
+
+	    this.attrs = attrs;
+	    this.children = children || [];
+	  }
+
+	  _createClass(VNode, [{
+	    key: 'isText',
+	    value: function isText() {
+	      return this.type === VNode.Text;
+	    }
+	  }, {
+	    key: 'isEmpty',
+	    value: function isEmpty() {
+	      return this.type === VNode.Empty;
+	    }
+	  }, {
+	    key: 'isElement',
+	    value: function isElement() {
+	      return this.type === VNode.Element;
+	    }
+	  }]);
+
+	  return VNode;
+	}();
+
+	exports.default = VNode;
+
+
+	VNode.Text = 'text';
+	VNode.Element = 'element';
+	VNode.Empty = 'empty';
+
+	/**
+	 * Group an array of virtual elements by their key, using index as a fallback.
+	 */
+	function groupByKey(children) {
+	  return children.map(function (child, i) {
+	    var key = (0, _index.isNull)(child) ? i : child.key || i;
+	    return {
+	      key: String(key),
+	      item: child,
+	      index: i
+	    };
+	  });
+	}
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _index = __webpack_require__(3);
+
+	var _patch = __webpack_require__(9);
+
+	var _patch2 = _interopRequireDefault(_patch);
+
+	var _create_element = __webpack_require__(13);
 
 	var _create_element2 = _interopRequireDefault(_create_element);
 
-	var _vnode = __webpack_require__(11);
+	var _dom = __webpack_require__(12);
 
-	var _diff = __webpack_require__(12);
+	var _index2 = __webpack_require__(15);
+
+	var _index3 = _interopRequireDefault(_index2);
+
+	var _action = __webpack_require__(17);
+
+	var _create = __webpack_require__(2);
+
+	var _create2 = _interopRequireDefault(_create);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var OpalApp = function () {
+	  function OpalApp(options) {
+	    _classCallCheck(this, OpalApp);
+
+	    this.model = options.model;
+	    this.render = options.render;
+
+	    this.createStore(options);
+
+	    this.root = options.el && (0, _dom.query)(options.el);
+	    (0, _dom.emptyElement)(this.root);
+	    this.updateView();
+	  }
+
+	  _createClass(OpalApp, [{
+	    key: 'createStore',
+	    value: function createStore(options) {
+	      var _this = this;
+
+	      var modelUpdator = options.update || {};
+	      if (!(0, _index.isFunction)(modelUpdator)) {
+	        modelUpdator = (0, _action.createModelUpdater)(this.enhanceHandler(options.update));
+	        var actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
+	        this.actions = (0, _action.bindActionCreators)(actions, this.dispatch.bind(this));
+	      }
+
+	      this.store = new _index3.default(options.model, modelUpdator);
+	      this.store.subscribe(function () {
+	        _this.model = _this.store.getModel();
+	        _this.updateView();
+	      });
+	    }
+
+	    // Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
+
+	  }, {
+	    key: 'enhanceHandler',
+	    value: function enhanceHandler(actionHandlerMap) {
+	      var _this2 = this;
+
+	      var enhanced = {};
+	      (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
+	        var newHandler = function newHandler() {
+	          for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+	            params[_key] = arguments[_key];
+	          }
+
+	          // inject 1 more param to the handler, and execute the original handler in the application context
+	          return actionHandler.apply(_this2, [].concat(params, [_this2.actions]));
+	        };
+	        enhanced[actionType] = newHandler;
+	      });
+	      return enhanced;
+	    }
+	  }, {
+	    key: 'updateView',
+	    value: function updateView() {
+	      var oldVnode = this._vnode;
+	      // Inject the createElement function to the render function
+	      var newVnode = this.render(_create2.default);
+
+	      var domElem = this._elem;
+	      if (!domElem) {
+	        // First time rendering
+	        domElem = (0, _create_element2.default)(newVnode);
+	        (0, _dom.appendChild)(this.root, domElem);
+	      } else {
+	        // Patch the DOM
+	        domElem = (0, _patch2.default)(this._elem, oldVnode, newVnode);
+	      }
+
+	      this._elem = domElem;
+	      this._vnode = newVnode;
+	    }
+	  }, {
+	    key: 'dispatch',
+	    value: function dispatch(action) {
+	      this.store.dispatch(action);
+	    }
+	  }]);
+
+	  return OpalApp;
+	}();
+
+	exports.default = OpalApp;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = patchNode;
+	exports.patchChildren = patchChildren;
+
+	var _set_attribute = __webpack_require__(10);
+
+	var _create_element = __webpack_require__(13);
+
+	var _create_element2 = _interopRequireDefault(_create_element);
+
+	var _vnode = __webpack_require__(7);
+
+	var _diff = __webpack_require__(14);
 
 	var diffActions = _interopRequireWildcard(_diff);
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
-	var _dom = __webpack_require__(9);
+	var _dom = __webpack_require__(12);
 
 	var dom = _interopRequireWildcard(_dom);
 
@@ -271,7 +778,7 @@
 	}
 
 /***/ },
-/* 3 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -282,13 +789,13 @@
 	exports.removeAttribute = removeAttribute;
 	exports.setAttribute = setAttribute;
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
-	var _events = __webpack_require__(14);
+	var _events = __webpack_require__(11);
 
 	var _events2 = _interopRequireDefault(_events);
 
-	var _dom = __webpack_require__(9);
+	var _dom = __webpack_require__(12);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -369,53 +876,7 @@
 	}
 
 /***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _debug = __webpack_require__(5);
-
-	Object.keys(_debug).forEach(function (key) {
-	  if (key === "default") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _debug[key];
-	    }
-	  });
-	});
-
-	var _type = __webpack_require__(6);
-
-	Object.keys(_type).forEach(function (key) {
-	  if (key === "default") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _type[key];
-	    }
-	  });
-	});
-
-	var _bitset = __webpack_require__(7);
-
-	Object.keys(_bitset).forEach(function (key) {
-	  if (key === "default") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _bitset[key];
-	    }
-	  });
-	});
-
-/***/ },
-/* 5 */
+/* 11 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -423,202 +884,80 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.warn = warn;
-	exports.error = error;
-	var hasConsole = typeof console !== 'undefined';
-
-	function warn() {
-	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	    args[_key] = arguments[_key];
-	  }
-
-	  hasConsole && console.warn.apply(console, args);
-	}
-	function error() {
-	  for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-	    args[_key2] = arguments[_key2];
-	  }
-
-	  hasConsole && console.error.apply(console, args);
-	}
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-	exports.isString = isString;
-	exports.isNumber = isNumber;
-	exports.isNull = isNull;
-	exports.isUndefined = isUndefined;
-	exports.isObject = isObject;
-	exports.isFunction = isFunction;
-	exports.isBoolean = isBoolean;
-	exports.has = has;
-	exports.getKeys = getKeys;
-	exports.getValues = getValues;
-	exports.each = each;
 	/**
-	 * Check if string
-	 * @param  {Mixed}  value
-	 * @return {Boolean}
+	 * Special attributes that map to DOM events.
 	 */
-	var ObjProto = Object.prototype;
-	var toString = ObjProto.toString;
-	var nativeKeys = Object.keys;
 
-	function isString(value) {
-	  return typeof value === 'string';
-	}
-
-	function isNumber(value) {
-	  return typeof value === 'number';
-	}
-
-	function isNull(value) {
-	  return value === null;
-	}
-
-	function isUndefined(value) {
-	  return typeof value === 'undefined';
-	}
-
-	function isObject(value) {
-	  return isFunction(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && !!value;
-	}
-
-	function isFunction(value) {
-	  return typeof value === 'function';
-	}
-
-	function isBoolean(value) {
-	  return typeof value === 'boolean';
-	}
-
-	var isArray = exports.isArray = Array.isArray || function isArray(obj) {
-	  return toString.call(obj) === '[object Array]';
+	exports.default = {
+	  onAbort: 'abort',
+	  onAnimationStart: 'animationstart',
+	  onAnimationIteration: 'animationiteration',
+	  onAnimationEnd: 'animationend',
+	  onBlur: 'blur',
+	  onCanPlay: 'canplay',
+	  onCanPlayThrough: 'canplaythrough',
+	  onChange: 'change',
+	  onClick: 'click',
+	  onContextMenu: 'contextmenu',
+	  onCopy: 'copy',
+	  onCut: 'cut',
+	  onDoubleClick: 'dblclick',
+	  onDrag: 'drag',
+	  onDragEnd: 'dragend',
+	  onDragEnter: 'dragenter',
+	  onDragExit: 'dragexit',
+	  onDragLeave: 'dragleave',
+	  onDragOver: 'dragover',
+	  onDragStart: 'dragstart',
+	  onDrop: 'drop',
+	  onDurationChange: 'durationchange',
+	  onEmptied: 'emptied',
+	  onEncrypted: 'encrypted',
+	  onEnded: 'ended',
+	  onError: 'error',
+	  onFocus: 'focus',
+	  onInput: 'input',
+	  onInvalid: 'invalid',
+	  onKeyDown: 'keydown',
+	  onKeyPress: 'keypress',
+	  onKeyUp: 'keyup',
+	  onLoad: 'load',
+	  onLoadedData: 'loadeddata',
+	  onLoadedMetadata: 'loadedmetadata',
+	  onLoadStart: 'loadstart',
+	  onPause: 'pause',
+	  onPlay: 'play',
+	  onPlaying: 'playing',
+	  onProgress: 'progress',
+	  onMouseDown: 'mousedown',
+	  onMouseEnter: 'mouseenter',
+	  onMouseLeave: 'mouseleave',
+	  onMouseMove: 'mousemove',
+	  onMouseOut: 'mouseout',
+	  onMouseOver: 'mouseover',
+	  onMouseUp: 'mouseup',
+	  onPaste: 'paste',
+	  onRateChange: 'ratechange',
+	  onReset: 'reset',
+	  onScroll: 'scroll',
+	  onSeeked: 'seeked',
+	  onSeeking: 'seeking',
+	  onSubmit: 'submit',
+	  onStalled: 'stalled',
+	  onSuspend: 'suspend',
+	  onTimeUpdate: 'timeupdate',
+	  onTransitionEnd: 'transitionend',
+	  onTouchCancel: 'touchcancel',
+	  onTouchEnd: 'touchend',
+	  onTouchMove: 'touchmove',
+	  onTouchStart: 'touchstart',
+	  onVolumeChange: 'volumechange',
+	  onWaiting: 'waiting',
+	  onWheel: 'wheel'
 	};
 
-	var hasOwn = ObjProto.hasOwnProperty;
-	function has(obj, prop) {
-	  return hasOwn.call(obj, prop);
-	}
-
-	function getKeys(obj) {
-	  if (!isObject(obj)) return [];
-
-	  if (nativeKeys) return nativeKeys(obj);
-
-	  var result = [];
-	  for (var key in obj) {
-	    if (has(obj, key)) {
-	      result.push(key);
-	    }
-	  }
-	  return result;
-	}
-
-	function getValues(obj) {
-	  var result = [];
-	  var keys = getKeys(obj);
-	  for (var i = 0; i < keys.length; i++) {
-	    var key = keys[i];
-	    if (has(obj, key)) {
-	      result.push(obj[key]);
-	    }
-	  }
-	  return result;
-	}
-
-	function each(obj, func) {
-	  if (isArray(obj)) {
-	    for (var i = 0; i < obj.length; i++) {
-	      func(obj[i], i);
-	    }
-	  } else if (isObject(obj)) {
-	    var keys = getKeys(obj);
-	    for (var _i = 0; _i < keys.length; _i++) {
-	      var key = keys[_i];
-	      func(obj[key], key, obj);
-	    }
-	  }
-	}
-
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _type = __webpack_require__(6);
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	/**
-	 * Use typed arrays if we can
-	 */
-	var FastArray = (0, _type.isUndefined)(Uint32Array) ? Array : Uint32Array;
-
-	/**
-	 * Bitset
-	 */
-
-	var Bitset = function () {
-	  function Bitset(sizeInBits) {
-	    _classCallCheck(this, Bitset);
-
-	    this.bits = new FastArray(Math.ceil(sizeInBits / 32));
-	  }
-
-	  _createClass(Bitset, [{
-	    key: 'setBit',
-	    value: function setBit(idx) {
-	      var id = Bitset.id(idx);
-	      this.bits[id.p] |= 1 << id.r;
-	    }
-	  }, {
-	    key: 'clearBit',
-	    value: function clearBit(idx) {
-	      var id = Bitset.id(idx);
-	      this.bits[id.p] &= ~(1 << id.r);
-	    }
-	  }, {
-	    key: 'getBit',
-	    value: function getBit(idx) {
-	      var id = Bitset.id(idx);
-	      return !!(this.bits[id.p] & 1 << id.r);
-	    }
-	  }], [{
-	    key: 'id',
-	    value: function id(idx) {
-	      var r = idx % 32;
-	      var p = (idx - r) / 32;
-
-	      return { r: r, p: p };
-	    }
-	  }]);
-
-	  return Bitset;
-	}();
-
-	exports.default = Bitset;
-
-/***/ },
-/* 8 */,
-/* 9 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -643,7 +982,7 @@
 	exports.removeEventListener = removeEventListener;
 	exports.addEventListener = addEventListener;
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
 	var namespaceMap = exports.namespaceMap = {
 	  svg: 'http://www.w3.org/2000/svg',
@@ -768,7 +1107,7 @@
 	}
 
 /***/ },
-/* 10 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -778,17 +1117,17 @@
 	});
 	exports.default = createElement;
 
-	var _vnode = __webpack_require__(11);
+	var _vnode = __webpack_require__(7);
 
 	var _vnode2 = _interopRequireDefault(_vnode);
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
-	var _dom = __webpack_require__(9);
+	var _dom = __webpack_require__(12);
 
 	var dom = _interopRequireWildcard(_dom);
 
-	var _set_attribute = __webpack_require__(3);
+	var _set_attribute = __webpack_require__(10);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -837,98 +1176,7 @@
 	}
 
 /***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	exports.groupByKey = groupByKey;
-
-	var _index = __webpack_require__(4);
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	/**
-	 * This function lets us create virtual nodes using a simple syntax.
-	 *
-	 * let node = h('div', { id: 'foo' }, [
-	 *   h('a', { href: 'http://google.com' },
-	 *     h('span', {}, 'Google'),
-	 *     h('b', {}, 'Link')
-	 *   )
-	 * ])
-	 */
-
-	var VNode = function () {
-	  function VNode(type, tagName, attrs, children) {
-	    _classCallCheck(this, VNode);
-
-	    this.type = type;
-	    if (type === VNode.Text) {
-	      this.nodeValue = tagName;
-	    } else {
-	      this.tagName = tagName;
-	    }
-
-	    attrs = attrs || {};
-	    if ((0, _index.isString)(attrs.key) || (0, _index.isNumber)(attrs.key)) {
-	      this.key = attrs.key;
-	    }
-	    delete attrs.key;
-
-	    this.attrs = attrs;
-	    this.children = children || [];
-	  }
-
-	  _createClass(VNode, [{
-	    key: 'isText',
-	    value: function isText() {
-	      return this.type === VNode.Text;
-	    }
-	  }, {
-	    key: 'isEmpty',
-	    value: function isEmpty() {
-	      return this.type === VNode.Empty;
-	    }
-	  }, {
-	    key: 'isElement',
-	    value: function isElement() {
-	      return this.type === VNode.Element;
-	    }
-	  }]);
-
-	  return VNode;
-	}();
-
-	exports.default = VNode;
-
-
-	VNode.Text = 'text';
-	VNode.Element = 'element';
-	VNode.Empty = 'empty';
-
-	/**
-	 * Group an array of virtual elements by their key, using index as a fallback.
-	 */
-	function groupByKey(children) {
-	  return children.map(function (child, i) {
-	    var key = (0, _index.isNull)(child) ? i : child.key || i;
-	    return {
-	      key: String(key),
-	      item: child,
-	      index: i
-	    };
-	  });
-	}
-
-/***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -938,9 +1186,9 @@
 	});
 	exports.REMOVE = exports.MOVE = exports.UPDATE = exports.CREATE = undefined;
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
-	var _bitset = __webpack_require__(7);
+	var _bitset = __webpack_require__(6);
 
 	var _bitset2 = _interopRequireDefault(_bitset);
 
@@ -1084,131 +1332,6 @@
 	exports.REMOVE = REMOVE;
 
 /***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = create;
-
-	var _index = __webpack_require__(4);
-
-	var _vnode = __webpack_require__(11);
-
-	var _vnode2 = _interopRequireDefault(_vnode);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function create(tag, attrs) {
-	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-	    children[_key - 2] = arguments[_key];
-	  }
-
-	  children = children.reduce(reduceChildren, []);
-	  return new _vnode2.default(_vnode2.default.Element, tag, attrs, children);
-	}
-
-	function reduceChildren(acc, vnode) {
-	  if ((0, _index.isUndefined)(vnode)) {
-	    throw new Error('vnode cannot be undefined');
-	  }
-
-	  var result = vnode;
-	  if ((0, _index.isString)(vnode) || (0, _index.isNumber)(vnode)) {
-	    result = new _vnode2.default(_vnode2.default.Text, vnode);
-	  } else if ((0, _index.isNull)(vnode)) {
-	    result = new _vnode2.default(_vnode2.default.Empty);
-	  } else if (Array.isArray(vnode)) {
-	    result = vnode.reduce(reduceChildren, []);
-	  }
-	  return acc.concat(result);
-	}
-
-/***/ },
-/* 14 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	/**
-	 * Special attributes that map to DOM events.
-	 */
-
-	exports.default = {
-	  onAbort: 'abort',
-	  onAnimationStart: 'animationstart',
-	  onAnimationIteration: 'animationiteration',
-	  onAnimationEnd: 'animationend',
-	  onBlur: 'blur',
-	  onCanPlay: 'canplay',
-	  onCanPlayThrough: 'canplaythrough',
-	  onChange: 'change',
-	  onClick: 'click',
-	  onContextMenu: 'contextmenu',
-	  onCopy: 'copy',
-	  onCut: 'cut',
-	  onDoubleClick: 'dblclick',
-	  onDrag: 'drag',
-	  onDragEnd: 'dragend',
-	  onDragEnter: 'dragenter',
-	  onDragExit: 'dragexit',
-	  onDragLeave: 'dragleave',
-	  onDragOver: 'dragover',
-	  onDragStart: 'dragstart',
-	  onDrop: 'drop',
-	  onDurationChange: 'durationchange',
-	  onEmptied: 'emptied',
-	  onEncrypted: 'encrypted',
-	  onEnded: 'ended',
-	  onError: 'error',
-	  onFocus: 'focus',
-	  onInput: 'input',
-	  onInvalid: 'invalid',
-	  onKeyDown: 'keydown',
-	  onKeyPress: 'keypress',
-	  onKeyUp: 'keyup',
-	  onLoad: 'load',
-	  onLoadedData: 'loadeddata',
-	  onLoadedMetadata: 'loadedmetadata',
-	  onLoadStart: 'loadstart',
-	  onPause: 'pause',
-	  onPlay: 'play',
-	  onPlaying: 'playing',
-	  onProgress: 'progress',
-	  onMouseDown: 'mousedown',
-	  onMouseEnter: 'mouseenter',
-	  onMouseLeave: 'mouseleave',
-	  onMouseMove: 'mousemove',
-	  onMouseOut: 'mouseout',
-	  onMouseOver: 'mouseover',
-	  onMouseUp: 'mouseup',
-	  onPaste: 'paste',
-	  onRateChange: 'ratechange',
-	  onReset: 'reset',
-	  onScroll: 'scroll',
-	  onSeeked: 'seeked',
-	  onSeeking: 'seeking',
-	  onSubmit: 'submit',
-	  onStalled: 'stalled',
-	  onSuspend: 'suspend',
-	  onTimeUpdate: 'timeupdate',
-	  onTransitionEnd: 'transitionend',
-	  onTouchCancel: 'touchcancel',
-	  onTouchEnd: 'touchend',
-	  onTouchMove: 'touchmove',
-	  onTouchStart: 'touchstart',
-	  onVolumeChange: 'volumechange',
-	  onWaiting: 'waiting',
-	  onWheel: 'wheel'
-	};
-
-/***/ },
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -1238,7 +1361,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1309,7 +1432,7 @@
 	exports.createActionCreators = createActionCreators;
 	exports.createModelUpdater = createModelUpdater;
 
-	var _index = __webpack_require__(4);
+	var _index = __webpack_require__(3);
 
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -1386,130 +1509,6 @@
 	    return newModel;
 	  };
 	}
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _index = __webpack_require__(4);
-
-	var _patch = __webpack_require__(2);
-
-	var _patch2 = _interopRequireDefault(_patch);
-
-	var _create_element = __webpack_require__(10);
-
-	var _create_element2 = _interopRequireDefault(_create_element);
-
-	var _dom = __webpack_require__(9);
-
-	var _index2 = __webpack_require__(15);
-
-	var _index3 = _interopRequireDefault(_index2);
-
-	var _action = __webpack_require__(17);
-
-	var _create = __webpack_require__(13);
-
-	var _create2 = _interopRequireDefault(_create);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var OpalApp = function () {
-	  function OpalApp(options) {
-	    _classCallCheck(this, OpalApp);
-
-	    this.model = options.model;
-	    this.render = options.render;
-
-	    this.createStore(options);
-
-	    this.root = options.el && (0, _dom.query)(options.el);
-	    (0, _dom.emptyElement)(this.root);
-	    this.updateView();
-	  }
-
-	  _createClass(OpalApp, [{
-	    key: 'createStore',
-	    value: function createStore(options) {
-	      var _this = this;
-
-	      var modelUpdator = options.update || {};
-	      if (!(0, _index.isFunction)(modelUpdator)) {
-	        modelUpdator = (0, _action.createModelUpdater)(this.enhanceHandler(options.update));
-	        var actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
-	        this.actions = (0, _action.bindActionCreators)(actions, this.dispatch.bind(this));
-	      }
-
-	      this.store = new _index3.default(options.model, modelUpdator);
-	      this.store.subscribe(function () {
-	        _this.model = _this.store.getModel();
-	        _this.updateView();
-	      });
-	    }
-
-	    // Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
-
-	  }, {
-	    key: 'enhanceHandler',
-	    value: function enhanceHandler(actionHandlerMap) {
-	      var _this2 = this;
-
-	      var enhanced = {};
-	      (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
-	        var newHandler = function newHandler() {
-	          for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
-	            params[_key] = arguments[_key];
-	          }
-
-	          // inject 1 more param to the handler, and execute the original handler in the application context
-	          return actionHandler.apply(_this2, [].concat(params, [_this2.actions]));
-	        };
-	        enhanced[actionType] = newHandler;
-	      });
-	      return enhanced;
-	    }
-	  }, {
-	    key: 'updateView',
-	    value: function updateView() {
-	      var oldVnode = this._vnode;
-	      // Inject the createElement function to the render function
-	      var newVnode = this.render(_create2.default);
-
-	      var domElem = this._elem;
-	      if (!domElem) {
-	        // First time rendering
-	        domElem = (0, _create_element2.default)(newVnode);
-	        (0, _dom.appendChild)(this.root, domElem);
-	      } else {
-	        // Patch the DOM
-	        domElem = (0, _patch2.default)(this._elem, oldVnode, newVnode);
-	      }
-
-	      this._elem = domElem;
-	      this._vnode = newVnode;
-	    }
-	  }, {
-	    key: 'dispatch',
-	    value: function dispatch(action) {
-	      this.store.dispatch(action);
-	    }
-	  }]);
-
-	  return OpalApp;
-	}();
-
-	exports.default = OpalApp;
 
 /***/ }
 /******/ ]);
