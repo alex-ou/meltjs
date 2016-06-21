@@ -67,6 +67,20 @@
 	  return model - step;
 	};
 
+	_index2.default.component('counter', {
+	  render: function render(h) {
+	    var _this = this;
+
+	    return h('div', {}, [this.props.count, h('button', { 'onClick': function onClick() {
+	        return _this.props.onIncrease(2);
+	      } }, '+'), h('button', { 'onClick': function onClick() {
+	        return _this.props.onDecrease(2);
+	      } }, '-')]);
+	  },
+
+	  template: '\n    <div>\n        {props.count}\n        <button on-click="{props.onIncrease(2)}">+</button>\n        <button on-click="{props.onDecrease(2)}">-</button>\n    </div> '
+	});
+
 	_index2.default.app({
 	  el: '#app',
 	  render: function render(h) {
@@ -141,6 +155,14 @@
 	  }
 
 	  children = children.reduce(reduceChildren, []);
+	  // Stateless function component
+	  if ((0, _index.isFunction)(tag)) {
+	    return new _vnode2.default(_vnode2.default.Thunk, tag, attrs, children, tag);
+	  }
+	  // Object style component
+	  if ((0, _index.isObject)(tag)) {
+	    return new _vnode2.default(_vnode2.default.Thunk, tag.render, attrs, children, tag);
+	  }
 	  return new _vnode2.default(_vnode2.default.Element, tag, attrs, children);
 	}
 
@@ -149,13 +171,16 @@
 	    throw new Error('vnode cannot be undefined');
 	  }
 
-	  var result = vnode;
+	  var result;
 	  if ((0, _index.isString)(vnode) || (0, _index.isNumber)(vnode)) {
 	    result = new _vnode2.default(_vnode2.default.Text, vnode);
 	  } else if ((0, _index.isNull)(vnode)) {
 	    result = new _vnode2.default(_vnode2.default.Empty);
 	  } else if (Array.isArray(vnode)) {
 	    result = vnode.reduce(reduceChildren, []);
+	  } else {
+	    // Thunk element or element
+	    result = vnode;
 	  }
 	  return acc.concat(result);
 	}
@@ -438,14 +463,17 @@
 	 */
 
 	var VNode = function () {
-	  function VNode(type, tagName, attrs, children) {
+	  function VNode(type, tagName, attrs, children, options) {
 	    _classCallCheck(this, VNode);
 
 	    this.type = type;
 	    if (type === VNode.Text) {
 	      this.nodeValue = tagName;
-	    } else {
+	    } else if (type === VNode.Element) {
 	      this.tagName = tagName;
+	    } else if (type === VNode.Thunk) {
+	      // render function
+	      this.renderFn = tagName;
 	    }
 
 	    attrs = attrs || {};
@@ -456,6 +484,9 @@
 
 	    this.attrs = attrs;
 	    this.children = children || [];
+
+	    // Options for the component
+	    this.options = options;
 	  }
 
 	  _createClass(VNode, [{
@@ -473,6 +504,11 @@
 	    value: function isElement() {
 	      return this.type === VNode.Element;
 	    }
+	  }, {
+	    key: 'isThunk',
+	    value: function isThunk() {
+	      return this.type === VNode.Thunk;
+	    }
 	  }]);
 
 	  return VNode;
@@ -484,6 +520,7 @@
 	VNode.Text = 'text';
 	VNode.Element = 'element';
 	VNode.Empty = 'empty';
+	VNode.Thunk = 'thunk';
 
 	/**
 	 * Group an array of virtual elements by their key, using index as a fallback.
@@ -1129,19 +1166,33 @@
 
 	var _set_attribute = __webpack_require__(10);
 
+	var _component = __webpack_require__(18);
+
+	var _component2 = _interopRequireDefault(_component);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function createElement(vnode) {
+	  var domElem;
 	  switch (vnode.type) {
 	    case _vnode2.default.Element:
-	      return createHtmlElement(vnode);
+	      domElem = createHtmlElement(vnode);
+	      break;
 	    case _vnode2.default.Empty:
-	      return createEmptyNode();
+	      domElem = createEmptyNode();
+	      break;
 	    case _vnode2.default.Text:
-	      return createTextNode(vnode);
+	      domElem = createTextNode(vnode);
+	      break;
+	    case _vnode2.default.Thunk:
+	      var component = (0, _component2.default)(vnode);
+	      domElem = component.createElement();
+	      break;
 	  }
+	  vnode.elem = domElem;
+	  return domElem;
 	}
 
 	function createHtmlElement(vnode) {
@@ -1508,6 +1559,72 @@
 	    }
 	    return newModel;
 	  };
+	}
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	exports.default = createComponent;
+
+	var _create_element = __webpack_require__(13);
+
+	var _create_element2 = _interopRequireDefault(_create_element);
+
+	var _index = __webpack_require__(3);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var InternalComponnet = function () {
+	  function InternalComponnet(refNode) {
+	    _classCallCheck(this, InternalComponnet);
+
+	    this.refNode = refNode;
+	    this.props = refNode.attrs;
+	    this.children = refNode.children;
+
+	    this.isStateless = (0, _index.isFunction)(refNode.options);
+
+	    // Save the component to the refNode for patch operation
+	    refNode.component = this;
+	  }
+
+	  _createClass(InternalComponnet, [{
+	    key: 'render',
+	    value: function render() {
+	      var renderFn = this.refNode.renderFn;
+	      if (this.isStateless) {
+	        // the stateless function will get props through function params
+	        return renderFn(this);
+	      }
+	      // the component will get props through this.props
+	      return renderFn.call(this);
+	    }
+	  }, {
+	    key: 'createElement',
+	    value: function createElement() {
+	      var vnode = this.render();
+	      this.vnode = vnode;
+	      this.elm = (0, _create_element2.default)(vnode);
+	      return this.elm;
+	    }
+	  }]);
+
+	  return InternalComponnet;
+	}();
+
+	function createComponent(vnode) {
+	  return new InternalComponnet(vnode);
 	}
 
 /***/ }

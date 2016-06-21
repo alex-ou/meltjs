@@ -15,6 +15,22 @@ var decrease = function (step, model) {
   return model - step
 }
 
+Opal.component('counter', {
+  render (h) {
+    return h('div', {}, [
+      this.props.count,
+      h('button', {'onClick': () => this.props.onIncrease(2)}, '+'),
+      h('button', {'onClick': () => this.props.onDecrease(2)}, '-')
+    ])
+  },
+  template: `
+    <div>
+        {props.count}
+        <button on-click="{props.onIncrease(2)}">+</button>
+        <button on-click="{props.onDecrease(2)}">-</button>
+    </div> `
+})
+
 Opal.app({
   el: '#app',
   render: function (h) {

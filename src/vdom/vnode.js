@@ -11,12 +11,15 @@ import {isNull, isString, isNumber} from '../util/index'
  */
 
 export default class VNode {
-  constructor (type, tagName, attrs, children) {
+  constructor (type, tagName, attrs, children, options) {
     this.type = type
     if (type === VNode.Text) {
       this.nodeValue = tagName
-    } else {
+    } else if (type === VNode.Element) {
       this.tagName = tagName
+    } else if (type === VNode.Thunk) {
+      // render function
+      this.renderFn = tagName
     }
 
     attrs = attrs || {}
@@ -27,6 +30,9 @@ export default class VNode {
 
     this.attrs = attrs
     this.children = children || []
+
+    // Options for the component
+    this.options = options
   }
 
   isText () {
@@ -40,11 +46,16 @@ export default class VNode {
   isElement () {
     return this.type === VNode.Element
   }
+
+  isThunk () {
+    return this.type === VNode.Thunk
+  }
 }
 
 VNode.Text = 'text'
 VNode.Element = 'element'
 VNode.Empty = 'empty'
+VNode.Thunk = 'thunk'
 
 /**
  * Group an array of virtual elements by their key, using index as a fallback.

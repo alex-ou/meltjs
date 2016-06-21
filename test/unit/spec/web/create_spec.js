@@ -40,4 +40,40 @@ describe('createElement', () => {
     var node = createElement(vtree)
     expect(node.value).toBe('10')
   })
+
+  it('can create elements for components', () => {
+    let Counter = () => h('span', null, '1')
+    let vtree = h('div', {},
+      h(Counter),
+      h(Counter)
+    )
+    var node = createElement(vtree)
+    expect(node.childNodes.length).toBe(2)
+    expect(node.childNodes[0].outerHTML).toBe('<span>1</span>')
+    expect(node.childNodes[1].outerHTML).toBe('<span>1</span>')
+  })
+
+  it('can pass in props to stateless components', () => {
+    let Counter = ({props}) => h('span', null, props.count)
+    let vtree = h('div', {},
+      h(Counter, {count: 2}),
+      h(Counter, {count: 3})
+    )
+    var node = createElement(vtree)
+    expect(node.childNodes.length).toBe(2)
+    expect(node.childNodes[0].outerHTML).toBe('<span>2</span>')
+    expect(node.childNodes[1].outerHTML).toBe('<span>3</span>')
+  })
+
+  it('can pass in children to stateless components', () => {
+    let Counter = ({children}) => h('div', null, children)
+    let vtree = h('div', {},
+      h(Counter, {}, h('span', {}, 2)),
+      h(Counter, {}, h('span', {}, 3))
+    )
+    var node = createElement(vtree)
+    expect(node.childNodes.length).toBe(2)
+    expect(node.childNodes[0].outerHTML).toBe('<div><span>2</span></div>')
+    expect(node.childNodes[1].outerHTML).toBe('<div><span>3</span></div>')
+  })
 })

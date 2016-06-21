@@ -5,6 +5,8 @@ describe('util', () => {
     expect(isObject({})).toBe(true)
     expect(isObject(function () {})).toBe(true)
     expect(isObject(null)).toBe(false)
+    expect(isObject('str')).toBe(false)
+    expect(isObject(String('str'))).toBe(false)
   })
 
   it('can check array', () => {

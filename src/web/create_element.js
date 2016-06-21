@@ -2,16 +2,27 @@ import VNode from '../vdom/vnode'
 import {isNumber, isString, isNull, isUndefined} from '../util/index'
 import * as dom from './dom'
 import {setAttribute} from './set_attribute'
+import createComponent from './component'
 
 export default function createElement (vnode) {
+  var domElem
   switch (vnode.type) {
     case VNode.Element:
-      return createHtmlElement(vnode)
+      domElem = createHtmlElement(vnode)
+      break
     case VNode.Empty:
-      return createEmptyNode()
+      domElem = createEmptyNode()
+      break
     case VNode.Text:
-      return createTextNode(vnode)
+      domElem = createTextNode(vnode)
+      break
+    case VNode.Thunk:
+      let component = createComponent(vnode)
+      domElem = component.createElement()
+      break
   }
+  vnode.elem = domElem
+  return domElem
 }
 
 function createHtmlElement (vnode) {
