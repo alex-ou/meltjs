@@ -1,8 +1,8 @@
 import {setAttribute, removeAttribute} from './set_attribute'
 import createElement from './create_element'
-import {groupByKey} from '../vdom/vnode'
+import {groupByKey, renderThunk} from '../vdom/vnode'
 import diff, * as diffActions from '../vdom/diff'
-import {has, isUndefined, isNull} from '../util/index'
+import {has, isUndefined, isNull, each} from '../util/index'
 import * as dom from './dom'
 
 /**
@@ -18,13 +18,14 @@ export default function patchNode (domElem, oldVnode, newVnode) {
   // Remove the DOM
   if (!isUndefined(oldVnode) && isUndefined(newVnode)) {
     // Unmount the components
+    unmountThunk(oldVnode)
     dom.removeChild(domElem.parentNode, domElem)
     return domElem
   }
 
   // Replace the DOM
-  if (!isNull(oldVnode) && isNull(newVnode) || isNull(oldVnode) && !isNull(newVnode) || oldVnode.type !== newVnode.type) {
-    return replaceNode(domElem, newVnode)
+  if (!isNull(oldVnode) && isNull(newVnode) || isNull(oldVnode) && !isNull(newVnode) || !oldVnode.isSameType(newVnode)) {
+    return replaceNode(domElem, oldVnode, newVnode)
   }
 
   // Two nodes with the same type reaching this point
@@ -34,7 +35,7 @@ export default function patchNode (domElem, oldVnode, newVnode) {
   if (newVnode.isElement()) {
     if (oldVnode.tagName !== newVnode.tagName) {
       // Replace the whole DOM element
-      newDomElem = replaceNode(domElem, newVnode)
+      newDomElem = replaceNode(domElem, oldVnode, newVnode)
     } else {
       // Same tagName, update the attributes
       updateAttributes(domElem, oldVnode, newVnode)
@@ -45,6 +46,8 @@ export default function patchNode (domElem, oldVnode, newVnode) {
     if (oldVnode.nodeValue !== newVnode.nodeValue) {
       setAttribute(domElem, 'nodeValue', newVnode.nodeValue, oldVnode.nodeValue)
     }
+  } else if (newVnode.isThunk()) {
+    newDomElem = updateThunk(domElem, oldVnode, newVnode)
   }
   return newDomElem
 }
@@ -86,6 +89,21 @@ export function patchChildren (parentElem, oldNode, newNode) {
   diff(oldChildren, newChildren, effect, key)
 }
 
+function updateThunk (domElem, oldNode, newNode) {
+  let oldThunkVnode = oldNode.thunkVnode
+  let newThunkVnode = renderThunk(newNode)
+  return patchNode(domElem, oldThunkVnode, newThunkVnode)
+}
+
+function unmountThunk (vnode) {
+  if (vnode.isThunk()) {
+    // Call the lifecycle hook
+    if (vnode.options.beforeUnmount) {}
+    unmountThunk(vnode.thunkVnode)
+  } else if (vnode.children) {
+    each(vnode.children, child => unmountThunk(child))
+  }
+}
 /**
  * compare the attributes of the two virtual nodes and update the dom attributes and event handlers
  * @param domElem
@@ -109,7 +127,8 @@ function updateAttributes (domElem, oldNode, newNode) {
   }
 }
 
-function replaceNode (domElem, newNode) {
+function replaceNode (domElem, oldNode, newNode) {
+  unmountThunk(oldNode)
   let newDomElem = createElement(newNode)
   dom.replaceNode(newDomElem, domElem)
   return newDomElem

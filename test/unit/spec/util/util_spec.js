@@ -1,4 +1,4 @@
-import {isObject, isArray, getValues, getKeys, each} from 'src/util/index'
+import {isObject, isArray, getValues, getKeys, each, extend, isUndefined} from 'src/util/index'
 
 describe('util', () => {
   it('check objects correctly', () => {
@@ -62,6 +62,11 @@ describe('util', () => {
     })
     expect(keys).toEqual(['a', 'b', 'c'])
     expect(values).toEqual([1, 2, 3])
+  })
+
+  it('can extend data from other objects', () => {
+    expect(extend({}, {a: 1, b: undefined})).toEqual({a: 1})
+    expect(extend({}, {a: 1, b: undefined}, {c: 1})).toEqual({a: 1, c: 1})
   })
 })
 

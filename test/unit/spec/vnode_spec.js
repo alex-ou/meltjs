@@ -37,11 +37,11 @@ describe('vnode creation', () => {
     expect(tree.children.length).toBe(2)
 
     let child = tree.children[0]
-    expect(child.isThunk()).toBe(true)
+    expect(child.type).toBe(VNode.Thunk)
     expect(child.renderFn()).toEqual(Counter())
 
     child = tree.children[1]
-    expect(child.isThunk()).toBe(true)
+    expect(child.type).toBe(VNode.Thunk)
     expect(child.renderFn()).toEqual(Counter())
   })
 
@@ -58,12 +58,12 @@ describe('vnode creation', () => {
     expect(tree.children.length).toBe(2)
 
     let child = tree.children[0]
-    expect(child.isThunk()).toBe(true)
+    expect(child.type).toBe(VNode.Thunk)
     expect(child.renderFn()).toEqual(Counter.render())
     expect(child.options.test).toBe(1)
 
     child = tree.children[1]
-    expect(child.isThunk()).toBe(true)
+    expect(child.type).toBe(VNode.Thunk)
   })
 })
 

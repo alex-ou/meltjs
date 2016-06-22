@@ -1,4 +1,4 @@
-import {isNull, isString, isNumber} from '../util/index'
+import {isNull, isString, isNumber, extend} from '../util/index'
 /**
  * This function lets us create virtual nodes using a simple syntax.
  *
@@ -9,42 +9,32 @@ import {isNull, isString, isNumber} from '../util/index'
  *   )
  * ])
  */
-
 export default class VNode {
-  constructor (type, tagName, attrs, children, options) {
-    this.type = type
-    if (type === VNode.Text) {
-      this.nodeValue = tagName
-    } else if (type === VNode.Element) {
-      this.tagName = tagName
-    } else if (type === VNode.Thunk) {
-      // render function
-      this.renderFn = tagName
-    }
+  constructor (settings) {
+    extend(this, {
+      children: [],
+      options: {}
+    }, settings)
 
-    attrs = attrs || {}
+    let attrs = settings.attrs || {}
     if (isString(attrs.key) || isNumber(attrs.key)) {
       this.key = attrs.key
     }
     delete attrs.key
 
     this.attrs = attrs
-    this.children = children || []
-
-    // Options for the component
-    this.options = options
   }
 
-  isText () {
-    return this.type === VNode.Text
-  }
-
-  isEmpty () {
-    return this.type === VNode.Empty
+  isSameType (vnode) {
+    return this.type === vnode.type
   }
 
   isElement () {
     return this.type === VNode.Element
+  }
+
+  isText () {
+    return this.type === VNode.Text
   }
 
   isThunk () {
@@ -56,6 +46,23 @@ VNode.Text = 'text'
 VNode.Element = 'element'
 VNode.Empty = 'empty'
 VNode.Thunk = 'thunk'
+
+export function renderThunk (vnode) {
+  let data = {
+    props: vnode.attrs,
+    children: vnode.children
+  }
+  let renderedVnode
+  if (!vnode.options.render) {
+    // the stateless function will get props through function params
+    renderedVnode = vnode.renderFn(data)
+  } else {
+    // the component will get props through this.props
+    extend(data, vnode.options)
+    renderedVnode = vnode.renderFn.apply(data)
+  }
+  return renderedVnode
+}
 
 /**
  * Group an array of virtual elements by their key, using index as a fallback.

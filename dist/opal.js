@@ -157,13 +157,30 @@
 	  children = children.reduce(reduceChildren, []);
 	  // Stateless function component
 	  if ((0, _index.isFunction)(tag)) {
-	    return new _vnode2.default(_vnode2.default.Thunk, tag, attrs, children, tag);
+	    return new _vnode2.default({
+	      type: _vnode2.default.Thunk,
+	      renderFn: tag,
+	      attrs: attrs,
+	      children: children,
+	      options: tag
+	    });
 	  }
 	  // Object style component
 	  if ((0, _index.isObject)(tag)) {
-	    return new _vnode2.default(_vnode2.default.Thunk, tag.render, attrs, children, tag);
+	    return new _vnode2.default({
+	      type: _vnode2.default.Thunk,
+	      renderFn: tag.render,
+	      attrs: attrs,
+	      children: children,
+	      options: tag
+	    });
 	  }
-	  return new _vnode2.default(_vnode2.default.Element, tag, attrs, children);
+	  return new _vnode2.default({
+	    type: _vnode2.default.Element,
+	    tagName: tag,
+	    attrs: attrs,
+	    children: children
+	  });
 	}
 
 	function reduceChildren(acc, vnode) {
@@ -173,9 +190,14 @@
 
 	  var result;
 	  if ((0, _index.isString)(vnode) || (0, _index.isNumber)(vnode)) {
-	    result = new _vnode2.default(_vnode2.default.Text, vnode);
+	    result = new _vnode2.default({
+	      type: _vnode2.default.Text,
+	      nodeValue: vnode
+	    });
 	  } else if ((0, _index.isNull)(vnode)) {
-	    result = new _vnode2.default(_vnode2.default.Empty);
+	    result = new _vnode2.default({
+	      type: _vnode2.default.Empty
+	    });
 	  } else if (Array.isArray(vnode)) {
 	    result = vnode.reduce(reduceChildren, []);
 	  } else {
@@ -282,6 +304,7 @@
 	exports.getKeys = getKeys;
 	exports.getValues = getValues;
 	exports.each = each;
+	exports.extend = extend;
 	/**
 	 * Check if string
 	 * @param  {Mixed}  value
@@ -368,6 +391,36 @@
 	  }
 	}
 
+	/**
+	 * Merge the contents of two or more objects together into the first object.
+	 * @param obj
+	 * @param sources
+	 * @returns {*}
+	 */
+	function extend(obj) {
+	  for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    sources[_key - 1] = arguments[_key];
+	  }
+
+	  if (obj == null || sources.length === 0) {
+	    return obj;
+	  }
+
+	  for (var i = 0; i < sources.length; i++) {
+	    var source = sources[i];
+	    var keys = getKeys(sources[i]);
+	    for (var j = 0; j < keys.length; j++) {
+	      var key = keys[j];
+	      var value = source[key];
+	      if (isUndefined(value)) {
+	        continue;
+	      }
+	      obj[key] = source[key];
+	    }
+	  }
+	  return obj;
+	}
+
 /***/ },
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
@@ -445,6 +498,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	exports.renderThunk = renderThunk;
 	exports.groupByKey = groupByKey;
 
 	var _index = __webpack_require__(3);
@@ -463,46 +517,37 @@
 	 */
 
 	var VNode = function () {
-	  function VNode(type, tagName, attrs, children, options) {
+	  function VNode(settings) {
 	    _classCallCheck(this, VNode);
 
-	    this.type = type;
-	    if (type === VNode.Text) {
-	      this.nodeValue = tagName;
-	    } else if (type === VNode.Element) {
-	      this.tagName = tagName;
-	    } else if (type === VNode.Thunk) {
-	      // render function
-	      this.renderFn = tagName;
-	    }
+	    (0, _index.extend)(this, {
+	      children: [],
+	      options: {}
+	    }, settings);
 
-	    attrs = attrs || {};
+	    var attrs = settings.attrs || {};
 	    if ((0, _index.isString)(attrs.key) || (0, _index.isNumber)(attrs.key)) {
 	      this.key = attrs.key;
 	    }
 	    delete attrs.key;
 
 	    this.attrs = attrs;
-	    this.children = children || [];
-
-	    // Options for the component
-	    this.options = options;
 	  }
 
 	  _createClass(VNode, [{
-	    key: 'isText',
-	    value: function isText() {
-	      return this.type === VNode.Text;
-	    }
-	  }, {
-	    key: 'isEmpty',
-	    value: function isEmpty() {
-	      return this.type === VNode.Empty;
+	    key: 'isSameType',
+	    value: function isSameType(vnode) {
+	      return this.type === vnode.type;
 	    }
 	  }, {
 	    key: 'isElement',
 	    value: function isElement() {
 	      return this.type === VNode.Element;
+	    }
+	  }, {
+	    key: 'isText',
+	    value: function isText() {
+	      return this.type === VNode.Text;
 	    }
 	  }, {
 	    key: 'isThunk',
@@ -521,6 +566,23 @@
 	VNode.Element = 'element';
 	VNode.Empty = 'empty';
 	VNode.Thunk = 'thunk';
+
+	function renderThunk(vnode) {
+	  var data = {
+	    props: vnode.attrs,
+	    children: vnode.children
+	  };
+	  var renderedVnode = void 0;
+	  if (!vnode.options.render) {
+	    // the stateless function will get props through function params
+	    renderedVnode = vnode.renderFn(data);
+	  } else {
+	    // the component will get props through this.props
+	    (0, _index.extend)(data, vnode.options);
+	    renderedVnode = vnode.renderFn.apply(data);
+	  }
+	  return renderedVnode;
+	}
 
 	/**
 	 * Group an array of virtual elements by their key, using index as a fallback.
@@ -707,13 +769,14 @@
 	  // Remove the DOM
 	  if (!(0, _index.isUndefined)(oldVnode) && (0, _index.isUndefined)(newVnode)) {
 	    // Unmount the components
+	    unmountThunk(oldVnode);
 	    dom.removeChild(domElem.parentNode, domElem);
 	    return domElem;
 	  }
 
 	  // Replace the DOM
-	  if (!(0, _index.isNull)(oldVnode) && (0, _index.isNull)(newVnode) || (0, _index.isNull)(oldVnode) && !(0, _index.isNull)(newVnode) || oldVnode.type !== newVnode.type) {
-	    return replaceNode(domElem, newVnode);
+	  if (!(0, _index.isNull)(oldVnode) && (0, _index.isNull)(newVnode) || (0, _index.isNull)(oldVnode) && !(0, _index.isNull)(newVnode) || !oldVnode.isSameType(newVnode)) {
+	    return replaceNode(domElem, oldVnode, newVnode);
 	  }
 
 	  // Two nodes with the same type reaching this point
@@ -723,7 +786,7 @@
 	  if (newVnode.isElement()) {
 	    if (oldVnode.tagName !== newVnode.tagName) {
 	      // Replace the whole DOM element
-	      newDomElem = replaceNode(domElem, newVnode);
+	      newDomElem = replaceNode(domElem, oldVnode, newVnode);
 	    } else {
 	      // Same tagName, update the attributes
 	      updateAttributes(domElem, oldVnode, newVnode);
@@ -734,6 +797,8 @@
 	    if (oldVnode.nodeValue !== newVnode.nodeValue) {
 	      (0, _set_attribute.setAttribute)(domElem, 'nodeValue', newVnode.nodeValue, oldVnode.nodeValue);
 	    }
+	  } else if (newVnode.isThunk()) {
+	    newDomElem = updateThunk(domElem, oldVnode, newVnode);
 	  }
 	  return newDomElem;
 	}
@@ -785,6 +850,23 @@
 	  (0, diffActions.default)(oldChildren, newChildren, effect, key);
 	}
 
+	function updateThunk(domElem, oldNode, newNode) {
+	  var oldThunkVnode = oldNode.thunkVnode;
+	  var newThunkVnode = (0, _vnode.renderThunk)(newNode);
+	  return patchNode(domElem, oldThunkVnode, newThunkVnode);
+	}
+
+	function unmountThunk(vnode) {
+	  if (vnode.isThunk()) {
+	    // Call the lifecycle hook
+	    if (vnode.options.beforeUnmount) {}
+	    unmountThunk(vnode.thunkVnode);
+	  } else if (vnode.children) {
+	    (0, _index.each)(vnode.children, function (child) {
+	      return unmountThunk(child);
+	    });
+	  }
+	}
 	/**
 	 * compare the attributes of the two virtual nodes and update the dom attributes and event handlers
 	 * @param domElem
@@ -808,7 +890,8 @@
 	  }
 	}
 
-	function replaceNode(domElem, newNode) {
+	function replaceNode(domElem, oldNode, newNode) {
+	  unmountThunk(oldNode);
 	  var newDomElem = (0, _create_element2.default)(newNode);
 	  dom.replaceNode(newDomElem, domElem);
 	  return newDomElem;
@@ -1166,10 +1249,6 @@
 
 	var _set_attribute = __webpack_require__(10);
 
-	var _component = __webpack_require__(18);
-
-	var _component2 = _interopRequireDefault(_component);
-
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -1187,12 +1266,16 @@
 	      domElem = createTextNode(vnode);
 	      break;
 	    case _vnode2.default.Thunk:
-	      var component = (0, _component2.default)(vnode);
-	      domElem = component.createElement();
+	      domElem = createThunk(vnode);
 	      break;
 	  }
 	  vnode.elem = domElem;
 	  return domElem;
+	}
+
+	function createThunk(vnode) {
+	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode);
+	  return createElement(vnode.thunkVnode);
 	}
 
 	function createHtmlElement(vnode) {
@@ -1559,72 +1642,6 @@
 	    }
 	    return newModel;
 	  };
-	}
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	exports.default = createComponent;
-
-	var _create_element = __webpack_require__(13);
-
-	var _create_element2 = _interopRequireDefault(_create_element);
-
-	var _index = __webpack_require__(3);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var InternalComponnet = function () {
-	  function InternalComponnet(refNode) {
-	    _classCallCheck(this, InternalComponnet);
-
-	    this.refNode = refNode;
-	    this.props = refNode.attrs;
-	    this.children = refNode.children;
-
-	    this.isStateless = (0, _index.isFunction)(refNode.options);
-
-	    // Save the component to the refNode for patch operation
-	    refNode.component = this;
-	  }
-
-	  _createClass(InternalComponnet, [{
-	    key: 'render',
-	    value: function render() {
-	      var renderFn = this.refNode.renderFn;
-	      if (this.isStateless) {
-	        // the stateless function will get props through function params
-	        return renderFn(this);
-	      }
-	      // the component will get props through this.props
-	      return renderFn.call(this);
-	    }
-	  }, {
-	    key: 'createElement',
-	    value: function createElement() {
-	      var vnode = this.render();
-	      this.vnode = vnode;
-	      this.elm = (0, _create_element2.default)(vnode);
-	      return this.elm;
-	    }
-	  }]);
-
-	  return InternalComponnet;
-	}();
-
-	function createComponent(vnode) {
-	  return new InternalComponnet(vnode);
 	}
 
 /***/ }

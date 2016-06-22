@@ -5,13 +5,30 @@ export default function create (tag, attrs, ...children) {
   children = children.reduce(reduceChildren, [])
   // Stateless function component
   if (isFunction(tag)) {
-    return new VNode(VNode.Thunk, tag, attrs, children, tag)
+    return new VNode({
+      type: VNode.Thunk,
+      renderFn: tag,
+      attrs,
+      children,
+      options: tag
+    })
   }
   // Object style component
   if (isObject(tag)) {
-    return new VNode(VNode.Thunk, tag.render, attrs, children, tag)
+    return new VNode({
+      type: VNode.Thunk,
+      renderFn: tag.render,
+      attrs,
+      children,
+      options: tag
+    })
   }
-  return new VNode(VNode.Element, tag, attrs, children)
+  return new VNode({
+    type: VNode.Element,
+    tagName: tag,
+    attrs,
+    children
+  })
 }
 
 function reduceChildren (acc, vnode) {
@@ -21,9 +38,14 @@ function reduceChildren (acc, vnode) {
 
   var result
   if (isString(vnode) || isNumber(vnode)) {
-    result = new VNode(VNode.Text, vnode)
+    result = new VNode({
+      type: VNode.Text,
+      nodeValue: vnode
+    })
   } else if (isNull(vnode)) {
-    result = new VNode(VNode.Empty)
+    result = new VNode({
+      type: VNode.Empty
+    })
   } else if (Array.isArray(vnode)) {
     result = vnode.reduce(reduceChildren, [])
   } else {

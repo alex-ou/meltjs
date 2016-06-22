@@ -76,4 +76,21 @@ describe('createElement', () => {
     expect(node.childNodes[0].outerHTML).toBe('<div><span>2</span></div>')
     expect(node.childNodes[1].outerHTML).toBe('<div><span>3</span></div>')
   })
+
+  it('can pass in children to components with state', () => {
+    let Counter = {
+      test: function () { return this.props.count + 1 },
+      render: function () {
+        return h('span', {}, this.test())
+      }
+    }
+    let vtree = h('div', {},
+      h(Counter, {count: 1}),
+      h(Counter, {count: 2})
+    )
+    var node = createElement(vtree)
+    expect(node.childNodes.length).toBe(2)
+    expect(node.childNodes[0].outerHTML).toBe('<span>2</span>')
+    expect(node.childNodes[1].outerHTML).toBe('<span>3</span>')
+  })
 })

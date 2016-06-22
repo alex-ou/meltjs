@@ -1,8 +1,7 @@
-import VNode from '../vdom/vnode'
-import {isNumber, isString, isNull, isUndefined} from '../util/index'
+import VNode, {renderThunk} from '../vdom/vnode'
+import {isNumber, isString, isNull, isUndefined, extend} from '../util/index'
 import * as dom from './dom'
 import {setAttribute} from './set_attribute'
-import createComponent from './component'
 
 export default function createElement (vnode) {
   var domElem
@@ -17,12 +16,16 @@ export default function createElement (vnode) {
       domElem = createTextNode(vnode)
       break
     case VNode.Thunk:
-      let component = createComponent(vnode)
-      domElem = component.createElement()
+      domElem = createThunk(vnode)
       break
   }
   vnode.elem = domElem
   return domElem
+}
+
+function createThunk (vnode) {
+  vnode.thunkVnode = renderThunk(vnode)
+  return createElement(vnode.thunkVnode)
 }
 
 function createHtmlElement (vnode) {

@@ -15,6 +15,7 @@ function getProp (propName) {
 }
 
 const innerHtml = getProp('innerHTML')
+const outerHtml = getProp('outerHTML')
 const tagName = getProp('tagName')
 
 describe('patch', () => {
@@ -131,7 +132,7 @@ describe('patch', () => {
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['2'])
   })
 
-  it('should empty the parent node', () => {
+  it('should empty the parent node there are no children in the new vnode', () => {
     let oldNode = h('ul', {}, [
       h('li', {key: 1}, '1'),
       h('li', {key: 2}, '2'),
@@ -141,6 +142,62 @@ describe('patch', () => {
     let domElem = createElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(newDomElem.childNodes.length).toBe(0)
+  })
+
+  it('should replace the old node with a component', () => {
+    let oldNode = h('div', {}, [
+      h('span', {key: 1}, '1')
+    ])
+
+    let Counter = () => h('i', {}, 2)
+    let newNode = h('div', {}, h(Counter, {key: 1}))
+    let domElem = createElement(oldNode)
+    var newDomElem = patch(domElem, oldNode, newNode)
+    expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<i>2</i>'])
+  })
+
+  it('should update the components correctly', () => {
+    let Counter = ({props}) => h('i', {}, props.data)
+
+    let oldNode = h('div', {},
+      h(Counter, {key: 1, data: 'abc'})
+    )
+    let newNode = h('div', {},
+      h(Counter, {key: 1, data: 'cde'})
+    )
+    let domElem = createElement(oldNode)
+    var newDomElem = patch(domElem, oldNode, newNode)
+    expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<i>cde</i>'])
+  })
+
+  it('should update the components and the elements correctly', () => {
+    let Counter = ({props}) => h('i', {}, props.data)
+
+    let oldNode = h('div', {},
+      h(Counter, {key: 1, data: 'abc'})
+    )
+    let newNode = h('div', {},
+      h('span', {}, 'abc'),
+      h(Counter, {key: 1, data: 'cde'})
+    )
+    let domElem = createElement(oldNode)
+    var newDomElem = patch(domElem, oldNode, newNode)
+    expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<span>abc</span>', '<i>cde</i>'])
+  })
+
+  it('should update the components and the elements correctly even without keys', () => {
+    let Counter = ({props}) => h('i', {}, props.data)
+
+    let oldNode = h('div', {},
+      h(Counter, {key: 1, data: 'abc'})
+    )
+    let newNode = h('div', {},
+      h('span', {}, 'abc'),
+      h(Counter, {data: 'cde'})
+    )
+    let domElem = createElement(oldNode)
+    var newDomElem = patch(domElem, oldNode, newNode)
+    expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<span>abc</span>', '<i>cde</i>'])
   })
 })
 

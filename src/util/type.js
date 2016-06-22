@@ -83,3 +83,30 @@ export function each (obj, func) {
     }
   }
 }
+
+/**
+ * Merge the contents of two or more objects together into the first object.
+ * @param obj
+ * @param sources
+ * @returns {*}
+ */
+export function extend (obj, ...sources) {
+  if (obj == null || sources.length === 0) {
+    return obj
+  }
+
+  for (let i = 0; i < sources.length; i++) {
+    let source = sources[i]
+    let keys = getKeys(sources[i])
+    for (let j = 0; j < keys.length; j++) {
+      let key = keys[j]
+      let value = source[key]
+      if (isUndefined(value)) {
+        continue
+      }
+      obj[key] = source[key]
+    }
+  }
+  return obj
+}
+
