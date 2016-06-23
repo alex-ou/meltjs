@@ -1,5 +1,4 @@
 import Opal from '../../src/index'
-
 var increaseAsync = function (step, model, actions) {
   setTimeout(() => {
     actions.increase(step)

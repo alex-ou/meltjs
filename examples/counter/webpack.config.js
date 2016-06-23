@@ -2,15 +2,9 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
-  entry: {
-    'opal': './src/index.js',
-    'opal.min': './src/index.js'
-  },
+  entry: './index.js',
   output: {
-    path: path.resolve(__dirname, './dist'),
-    libraryTarget: 'var',
-    library: ['Opal'],
-    filename: '[name].js'
+    path: path.resolve(__dirname, './dist/bundle.js')
   },
   externals: {
     'entities': true,

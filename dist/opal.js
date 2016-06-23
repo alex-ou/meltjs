@@ -1,3 +1,4 @@
+var Opal =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -46,79 +47,16 @@
 
 	'use strict';
 
-	var _index = __webpack_require__(1);
-
-	var _index2 = _interopRequireDefault(_index);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var increaseAsync = function increaseAsync(step, model, actions) {
-	  setTimeout(function () {
-	    actions.increase(step);
-	  }, 2000);
-	  return model;
-	};
-
-	var increase = function increase(step, model) {
-	  return model + step;
-	};
-
-	var decrease = function decrease(step, model) {
-	  return model - step;
-	};
-
-	_index2.default.component('counter', {
-	  render: function render(h) {
-	    var _this = this;
-
-	    return h('div', {}, [this.props.count, h('button', { 'onClick': function onClick() {
-	        return _this.props.onIncrease(2);
-	      } }, '+'), h('button', { 'onClick': function onClick() {
-	        return _this.props.onDecrease(2);
-	      } }, '-')]);
-	  },
-
-	  template: '\n    <div>\n        {props.count}\n        <button on-click="{props.onIncrease(2)}">+</button>\n        <button on-click="{props.onDecrease(2)}">-</button>\n    </div> '
-	});
-
-	_index2.default.app({
-	  el: '#app',
-	  render: function render(h) {
-	    var _actions = this.actions;
-	    var increaseAsync = _actions.increaseAsync;
-	    var decrease = _actions.decrease;
-
-
-	    return h('div', {}, [this.model, h('button', { 'onClick': function onClick() {
-	        return increaseAsync(2);
-	      } }, '+'), h('button', { 'onClick': function onClick() {
-	        return decrease(2);
-	      } }, '-')]);
-	  },
-	  model: 0,
-	  update: {
-	    increase: increase,
-	    increaseAsync: increaseAsync,
-	    decrease: decrease
-	  }
-	});
-
-/***/ },
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	exports.default = Opal;
 
-	var _create = __webpack_require__(2);
+	var _create = __webpack_require__(1);
 
 	var _create2 = _interopRequireDefault(_create);
 
-	var _app = __webpack_require__(8);
+	var _app = __webpack_require__(7);
 
 	var _app2 = _interopRequireDefault(_app);
 
@@ -131,7 +69,7 @@
 	};
 
 /***/ },
-/* 2 */
+/* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -141,9 +79,9 @@
 	});
 	exports.default = create;
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
-	var _vnode = __webpack_require__(7);
+	var _vnode = __webpack_require__(6);
 
 	var _vnode2 = _interopRequireDefault(_vnode);
 
@@ -208,7 +146,7 @@
 	}
 
 /***/ },
-/* 3 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -217,7 +155,7 @@
 	  value: true
 	});
 
-	var _debug = __webpack_require__(4);
+	var _debug = __webpack_require__(3);
 
 	Object.keys(_debug).forEach(function (key) {
 	  if (key === "default") return;
@@ -229,7 +167,7 @@
 	  });
 	});
 
-	var _type = __webpack_require__(5);
+	var _type = __webpack_require__(4);
 
 	Object.keys(_type).forEach(function (key) {
 	  if (key === "default") return;
@@ -241,7 +179,7 @@
 	  });
 	});
 
-	var _bitset = __webpack_require__(6);
+	var _bitset = __webpack_require__(5);
 
 	Object.keys(_bitset).forEach(function (key) {
 	  if (key === "default") return;
@@ -254,7 +192,7 @@
 	});
 
 /***/ },
-/* 4 */
+/* 3 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -282,7 +220,7 @@
 	}
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -422,7 +360,7 @@
 	}
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -433,7 +371,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _type = __webpack_require__(5);
+	var _type = __webpack_require__(4);
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -487,7 +425,7 @@
 	exports.default = Bitset;
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -501,7 +439,7 @@
 	exports.renderThunk = renderThunk;
 	exports.groupByKey = groupByKey;
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -599,7 +537,7 @@
 	}
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -610,25 +548,25 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
-	var _patch = __webpack_require__(9);
+	var _patch = __webpack_require__(8);
 
 	var _patch2 = _interopRequireDefault(_patch);
 
-	var _create_element = __webpack_require__(13);
+	var _create_element = __webpack_require__(12);
 
 	var _create_element2 = _interopRequireDefault(_create_element);
 
-	var _dom = __webpack_require__(12);
+	var _dom = __webpack_require__(11);
 
-	var _index2 = __webpack_require__(15);
+	var _index2 = __webpack_require__(14);
 
 	var _index3 = _interopRequireDefault(_index2);
 
-	var _action = __webpack_require__(17);
+	var _action = __webpack_require__(16);
 
-	var _create = __webpack_require__(2);
+	var _create = __webpack_require__(1);
 
 	var _create2 = _interopRequireDefault(_create);
 
@@ -723,7 +661,7 @@
 	exports.default = OpalApp;
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -734,21 +672,21 @@
 	exports.default = patchNode;
 	exports.patchChildren = patchChildren;
 
-	var _set_attribute = __webpack_require__(10);
+	var _set_attribute = __webpack_require__(9);
 
-	var _create_element = __webpack_require__(13);
+	var _create_element = __webpack_require__(12);
 
 	var _create_element2 = _interopRequireDefault(_create_element);
 
-	var _vnode = __webpack_require__(7);
+	var _vnode = __webpack_require__(6);
 
-	var _diff = __webpack_require__(14);
+	var _diff = __webpack_require__(13);
 
 	var diffActions = _interopRequireWildcard(_diff);
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
-	var _dom = __webpack_require__(12);
+	var _dom = __webpack_require__(11);
 
 	var dom = _interopRequireWildcard(_dom);
 
@@ -898,7 +836,7 @@
 	}
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -909,13 +847,13 @@
 	exports.removeAttribute = removeAttribute;
 	exports.setAttribute = setAttribute;
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
-	var _events = __webpack_require__(11);
+	var _events = __webpack_require__(10);
 
 	var _events2 = _interopRequireDefault(_events);
 
-	var _dom = __webpack_require__(12);
+	var _dom = __webpack_require__(11);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -996,7 +934,7 @@
 	}
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1077,7 +1015,7 @@
 	};
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1102,7 +1040,7 @@
 	exports.removeEventListener = removeEventListener;
 	exports.addEventListener = addEventListener;
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
 	var namespaceMap = exports.namespaceMap = {
 	  svg: 'http://www.w3.org/2000/svg',
@@ -1227,7 +1165,7 @@
 	}
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1237,17 +1175,17 @@
 	});
 	exports.default = createElement;
 
-	var _vnode = __webpack_require__(7);
+	var _vnode = __webpack_require__(6);
 
 	var _vnode2 = _interopRequireDefault(_vnode);
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
-	var _dom = __webpack_require__(12);
+	var _dom = __webpack_require__(11);
 
 	var dom = _interopRequireWildcard(_dom);
 
-	var _set_attribute = __webpack_require__(10);
+	var _set_attribute = __webpack_require__(9);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -1310,7 +1248,7 @@
 	}
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1320,9 +1258,9 @@
 	});
 	exports.REMOVE = exports.MOVE = exports.UPDATE = exports.CREATE = undefined;
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
-	var _bitset = __webpack_require__(6);
+	var _bitset = __webpack_require__(5);
 
 	var _bitset2 = _interopRequireDefault(_bitset);
 
@@ -1466,7 +1404,7 @@
 	exports.REMOVE = REMOVE;
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1475,7 +1413,7 @@
 	  value: true
 	});
 
-	var _store = __webpack_require__(16);
+	var _store = __webpack_require__(15);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -1484,7 +1422,7 @@
 	exports.default = _store2.default;
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1495,7 +1433,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1552,7 +1490,7 @@
 	exports.default = OpalStore;
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1566,7 +1504,7 @@
 	exports.createActionCreators = createActionCreators;
 	exports.createModelUpdater = createModelUpdater;
 
-	var _index = __webpack_require__(3);
+	var _index = __webpack_require__(2);
 
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
