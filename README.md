@@ -2,7 +2,7 @@
 
 ## Examples
 
-[jsfiddle link](https://jsfiddle.net/alex_ou/fomL88qw/
+[ jsfiddle link ](https://jsfiddle.net/alex_ou/fomL88qw/)
 
 ```javascript
 import Opal from './src/index'
