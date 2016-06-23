@@ -2,7 +2,7 @@
 
 ## Examples
 
-[plnkr link](https://embed.plnkr.co/PnZOcfw0TJrd8zyggVlr/)
+[jsfiddle link](https://jsfiddle.net/alex_ou/fomL88qw/
 
 ```javascript
 import Opal from './src/index'
