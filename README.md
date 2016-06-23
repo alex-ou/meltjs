@@ -2,6 +2,8 @@
 
 ## Examples
 
+[plnkr link](https://embed.plnkr.co/PnZOcfw0TJrd8zyggVlr/)
+
 ```javascript
 import Opal from './src/index'
 

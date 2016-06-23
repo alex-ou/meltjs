@@ -47,11 +47,6 @@ var Opal =
 
 	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = Opal;
-
 	var _create = __webpack_require__(1);
 
 	var _create2 = _interopRequireDefault(_create);
@@ -67,6 +62,8 @@ var Opal =
 	Opal.app = function (options) {
 	  return new _app2.default(options);
 	};
+
+	module.exports = Opal;
 
 /***/ },
 /* 1 */
