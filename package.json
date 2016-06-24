@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack --watch & npm run serve-test",
+    "build": "webpack",
+    "dev": "webpack --config webpack.dev.config.js --watch & npm run serve-test",
     "serve-test": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --color --progress",
     "lint": "node ./node_modules/eslint/bin/eslint.js src/** test/unit/**; exit 0",
     "unit": "karma start"

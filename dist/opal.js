@@ -1,5 +1,14 @@
-var Opal =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define("Opal", [], factory);
+	else if(typeof exports === 'object')
+		exports["Opal"] = factory();
+	else
+		root["Opal"] = factory();
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -1580,4 +1589,6 @@ var Opal =
 	}
 
 /***/ }
-/******/ ]);
+/******/ ])
+});
+;

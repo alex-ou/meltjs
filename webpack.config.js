@@ -8,8 +8,9 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, './dist'),
-    libraryTarget: 'var',
-    library: ['Opal'],
+    libraryTarget: 'umd',
+    umdNamedDefine: true,
+    library: 'Opal',
     filename: '[name].js'
   },
   externals: {

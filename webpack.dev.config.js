@@ -2,9 +2,12 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
-  entry: './index.js',
+  entry: {
+    'counter': ['./examples/counter/index.js']
+  },
   output: {
-    path: path.resolve(__dirname, './dist/bundle.js')
+    path: path.resolve(__dirname, './dist'),
+    filename: '[name].js'
   },
   externals: {
     'entities': true,
