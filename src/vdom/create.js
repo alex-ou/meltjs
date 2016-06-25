@@ -1,14 +1,14 @@
 import {isString, isNumber, isNull, isUndefined, isFunction, isObject} from '../util/index'
 import VNode from './vnode'
 
-export default function create (tag, attrs, ...children) {
+export default function create (tag, attributes, ...children) {
   children = children.reduce(reduceChildren, [])
   // Stateless function component
   if (isFunction(tag)) {
     return new VNode({
       type: VNode.Thunk,
       renderFn: tag,
-      attrs,
+      attributes,
       children,
       options: tag
     })
@@ -18,7 +18,7 @@ export default function create (tag, attrs, ...children) {
     return new VNode({
       type: VNode.Thunk,
       renderFn: tag.render,
-      attrs,
+      attributes,
       children,
       options: tag
     })
@@ -26,7 +26,7 @@ export default function create (tag, attrs, ...children) {
   return new VNode({
     type: VNode.Element,
     tagName: tag,
-    attrs,
+    attributes,
     children
   })
 }

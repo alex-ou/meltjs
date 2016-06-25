@@ -1,5 +1,5 @@
 # Opal.js
-OpalJS is a very light framework that allows you to create web applications which have predicable behaviors and easy to test. It cuts all the unnecessary parts of web client down to three essential parts: 
+OpalJS is a very light framework that allows you to create web applications which have predicable behaviors and are easy to test. It cuts all the unnecessary parts of web client down to three essential parts: 
 
 * **Model**: the state of the whole application
 * **Update**: the only place the model can be mutated

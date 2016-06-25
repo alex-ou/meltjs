@@ -1,6 +1,6 @@
 import {isFunction} from '../util/index'
 
-export default class OpalStore {
+export default class Store {
   constructor (initialModel, updater) {
     this.model = initialModel
     this.modelUpdater = updater

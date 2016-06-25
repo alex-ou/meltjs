@@ -1,6 +1,6 @@
 import {isNumber, isString, isBoolean, isFunction} from '../util/index'
-import events from './events'
-import {removeEventListener, addEventListener, setAttribute as setNodeAttribute} from './dom'
+import events from './util/events'
+import {removeEventListener, addEventListener, setAttribute as setNodeAttribute} from './node-op'
 
 export function removeAttribute (node, name, oldValue) {
   let eventType = events[name]

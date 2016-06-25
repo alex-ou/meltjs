@@ -1,3 +1,3 @@
-import OpalStore from './store'
+import Store from './store'
 
-export default OpalStore
+export default Store

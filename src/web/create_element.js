@@ -1,6 +1,6 @@
 import VNode, {renderThunk} from '../vdom/vnode'
 import {isNumber, isString, isNull, isUndefined, extend} from '../util/index'
-import * as dom from './dom'
+import * as nodeOp from './node-op'
 import {setAttribute} from './set_attribute'
 
 export default function createElement (vnode) {
@@ -29,12 +29,12 @@ function createThunk (vnode) {
 }
 
 function createHtmlElement (vnode) {
-  let {tagName, children, attrs} = vnode
+  let {tagName, children, attributes} = vnode
 
-  var elem = dom.createElement(tagName)
+  var elem = nodeOp.createElement(tagName)
 
-  for (let name in attrs) {
-    setAttribute(elem, name, attrs[name])
+  for (let name in attributes) {
+    setAttribute(elem, name, attributes[name])
   }
 
   children.forEach(child => {
@@ -42,7 +42,7 @@ function createHtmlElement (vnode) {
       return
     }
 
-    dom.appendChild(elem, createElement(child))
+    nodeOp.appendChild(elem, createElement(child))
   })
   return elem
 }
@@ -50,9 +50,9 @@ function createHtmlElement (vnode) {
 function createTextNode (vnode) {
   let text = isNumber(vnode.nodeValue) || isString(vnode.nodeValue)
     ? vnode.nodeValue : ''
-  return dom.createTextNode(text)
+  return nodeOp.createTextNode(text)
 }
 
 function createEmptyNode () {
-  return dom.createElement('noscript')
+  return nodeOp.createElement('noscript')
 }

@@ -1,7 +1,7 @@
 import {isFunction, getKeys, each} from './util/index'
 import patch from './web/patch'
 import createDomElement from './web/create_element'
-import {emptyElement, query, appendChild} from './web/dom'
+import {emptyElement, query, appendChild} from './web/node-op'
 import OpalStore from './store/index'
 import {bindActionCreators, createActionCreators, createModelUpdater} from './store/action'
 import createElement from './vdom/create'

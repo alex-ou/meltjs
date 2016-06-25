@@ -1,57 +1,11 @@
-import {has, isUndefined, isString} from '../util/index'
-
-export const namespaceMap = {
-  svg: 'http://www.w3.org/2000/svg',
-  math: 'http://www.w3.org/1998/Math/MathML'
-}
-
-var svgElements = 'animate,circle,defs,ellipse,g,line,linearGradient,mask,path,pattern,polygon,polyline,radialGradient,rect,stop,svg,text,tspan'.split(',')
-var svgMap = svgElements
-  .reduce(function (acc, name) {
-    acc[name] = true
-    return acc
-  }, {})
-
-const svgAttributeNamespaces = {
-  ev: 'http://www.w3.org/2001/xml-events',
-  xlink: 'http://www.w3.org/1999/xlink',
-  xml: 'http://www.w3.org/XML/1998/namespace',
-  xmlns: 'http://www.w3.org/2000/xmlns/'
-}
-
-/**
- * Get namespace of svg attribute
- *
- * @param {String} attributeName
- * @return {String} namespace
- */
-
-function getSvgAttributeNamespace (attributeName) {
-  // if no prefix separator in attributeName, then no namespace
-  if (attributeName.indexOf(':') === -1) return null
-
-  // get prefix from attributeName
-  var prefix = attributeName.split(':', 1)[0]
-
-  // if prefix in supported prefixes
-  if (has(svgAttributeNamespaces, prefix)) {
-    // then namespace of prefix
-    return svgAttributeNamespaces[prefix]
-  } else {
-    // else unsupported prefix
-    throw new Error('svg-attribute-namespace: prefix "' + prefix + '" is not supported by SVG.')
-  }
-}
+import {isUndefined, isString} from '../util/index'
+import {getSvgAttributeNamespace, namespaceMap, isSvgElement} from './util/elements'
 
 export function setAttribute (node, key, val) {
   var ns = getSvgAttributeNamespace(key)
   return ns
     ? node.setAttributeNS(ns, key, val)
     : node.setAttribute(key, val)
-}
-
-export function isSvgElement (name) {
-  return has(svgMap, name)
 }
 
 export function createElement (tagName) {

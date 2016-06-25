@@ -16,13 +16,13 @@ export default class VNode {
       options: {}
     }, settings)
 
-    let attrs = settings.attrs || {}
-    if (isString(attrs.key) || isNumber(attrs.key)) {
-      this.key = attrs.key
+    let attributes = settings.attributes || {}
+    if (isString(attributes.key) || isNumber(attributes.key)) {
+      this.key = attributes.key
     }
-    delete attrs.key
+    delete attributes.key
 
-    this.attrs = attrs
+    this.attributes = attributes
   }
 
   isSameType (vnode) {
@@ -49,7 +49,7 @@ VNode.Thunk = 'thunk'
 
 export function renderThunk (vnode) {
   let data = {
-    props: vnode.attrs,
+    props: vnode.attributes,
     children: vnode.children
   }
   let renderedVnode

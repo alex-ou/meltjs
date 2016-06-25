@@ -3,7 +3,7 @@ import createElement from './create_element'
 import {groupByKey, renderThunk} from '../vdom/vnode'
 import diff, * as diffActions from '../vdom/diff'
 import {has, isUndefined, isNull, each} from '../util/index'
-import * as dom from './dom'
+import * as nodeOp from './node-op'
 
 /**
  * Compare two virtual nodes and update the dom element
@@ -19,7 +19,7 @@ export default function patchNode (domElem, oldVnode, newVnode) {
   if (!isUndefined(oldVnode) && isUndefined(newVnode)) {
     // Unmount the components
     unmountThunk(oldVnode)
-    dom.removeChild(domElem.parentNode, domElem)
+    nodeOp.removeChild(domElem.parentNode, domElem)
     return domElem
   }
 
@@ -59,28 +59,28 @@ export function patchChildren (parentElem, oldNode, newNode) {
   let key = a => a.key
 
   // Make a copy of the references to children to be deleted
-  let domChildNodes = Array.prototype.slice.call(dom.childNodes(parentElem))
+  let domChildNodes = Array.prototype.slice.call(nodeOp.childNodes(parentElem))
 
   function effect (type, prev, next, pos) {
     switch (type) {
       case CREATE: {
         let newDomElem = createElement(next.item)
-        dom.insertBefore(parentElem, newDomElem, dom.childNode(parentElem, pos))
+        nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
       case UPDATE: {
-        let domElem = dom.childNode(parentElem, prev.index)
+        let domElem = nodeOp.childNode(parentElem, prev.index)
         patchNode(domElem, prev.item, next.item)
         break
       }
       case MOVE: {
-        let childDomElem = dom.childNode(parentElem, prev.index)
+        let childDomElem = nodeOp.childNode(parentElem, prev.index)
         patchNode(childDomElem, prev.item, next.item)
-        dom.insertBefore(parentElem, childDomElem, dom.childNode(parentElem, pos))
+        nodeOp.insertBefore(parentElem, childDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
       case REMOVE: {
-        dom.removeChild(parentElem, domChildNodes[prev.index])
+        nodeOp.removeChild(parentElem, domChildNodes[prev.index])
         break
       }
     }
@@ -111,18 +111,18 @@ function unmountThunk (vnode) {
  * @param newNode
  */
 function updateAttributes (domElem, oldNode, newNode) {
-  let oldAttrs = oldNode.attrs
-  let newAttrs = newNode.attrs
+  let oldAttributes = oldNode.attributes
+  let newAttributes = newNode.attributes
 
-  for (let name in newAttrs) {
-    if (newAttrs[name] !== oldAttrs[name]) {
-      setAttribute(domElem, name, newAttrs[name], oldAttrs[name])
+  for (let name in newAttributes) {
+    if (newAttributes[name] !== oldAttributes[name]) {
+      setAttribute(domElem, name, newAttributes[name], oldAttributes[name])
     }
   }
 
-  for (let name in oldAttrs) {
-    if (!has(newAttrs, name)) {
-      removeAttribute(domElem, name, oldAttrs[name])
+  for (let name in oldAttributes) {
+    if (!has(newAttributes, name)) {
+      removeAttribute(domElem, name, oldAttributes[name])
     }
   }
 }
@@ -130,7 +130,7 @@ function updateAttributes (domElem, oldNode, newNode) {
 function replaceNode (domElem, oldNode, newNode) {
   unmountThunk(oldNode)
   let newDomElem = createElement(newNode)
-  dom.replaceNode(newDomElem, domElem)
+  nodeOp.replaceNode(newDomElem, domElem)
   return newDomElem
 }
 

@@ -24,7 +24,7 @@ describe('vnode creation', () => {
     child = tree.children[2]
     expect(child.type).toBe(VNode.Element)
     expect(child.tagName).toBe('a')
-    expect(child.attrs.href).toBe('/link')
+    expect(child.attributes.href).toBe('/link')
   })
 
   it('can create a vnode tree with function components', () => {
