@@ -2,6 +2,8 @@ export * from './debug'
 export * from './type'
 export * from './bitset'
 
+export function noop () {}
+
 export function makeMap (str) {
   var obj = {}
   var items = str.split(',')

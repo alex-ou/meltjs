@@ -1,5 +1,6 @@
 # Opal.js
-OpalJS is a very light framework that allows you to create web applications which have predicable behaviors and are easy to test. It cuts all the unnecessary parts of web client down to three essential parts: 
+
+OpalJS is a very light framework that allows you to create web applications that have predicable behaviors and are easy to test. It has three essential parts: 
 
 * **Model**: the state of the whole application
 * **Update**: the only place the model can be mutated
@@ -16,19 +17,19 @@ let model = 0
 let update = {
   //Opal passes the arguments and the model object here
 	increase: function (step, model) {
-  	return model + step
+  	  return model + step
 	},
 	decrease: function (step, model) {
-  	return model - step
+  	  return model - step
 	}
 }
 
 //the render function 
-let render = function (h) {
+let render = function () {
     /* OpalJS automatically generates the action creators based on 
     the keys of the update object */
     let {increase, decrease} = this.actions
-
+    let h = Opal.createElement
     return h('div', {}, [
       this.model,
       h('button', {'onClick': () => increase(2)}, '+'),
@@ -37,25 +38,28 @@ let render = function (h) {
   }
 
 Opal.app({
-  el: '#app', //root DOM element
+  el: '#app', //the root DOM element
   model,
   update,
   render
 })
 
 ```
-## Features
-### Duo-way Rendering - JSX and Templates
-JSX is very flexible, a lot of developers like this way to create the UI. Under the hood, Opal uses virtual DOM to represent the DOM structure, and it's fully compatible with JSX, so you can create the view in React way. 
-On the other hand, templates are very clean and concise, consider the following example, you can tell with a glimpse that it'll render into a list:
+## Why another JS framework
+Opal was created with the following three purposes:
+### Makes component design easier
+Opal supports two kinds of components: stateless function components and components with states
+
+### Enforces one way data flow
+In Opal, data only flows in one way. In the view, if you want to change the model, actions have to be used to dispatch the data to the application's update method. After the model changes, Opal propagates the changes from the root component to the leaf ones. This is to help maintain a predicable application state and improve the performance
+
+### Provides duo-way view rendering - JSX and templates
+On one hand, JSX allows you to describe the view using JavaScript, this makes it really flexible as you can utilize all the build-in JS language features, that's why a lot of developers like it. Opal uses virtual DOM to represent the DOM as well, and the `Opal.createElement` function used to create virtual elements is compatible with JSX.
+On the other hand, writing views using templates with some framework provided directives, e.g. `each`, `if`, `ref` etc, you will end up with very expressive and concise views. Consider the following example, with a glimpse, you can tell that it'll render into a list:
 
 ```html
 <ul>
-<li for={item in items}></li>
+  <li each="{item in items}"></li>
 </ul>
 ```
-Opal will also support the template rendering with some predefined angular-like directives, e.g. `for`, `if`, `ref` etc. All the templates will be compiled into virtual DOM so it'll be transparent to developers. (Template rendering is still work in progress)
-### Component design
-Opal supports two kinds of components: stateless function components and components with states
-### One way data flow
-Opal enforces one way data flow, in the view, if you want to change the model, actions have to be used to dispatch the data. this is to help maintain a predicable application state and improve the performance
+All the templates in Opal will be compiled into virtual DOM so it'll be transparent to developers. (Template rendering is still work in progress)

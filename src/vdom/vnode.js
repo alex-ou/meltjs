@@ -11,6 +11,12 @@ import {isNull, isString, isNumber, extend} from '../util/index'
  */
 export default class VNode {
   constructor (settings) {
+    /** settings include the following fields
+     type
+     tagName
+     attributes,
+     children
+     */
     extend(this, {
       children: [],
       options: {}

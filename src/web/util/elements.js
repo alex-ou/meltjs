@@ -44,3 +44,14 @@ export function getSvgAttributeNamespace (attributeName) {
     throw new Error('svg-attribute-namespace: prefix "' + prefix + '" is not supported by SVG.')
   }
 }
+// Special Elements (can contain anything)
+var specialTag = makeMap('script,style')
+export function isSpecialTag (tag) {
+  return specialTag[tag]
+}
+
+// Elements without close Tag
+var unaryTag = makeMap('area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr')
+export function isUnaryTag (tag) {
+  return unaryTag[tag]
+}

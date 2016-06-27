@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Opal() {}
 	Opal.createElement = _create2.default;
 	Opal.app = function (options) {
-	  return new _app2.default(options);
+	  return (0, _app2.default)(options);
 	};
 
 	module.exports = Opal;
@@ -93,7 +93,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function create(tag, attrs) {
+	function create(tag, attributes) {
 	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
 	    children[_key - 2] = arguments[_key];
 	  }
@@ -104,7 +104,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new _vnode2.default({
 	      type: _vnode2.default.Thunk,
 	      renderFn: tag,
-	      attrs: attrs,
+	      attributes: attributes,
 	      children: children,
 	      options: tag
 	    });
@@ -114,7 +114,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new _vnode2.default({
 	      type: _vnode2.default.Thunk,
 	      renderFn: tag.render,
-	      attrs: attrs,
+	      attributes: attributes,
 	      children: children,
 	      options: tag
 	    });
@@ -122,7 +122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return new _vnode2.default({
 	    type: _vnode2.default.Element,
 	    tagName: tag,
-	    attrs: attrs,
+	    attributes: attributes,
 	    children: children
 	  });
 	}
@@ -196,6 +196,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  });
 	});
+	exports.noop = noop;
+	exports.makeMap = makeMap;
+	function noop() {}
+
+	function makeMap(str) {
+	  var obj = {};
+	  var items = str.split(',');
+	  for (var i = 0; i < items.length; i++) {
+	    obj[items[i]] = true;
+	  }
+	  return obj;
+	}
 
 /***/ },
 /* 3 */
@@ -464,18 +476,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function VNode(settings) {
 	    _classCallCheck(this, VNode);
 
+	    /** settings include the following fields
+	     type
+	     tagName
+	     attributes,
+	     children
+	     */
 	    (0, _index.extend)(this, {
 	      children: [],
 	      options: {}
 	    }, settings);
 
-	    var attrs = settings.attrs || {};
-	    if ((0, _index.isString)(attrs.key) || (0, _index.isNumber)(attrs.key)) {
-	      this.key = attrs.key;
+	    var attributes = settings.attributes || {};
+	    if ((0, _index.isString)(attributes.key) || (0, _index.isNumber)(attributes.key)) {
+	      this.key = attributes.key;
 	    }
-	    delete attrs.key;
+	    delete attributes.key;
 
-	    this.attrs = attrs;
+	    this.attributes = attributes;
 	  }
 
 	  _createClass(VNode, [{
@@ -513,7 +531,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function renderThunk(vnode) {
 	  var data = {
-	    props: vnode.attrs,
+	    props: vnode.attributes,
 	    children: vnode.children
 	  };
 	  var renderedVnode = void 0;
@@ -551,120 +569,101 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	exports.default = createApp;
 
 	var _index = __webpack_require__(2);
 
-	var _patch = __webpack_require__(8);
+	var _nodeOp = __webpack_require__(8);
 
-	var _patch2 = _interopRequireDefault(_patch);
-
-	var _create_element = __webpack_require__(12);
-
-	var _create_element2 = _interopRequireDefault(_create_element);
-
-	var _dom = __webpack_require__(11);
-
-	var _index2 = __webpack_require__(14);
+	var _index2 = __webpack_require__(10);
 
 	var _index3 = _interopRequireDefault(_index2);
 
-	var _action = __webpack_require__(16);
+	var _action = __webpack_require__(12);
 
 	var _create = __webpack_require__(1);
 
 	var _create2 = _interopRequireDefault(_create);
 
+	var _component = __webpack_require__(13);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function createApp(options) {
+	  var store = void 0,
+	      component = void 0,
+	      actions = void 0,
+	      rootEl = void 0;
 
-	var OpalApp = function () {
-	  function OpalApp(options) {
-	    _classCallCheck(this, OpalApp);
+	  var dispatch = function dispatch(action) {
+	    return store.dispatch(action);
+	  };
 
-	    this.model = options.model;
-	    this.render = options.render;
+	  // The root element the the component will be mounted to
+	  rootEl = options.el && (0, _nodeOp.query)(options.el);
+	  (0, _nodeOp.emptyElement)(rootEl);
 
-	    this.createStore(options);
+	  // the root component
+	  component = (0, _component.createComponent)(options);
 
-	    this.root = options.el && (0, _dom.query)(options.el);
-	    (0, _dom.emptyElement)(this.root);
-	    this.updateView();
+	  // Generate the action creators
+	  actions = {};
+	  if (!(0, _index.isFunction)(options.update)) {
+	    actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
+	    actions = (0, _action.bindActionCreators)(actions, dispatch);
 	  }
 
-	  _createClass(OpalApp, [{
-	    key: 'createStore',
-	    value: function createStore(options) {
-	      var _this = this;
+	  var update = options.update || {};
+	  if (!(0, _index.isFunction)(update)) {
+	    update = enhanceHandler(update);
+	  }
+	  store = (0, _index3.default)(options.model, update);
+	  store.subscribe(function () {
+	    updateView();
+	  });
 
-	      var modelUpdator = options.update || {};
-	      if (!(0, _index.isFunction)(modelUpdator)) {
-	        modelUpdator = (0, _action.createModelUpdater)(this.enhanceHandler(options.update));
-	        var actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
-	        this.actions = (0, _action.bindActionCreators)(actions, this.dispatch.bind(this));
-	      }
+	  function updateView() {
+	    var domElem = component.patch(getAppContext());
+	    (0, _nodeOp.appendChild)(rootEl, domElem);
+	  }
 
-	      this.store = new _index3.default(options.model, modelUpdator);
-	      this.store.subscribe(function () {
-	        _this.model = _this.store.getModel();
-	        _this.updateView();
-	      });
-	    }
+	  /**
+	   * Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
+	   */
+	  function enhanceHandler(actionHandlerMap) {
+	    var enhanced = {};
+	    (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
+	      var newHandler = function newHandler() {
+	        for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+	          params[_key] = arguments[_key];
+	        }
 
-	    // Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
+	        // inject 1 more param to the handler, and execute the original handler in the application context
+	        return actionHandler.apply(getAppContext(), [].concat(params, [actions]));
+	      };
+	      enhanced[actionType] = newHandler;
+	    });
+	    return enhanced;
+	  }
 
-	  }, {
-	    key: 'enhanceHandler',
-	    value: function enhanceHandler(actionHandlerMap) {
-	      var _this2 = this;
+	  function getAppContext() {
+	    return {
+	      model: store.getModel(),
+	      dispatch: dispatch,
+	      actions: actions,
+	      createElement: _create2.default
+	    };
+	  }
 
-	      var enhanced = {};
-	      (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
-	        var newHandler = function newHandler() {
-	          for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
-	            params[_key] = arguments[_key];
-	          }
+	  updateView();
 
-	          // inject 1 more param to the handler, and execute the original handler in the application context
-	          return actionHandler.apply(_this2, [].concat(params, [_this2.actions]));
-	        };
-	        enhanced[actionType] = newHandler;
-	      });
-	      return enhanced;
-	    }
-	  }, {
-	    key: 'updateView',
-	    value: function updateView() {
-	      var oldVnode = this._vnode;
-	      // Inject the createElement function to the render function
-	      var newVnode = this.render(_create2.default);
-
-	      var domElem = this._elem;
-	      if (!domElem) {
-	        // First time rendering
-	        domElem = (0, _create_element2.default)(newVnode);
-	        (0, _dom.appendChild)(this.root, domElem);
-	      } else {
-	        // Patch the DOM
-	        domElem = (0, _patch2.default)(this._elem, oldVnode, newVnode);
-	      }
-
-	      this._elem = domElem;
-	      this._vnode = newVnode;
-	    }
-	  }, {
-	    key: 'dispatch',
-	    value: function dispatch(action) {
-	      this.store.dispatch(action);
-	    }
-	  }]);
-
-	  return OpalApp;
-	}();
-
-	exports.default = OpalApp;
+	  return {
+	    store: store,
+	    actions: actions,
+	    component: component,
+	    el: rootEl
+	  };
+	}
 
 /***/ },
 /* 8 */
@@ -675,174 +674,923 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.default = patchNode;
-	exports.patchChildren = patchChildren;
-
-	var _set_attribute = __webpack_require__(9);
-
-	var _create_element = __webpack_require__(12);
-
-	var _create_element2 = _interopRequireDefault(_create_element);
-
-	var _vnode = __webpack_require__(6);
-
-	var _diff = __webpack_require__(13);
-
-	var diffActions = _interopRequireWildcard(_diff);
+	exports.setAttribute = setAttribute;
+	exports.createElement = createElement;
+	exports.createTextNode = createTextNode;
+	exports.insertBefore = insertBefore;
+	exports.removeChild = removeChild;
+	exports.appendChild = appendChild;
+	exports.replaceNode = replaceNode;
+	exports.emptyElement = emptyElement;
+	exports.query = query;
+	exports.tagName = tagName;
+	exports.childNode = childNode;
+	exports.childNodes = childNodes;
+	exports.removeEventListener = removeEventListener;
+	exports.addEventListener = addEventListener;
 
 	var _index = __webpack_require__(2);
 
-	var _dom = __webpack_require__(11);
+	var _elements = __webpack_require__(9);
 
-	var dom = _interopRequireWildcard(_dom);
+	function setAttribute(node, key, val) {
+	  var ns = (0, _elements.getSvgAttributeNamespace)(key);
+	  return ns ? node.setAttributeNS(ns, key, val) : node.setAttribute(key, val);
+	}
+
+	function createElement(tagName) {
+	  if ((0, _elements.isSvgElement)(tagName)) {
+	    return document.createElementNS(_elements.namespaceMap.svg, tagName);
+	  }
+
+	  return document.createElement(tagName);
+	}
+
+	function createTextNode(str) {
+	  return document.createTextNode(str);
+	}
+
+	function insertBefore(parentNode, newNode, referenceNode) {
+	  var refNode = referenceNode;
+	  if ((0, _index.isUndefined)(refNode)) {
+	    refNode = null;
+	  }
+	  // If referenceNode is null, the newNode is inserted at the end of the list of child nodes.
+	  parentNode.insertBefore(newNode, refNode);
+	}
+
+	function removeChild(node, child) {
+	  node.removeChild(child);
+	}
+
+	function appendChild(node, child) {
+	  node.appendChild(child);
+	}
+
+	function replaceNode(newNode, node) {
+	  if (node.parentNode) {
+	    node.parentNode.replaceChild(newNode, node);
+	  }
+	}
+
+	function emptyElement(el) {
+	  var node = void 0;
+	  while (node = el.firstChild) {
+	    el.removeChild(node);
+	  }
+	  return el;
+	}
+
+	function query(el) {
+	  if ((0, _index.isString)(el)) {
+	    return document.querySelector(el);
+	  }
+
+	  return el;
+	}
+
+	function tagName(node) {
+	  return node.tagName;
+	}
+
+	function childNode(node, i) {
+	  return node.childNodes[i];
+	}
+
+	function childNodes(node) {
+	  return node.childNodes;
+	}
+
+	function removeEventListener(node, eventType, handler) {
+	  node.removeEventListener(eventType, handler);
+	}
+
+	function addEventListener(node, eventType, handler) {
+	  node.addEventListener(eventType, handler);
+	}
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.namespaceMap = undefined;
+	exports.isSvgElement = isSvgElement;
+	exports.getSvgAttributeNamespace = getSvgAttributeNamespace;
+	exports.isSpecialTag = isSpecialTag;
+	exports.isUnaryTag = isUnaryTag;
+
+	var _index = __webpack_require__(2);
+
+	var namespaceMap = exports.namespaceMap = {
+	  svg: 'http://www.w3.org/2000/svg',
+	  math: 'http://www.w3.org/1998/Math/MathML'
+	};
+
+	var svgMap = (0, _index.makeMap)('animate,circle,defs,ellipse,g,line,linearGradient,mask,path,pattern,polygon,polyline,' + 'radialGradient,rect,stop,svg,text,tspan');
+
+	var svgAttributeNamespaces = {
+	  ev: 'http://www.w3.org/2001/xml-events',
+	  xlink: 'http://www.w3.org/1999/xlink',
+	  xml: 'http://www.w3.org/XML/1998/namespace',
+	  xmlns: 'http://www.w3.org/2000/xmlns/'
+	};
+
+	function isSvgElement(name) {
+	  return (0, _index.has)(svgMap, name);
+	}
+
+	/**
+	 * Get namespace of svg attribute
+	 *
+	 * @param {String} attributeName
+	 * @return {String} namespace
+	 */
+
+	function getSvgAttributeNamespace(attributeName) {
+	  // if no prefix separator in attributeName, then no namespace
+	  if (attributeName.indexOf(':') === -1) return null;
+
+	  // get prefix from attributeName
+	  var prefix = attributeName.split(':', 1)[0];
+
+	  // if prefix in supported prefixes
+	  if ((0, _index.has)(svgAttributeNamespaces, prefix)) {
+	    // then namespace of prefix
+	    return svgAttributeNamespaces[prefix];
+	  } else {
+	    // else unsupported prefix
+	    throw new Error('svg-attribute-namespace: prefix "' + prefix + '" is not supported by SVG.');
+	  }
+	}
+	// Special Elements (can contain anything)
+	var specialTag = (0, _index.makeMap)('script,style');
+	function isSpecialTag(tag) {
+	  return specialTag[tag];
+	}
+
+	// Elements without close Tag
+	var unaryTag = (0, _index.makeMap)('area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr');
+	function isUnaryTag(tag) {
+	  return unaryTag[tag];
+	}
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(11);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _store2.default;
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.Store = undefined;
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	exports.default = createStore;
+
+	var _index = __webpack_require__(2);
+
+	var _action = __webpack_require__(12);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Store = exports.Store = function () {
+	  function Store(initialModel, updater) {
+	    _classCallCheck(this, Store);
+
+	    this.model = initialModel;
+	    this.modelUpdater = updater;
+
+	    this.listeners = [];
+	  }
+
+	  _createClass(Store, [{
+	    key: 'getModel',
+	    value: function getModel() {
+	      return this.model;
+	    }
+	  }, {
+	    key: 'dispatch',
+	    value: function dispatch(action) {
+	      var update = this.modelUpdater;
+	      var oldModel = this.model;
+
+	      this.model = update(oldModel, action);
+
+	      this.listeners.forEach(function (listener) {
+	        listener();
+	      });
+	    }
+	  }, {
+	    key: 'subscribe',
+	    value: function subscribe(listener) {
+	      if (!(0, _index.isFunction)(listener)) {
+	        throw new Error('Invalid argument: listener needs to be a function');
+	      }
+
+	      var allListeners = this.listeners;
+	      allListeners.push(listener);
+
+	      return function unsubscribe() {
+	        var index = allListeners.indexOf(listener);
+
+	        if (index >= 0) {
+	          allListeners.splice(index, 1);
+	        }
+	      };
+	    }
+	  }]);
+
+	  return Store;
+	}();
+
+	function createStore(model, update) {
+	  var modelUpdater = update || _index.noop;
+	  if (!(0, _index.isFunction)(modelUpdater)) {
+	    modelUpdater = (0, _action.createModelUpdater)(update);
+	  }
+	  return new Store(model, modelUpdater);
+	}
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.bindActionCreator = bindActionCreator;
+	exports.bindActionCreators = bindActionCreators;
+	exports.createActionCreator = createActionCreator;
+	exports.createActionCreators = createActionCreators;
+	exports.createModelUpdater = createModelUpdater;
+
+	var _index = __webpack_require__(2);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	function bindActionCreator(action, dispatch) {
+	  return function () {
+	    return dispatch(action.apply(undefined, arguments));
+	  };
+	}
+
+	function bindActionCreators(actions, dispatch) {
+	  if (!(0, _index.isObject)(actions) || (0, _index.isNull)(actions)) {
+	    throw Error('actions must be an object');
+	  }
+
+	  var result = {};
+	  var keys = (0, _index.getKeys)(actions);
+	  for (var i = 0; i < keys.length; i++) {
+	    var key = keys[i];
+	    result[key] = bindActionCreator(actions[key], dispatch);
+	  }
+	  return result;
+	}
+
+	/**
+	 * Create an action creator given the action type. the returned action creator can take any parameters
+	 * @param actionType
+	 * @returns {function()}
+	 */
+	function createActionCreator(actionType) {
+	  return function () {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+
+	    return {
+	      type: actionType,
+	      params: args
+	    };
+	  };
+	}
+	/**
+	 * Create an object whose keys are actions types and values the action creators. And all the actions creators will be
+	 * wrapped with the dispatch call, so they can be called directly to dispatch an action
+	 * @param actionTypes, array of action types
+	 */
+	function createActionCreators(actionTypes) {
+	  var actionCreators = {};
+	  (0, _index.each)(actionTypes, function (actionType) {
+	    if ((0, _index.has)(actionCreators, actionType)) {
+	      throw new Error('Duplicated action type found in' + actionType);
+	    }
+	    actionCreators[actionType] = createActionCreator(actionType);
+	  });
+	  return actionCreators;
+	}
+
+	/**
+	 * Create an update function which will handle the actions created by calling createActionCreator
+	 * @param actionHandlerMap, an object which has all the action handlers in format of {actionType: handler}, e.g.
+	 * {
+	   *  'Increase': (model) => model + 1,
+	   *  'Decrease': (model) => model - 1
+	   *  }
+	 * @returns {update}, the update function used by the OpalStore
+	 */
+	function createModelUpdater(actionHandlerMap) {
+	  return function update(model, action) {
+	    var newModel = model;
+	    // Only update the model if the action type exists
+	    if ((0, _index.has)(actionHandlerMap, action.type)) {
+	      var handler = actionHandlerMap[action.type];
+	      newModel = handler.apply(undefined, _toConsumableArray(action.params).concat([model]));
+	    }
+	    return newModel;
+	  };
+	}
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.createComponent = createComponent;
+
+	var _index = __webpack_require__(14);
+
+	var _index2 = _interopRequireDefault(_index);
+
+	var _create_element = __webpack_require__(19);
+
+	var _create_element2 = _interopRequireDefault(_create_element);
+
+	var _patch = __webpack_require__(22);
+
+	var _patch2 = _interopRequireDefault(_patch);
+
+	var _create = __webpack_require__(1);
+
+	var _create2 = _interopRequireDefault(_create);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function createComponent(options) {
+	  if (!options.render && !options.template) {
+	    throw new Error('Components need to have either a render function or a template to get rendered');
+	  }
+
+	  var vnode = void 0,
+	      elem = void 0,
+	      render = void 0;
+
+	  render = options.render;
+	  if (!render) {
+	    (function () {
+	      var renderFn = compileTemplateToRenderFn(options.template);
+	      render = function render() {
+	        return renderFn(_create2.default);
+	      };
+	    })();
+	  }
+
+	  function patch(context) {
+	    var oldVnode = vnode;
+	    vnode = render.apply(context);
+
+	    if (!elem) {
+	      // First time rendering
+	      elem = (0, _create_element2.default)(vnode);
+	    } else {
+	      // Patch the DOM
+	      elem = (0, _patch2.default)(elem, oldVnode, vnode);
+	    }
+	    return elem;
+	  }
+
+	  return {
+	    render: render,
+	    patch: patch
+	  };
+	}
+
+	/**
+	 * Compile the template into a render function
+	 * @param template
+	 */
+	function compileTemplateToRenderFn(template) {
+	  return (0, _index2.default)(template);
+	}
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = compile;
+
+	var _index = __webpack_require__(2);
+
+	var _ast_parser = __webpack_require__(15);
+
+	var _codegen = __webpack_require__(18);
+
+	function compile(template) {
+	  var ast = (0, _ast_parser.parse)(template);
+	  var code = (0, _codegen.generate)(ast);
+	  var renderFn = createFunction(code);
+	  return renderFn;
+	}
+
+	function createFunction(code) {
+	  try {
+	    // eslint-disable-next-line no-new-func
+	    return new Function('_h', 'with(this){return ' + code + '}');
+	  } catch (error) {
+	    (0, _index.warn)(error);
+	    return _index.noop;
+	  }
+	}
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.AstElementType = undefined;
+	exports.parse = parse;
+
+	var _html_parser = __webpack_require__(16);
+
+	var _index = __webpack_require__(17);
+
+	var _index2 = __webpack_require__(2);
+
+	var AstElementType = exports.AstElementType = {
+	  Element: 1,
+	  Text: 2
+	};
+
+	/**
+	 * Parse the template into an AST tree
+	 * @param template, the html template
+	 */
+	function parse(template) {
+	  var root = void 0,
+	      currentParent = void 0;
+	  var stack = [];
+	  (0, _html_parser.parseHtml)(template, {
+	    start: function startTag(tagName, attrs, unary) {
+	      var tag = tagName.toLowerCase();
+	      if ((0, _index.isSpecialTag)(tag)) {
+	        throw new Error('Tag is not allowed in the template:' + tagName);
+	      }
+	      ensureSingleRoot(root, currentParent);
+
+	      var element = {
+	        type: AstElementType.Element,
+	        tagName: tag,
+	        attrList: attrs,
+	        attributes: toAttributeMap(attrs),
+	        children: []
+	      };
+
+	      if (!root) {
+	        root = element;
+	      }
+
+	      if (currentParent) {
+	        currentParent.children.push(element);
+	      }
+
+	      if (!unary) {
+	        currentParent = element;
+	        stack.push(element);
+	      }
+	    },
+	    end: function endTag() {
+	      stack.pop();
+	      currentParent = stack.length > 0 ? stack[stack.length - 1] : null;
+	    },
+	    chars: function chars(text) {
+	      ensureSingleRoot(root, currentParent);
+
+	      var textElement = {
+	        type: AstElementType.Text,
+	        text: text
+	      };
+
+	      // Template only has the text, add a span to wrap the text
+	      if (!root) {
+	        root = currentParent = {
+	          type: AstElementType.Element,
+	          tagName: 'span',
+	          children: []
+	        };
+	      }
+
+	      // Text as a child
+	      if (currentParent) {
+	        currentParent.children.push(textElement);
+	      }
+	    }
+	  });
+	  return root;
+	}
+
+	/**
+	 * Convert a list of attribute object in form of {name: 'aa', value: 'bb'}
+	 * to an object map {aa: bb}
+	 * @param attrList
+	 */
+	function toAttributeMap(attrList) {
+	  var map = {};
+	  (0, _index2.each)(attrList, function (attr) {
+	    if ((0, _index2.has)(map, attr.name)) {
+	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
+	    }
+	    map[attr.name] = attr.value;
+	  });
+	  return map;
+	}
+
+	function ensureSingleRoot(root, currentParent) {
+	  if (!currentParent && root) {
+	    throw new Error('Component template can only has one root element');
+	  }
+	}
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.parseHtml = parseHtml;
+
+	var _index = __webpack_require__(2);
+
+	var _index2 = __webpack_require__(17);
+
+	// Regular Expressions for parsing tags and attributes
+	var startTagRE = /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/;
+	var endTagRE = /^<\/([-A-Za-z0-9_]+)[^>]*>/;
+	var attrRE = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
+
+	// Elements without close Tag
+	var unaryTag = (0, _index.makeMap)('area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr');
+
+	// Block Elements
+	var blockTag = (0, _index.makeMap)('a,address,article,applet,aside,audio,blockquote,button,canvas,center,dd,del,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frameset,h1,h2,h3,h4,h5,h6,header,hgroup,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,output,p,pre,section,script,table,tbody,td,tfoot,th,thead,tr,ul,video');
+
+	// Inline Elements
+	var inlineTag = (0, _index.makeMap)('abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,code,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var');
+
+	// Elements that you can, intentionally, leave open (and which close themselves)
+	var closeSelfTag = (0, _index.makeMap)('colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr');
+
+	// Attributes that have their values filled in disabled="disabled"
+	var fillAttrs = (0, _index.makeMap)('checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected');
+
+	function parseHtml(html, handler) {
+	  var stack = [];
+	  var last = html;
+	  stack.last = function () {
+	    return this[this.length - 1];
+	  };
+
+	  while (html) {
+	    var index = void 0,
+	        chars = void 0,
+	        match = void 0;
+	    chars = true;
+
+	    // Make sure we're not in a script or style element
+	    if (!stack.last() || !(0, _index2.isSpecialTag)(stack.last())) {
+	      // Comment
+	      if (html.indexOf('<!--') === 0) {
+	        index = html.indexOf('-->');
+
+	        if (index >= 0) {
+	          if (handler.comment) {
+	            handler.comment(html.substring(4, index));
+	          }
+	          html = html.substring(index + 3);
+	          chars = false;
+	        }
+
+	        // end tag
+	      } else if (html.indexOf('</') === 0) {
+	          match = html.match(endTagRE);
+
+	          if (match) {
+	            html = html.substring(match[0].length);
+	            match[0].replace(endTagRE, parseEndTag);
+	            chars = false;
+	          }
+
+	          // start tag
+	        } else if (html.indexOf('<') === 0) {
+	            match = html.match(startTagRE);
+
+	            if (match) {
+	              html = html.substring(match[0].length);
+	              match[0].replace(startTagRE, parseStartTag);
+	              chars = false;
+	            }
+	          }
+
+	      if (chars) {
+	        index = html.indexOf('<');
+
+	        var text = index < 0 ? html : html.substring(0, index);
+	        html = index < 0 ? '' : html.substring(index);
+
+	        if (handler.chars) {
+	          handler.chars(text);
+	        }
+	      }
+	    } else {
+	      html = html.replace(new RegExp('([\\s\\S]*?)<\/' + stack.last() + '[^>]*>'), function (all, text) {
+	        text = text.replace(/<!--([\s\S]*?)-->|<!\[CDATA\[([\s\S]*?)]]>/g, '$1$2');
+	        if (handler.chars) {
+	          handler.chars(text);
+	        }
+
+	        return '';
+	      });
+
+	      parseEndTag('', stack.last());
+	    }
+
+	    if (html === last) {
+	      throw Error('Parse Error: ' + html);
+	    }
+	    last = html;
+	  }
+
+	  // Clean up any remaining tags
+	  parseEndTag();
+
+	  function parseStartTag(tag, tagName, rest, unary) {
+	    tagName = tagName.toLowerCase();
+
+	    if (blockTag[tagName]) {
+	      while (stack.last() && inlineTag[stack.last()]) {
+	        parseEndTag('', stack.last());
+	      }
+	    }
+
+	    if (closeSelfTag[tagName] && stack.last() === tagName) {
+	      parseEndTag('', tagName);
+	    }
+
+	    unary = unaryTag[tagName] || !!unary;
+
+	    if (!unary) {
+	      stack.push(tagName);
+	    }
+
+	    if (handler.start) {
+	      var attrs = [];
+
+	      rest.replace(attrRE, function (match, name) {
+	        var value = arguments[2] ? arguments[2] : arguments[3] ? arguments[3] : arguments[4] ? arguments[4] : fillAttrs[name] ? name : '';
+
+	        attrs.push({
+	          name: name,
+	          value: value,
+	          escaped: value.replace(/(^|[^\\])"/g, '$1\\\"') // "
+	        });
+	      });
+
+	      if (handler.start) {
+	        handler.start(tagName, attrs, unary);
+	      }
+	    }
+	  }
+
+	  function parseEndTag(tag, tagName) {
+	    var pos = void 0;
+	    // If no tag name is provided, clean shop
+	    if (!tagName) {
+	      pos = 0;
+	    } else {
+	      // Find the closest opened tag of the same type
+	      for (pos = stack.length - 1; pos >= 0; pos--) {
+	        if (stack[pos] === tagName) {
+	          break;
+	        }
+	      }
+	    }
+
+	    if (pos >= 0) {
+	      // Close all the open elements, up the stack
+	      for (var i = stack.length - 1; i >= pos; i--) {
+	        if (handler.end) {
+	          handler.end(stack[i]);
+	        }
+	      }
+
+	      // Remove the open elements from the stack
+	      stack.length = pos;
+	    }
+	  }
+	}
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _elements = __webpack_require__(9);
+
+	Object.keys(_elements).forEach(function (key) {
+	  if (key === "default") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _elements[key];
+	    }
+	  });
+	});
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.generate = generate;
+
+	var _ast_parser = __webpack_require__(15);
+
+	/**
+	 * Generate the code to create the virtual DOM given the AST
+	 * The generated code should be like below:
+	 * let node = h('div', { id: 'foo' }, [
+	 *   h('a', { href: 'http://google.com' },
+	 *     h('span', {}, 'Google'),
+	 *     h('b', {}, 'Link')
+	 *   )
+	 * ])
+	 * @param ast, the parsed AST
+	 */
+	function generate(ast) {
+	  return genElement(ast);
+	}
+
+	function genElement(element) {
+	  // For element
+	  if (element.type === _ast_parser.AstElementType.Element) {
+	    return '_h("' + element.tagName + '",' + genAttributes(element) + ',' + genChildren(element) + ')';
+	  }
+
+	  // For text
+	  return JSON.stringify(element.text);
+	}
+
+	function genAttributes(element) {
+	  return JSON.stringify(element.attributes || {});
+	}
+
+	function genChildren(element) {
+	  if (!element.children) {
+	    return '[]';
+	  }
+
+	  var children = element.children;
+	  var childrenCodeArray = children.map(genElement);
+	  return '[' + childrenCodeArray.join(',') + ']';
+	}
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = createElement;
+
+	var _vnode = __webpack_require__(6);
+
+	var _vnode2 = _interopRequireDefault(_vnode);
+
+	var _index = __webpack_require__(2);
+
+	var _nodeOp = __webpack_require__(8);
+
+	var nodeOp = _interopRequireWildcard(_nodeOp);
+
+	var _set_attribute = __webpack_require__(20);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	/**
-	 * Compare two virtual nodes and update the dom element
-	 */
-
-	function patchNode(domElem, oldVnode, newVnode) {
-	  // Skip updating this whole sub-tree
-	  if (oldVnode === newVnode) {
-	    return domElem;
+	function createElement(vnode) {
+	  var domElem;
+	  switch (vnode.type) {
+	    case _vnode2.default.Element:
+	      domElem = createHtmlElement(vnode);
+	      break;
+	    case _vnode2.default.Empty:
+	      domElem = createEmptyNode();
+	      break;
+	    case _vnode2.default.Text:
+	      domElem = createTextNode(vnode);
+	      break;
+	    case _vnode2.default.Thunk:
+	      domElem = createThunk(vnode);
+	      break;
 	  }
-
-	  // Remove the DOM
-	  if (!(0, _index.isUndefined)(oldVnode) && (0, _index.isUndefined)(newVnode)) {
-	    // Unmount the components
-	    unmountThunk(oldVnode);
-	    dom.removeChild(domElem.parentNode, domElem);
-	    return domElem;
-	  }
-
-	  // Replace the DOM
-	  if (!(0, _index.isNull)(oldVnode) && (0, _index.isNull)(newVnode) || (0, _index.isNull)(oldVnode) && !(0, _index.isNull)(newVnode) || !oldVnode.isSameType(newVnode)) {
-	    return replaceNode(domElem, oldVnode, newVnode);
-	  }
-
-	  // Two nodes with the same type reaching this point
-
-	  // Element
-	  var newDomElem = domElem;
-	  if (newVnode.isElement()) {
-	    if (oldVnode.tagName !== newVnode.tagName) {
-	      // Replace the whole DOM element
-	      newDomElem = replaceNode(domElem, oldVnode, newVnode);
-	    } else {
-	      // Same tagName, update the attributes
-	      updateAttributes(domElem, oldVnode, newVnode);
-	      patchChildren(domElem, oldVnode, newVnode);
-	    }
-	  } else if (newVnode.isText()) {
-	    // Text
-	    if (oldVnode.nodeValue !== newVnode.nodeValue) {
-	      (0, _set_attribute.setAttribute)(domElem, 'nodeValue', newVnode.nodeValue, oldVnode.nodeValue);
-	    }
-	  } else if (newVnode.isThunk()) {
-	    newDomElem = updateThunk(domElem, oldVnode, newVnode);
-	  }
-	  return newDomElem;
+	  vnode.elem = domElem;
+	  return domElem;
 	}
 
-	function patchChildren(parentElem, oldNode, newNode) {
-	  var CREATE = diffActions.CREATE;
-	  var UPDATE = diffActions.UPDATE;
-	  var MOVE = diffActions.MOVE;
-	  var REMOVE = diffActions.REMOVE;
+	function createThunk(vnode) {
+	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode);
+	  return createElement(vnode.thunkVnode);
+	}
 
-	  var oldChildren = (0, _vnode.groupByKey)(oldNode.children);
-	  var newChildren = (0, _vnode.groupByKey)(newNode.children);
-	  var key = function key(a) {
-	    return a.key;
-	  };
+	function createHtmlElement(vnode) {
+	  var tagName = vnode.tagName;
+	  var children = vnode.children;
+	  var attributes = vnode.attributes;
 
-	  // Make a copy of the references to children to be deleted
-	  var domChildNodes = Array.prototype.slice.call(dom.childNodes(parentElem));
 
-	  function effect(type, prev, next, pos) {
-	    switch (type) {
-	      case CREATE:
-	        {
-	          var newDomElem = (0, _create_element2.default)(next.item);
-	          dom.insertBefore(parentElem, newDomElem, dom.childNode(parentElem, pos));
-	          break;
-	        }
-	      case UPDATE:
-	        {
-	          var domElem = dom.childNode(parentElem, prev.index);
-	          patchNode(domElem, prev.item, next.item);
-	          break;
-	        }
-	      case MOVE:
-	        {
-	          var childDomElem = dom.childNode(parentElem, prev.index);
-	          patchNode(childDomElem, prev.item, next.item);
-	          dom.insertBefore(parentElem, childDomElem, dom.childNode(parentElem, pos));
-	          break;
-	        }
-	      case REMOVE:
-	        {
-	          dom.removeChild(parentElem, domChildNodes[prev.index]);
-	          break;
-	        }
+	  var elem = nodeOp.createElement(tagName);
+
+	  for (var name in attributes) {
+	    (0, _set_attribute.setAttribute)(elem, name, attributes[name]);
+	  }
+
+	  children.forEach(function (child) {
+	    if ((0, _index.isNull)(child) || (0, _index.isUndefined)(child)) {
+	      return;
 	    }
-	  }
 
-	  (0, diffActions.default)(oldChildren, newChildren, effect, key);
+	    nodeOp.appendChild(elem, createElement(child));
+	  });
+	  return elem;
 	}
 
-	function updateThunk(domElem, oldNode, newNode) {
-	  var oldThunkVnode = oldNode.thunkVnode;
-	  var newThunkVnode = (0, _vnode.renderThunk)(newNode);
-	  return patchNode(domElem, oldThunkVnode, newThunkVnode);
+	function createTextNode(vnode) {
+	  var text = (0, _index.isNumber)(vnode.nodeValue) || (0, _index.isString)(vnode.nodeValue) ? vnode.nodeValue : '';
+	  return nodeOp.createTextNode(text);
 	}
 
-	function unmountThunk(vnode) {
-	  if (vnode.isThunk()) {
-	    // Call the lifecycle hook
-	    if (vnode.options.beforeUnmount) {}
-	    unmountThunk(vnode.thunkVnode);
-	  } else if (vnode.children) {
-	    (0, _index.each)(vnode.children, function (child) {
-	      return unmountThunk(child);
-	    });
-	  }
-	}
-	/**
-	 * compare the attributes of the two virtual nodes and update the dom attributes and event handlers
-	 * @param domElem
-	 * @param oldNode
-	 * @param newNode
-	 */
-	function updateAttributes(domElem, oldNode, newNode) {
-	  var oldAttrs = oldNode.attrs;
-	  var newAttrs = newNode.attrs;
-
-	  for (var name in newAttrs) {
-	    if (newAttrs[name] !== oldAttrs[name]) {
-	      (0, _set_attribute.setAttribute)(domElem, name, newAttrs[name], oldAttrs[name]);
-	    }
-	  }
-
-	  for (var _name in oldAttrs) {
-	    if (!(0, _index.has)(newAttrs, _name)) {
-	      (0, _set_attribute.removeAttribute)(domElem, _name, oldAttrs[_name]);
-	    }
-	  }
-	}
-
-	function replaceNode(domElem, oldNode, newNode) {
-	  unmountThunk(oldNode);
-	  var newDomElem = (0, _create_element2.default)(newNode);
-	  dom.replaceNode(newDomElem, domElem);
-	  return newDomElem;
+	function createEmptyNode() {
+	  return nodeOp.createElement('noscript');
 	}
 
 /***/ },
-/* 9 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -855,18 +1603,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index = __webpack_require__(2);
 
-	var _events = __webpack_require__(10);
+	var _events = __webpack_require__(21);
 
 	var _events2 = _interopRequireDefault(_events);
 
-	var _dom = __webpack_require__(11);
+	var _nodeOp = __webpack_require__(8);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function removeAttribute(node, name, oldValue) {
 	  var eventType = _events2.default[name];
 	  if (eventType && (0, _index.isFunction)(oldValue)) {
-	    (0, _dom.removeEventListener)(node, eventType, oldValue);
+	    (0, _nodeOp.removeEventListener)(node, eventType, oldValue);
 	    return;
 	  }
 	  switch (name) {
@@ -893,9 +1641,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	  if (eventType) {
 	    if ((0, _index.isFunction)(oldValue)) {
-	      (0, _dom.removeEventListener)(node, eventType, oldValue);
+	      (0, _nodeOp.removeEventListener)(node, eventType, oldValue);
 	    }
-	    (0, _dom.addEventListener)(node, eventType, value);
+	    (0, _nodeOp.addEventListener)(node, eventType, value);
 	    return;
 	  }
 	  if (!isValidAttribute(value)) {
@@ -922,7 +1670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      node.value = value;
 	      break;
 	    default:
-	      (0, _dom.setAttribute)(node, name, value);
+	      (0, _nodeOp.setAttribute)(node, name, value);
 	      break;
 	  }
 	}
@@ -940,7 +1688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 10 */
+/* 21 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1021,7 +1769,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 11 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1029,232 +1777,174 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.namespaceMap = undefined;
-	exports.setAttribute = setAttribute;
-	exports.isSvgElement = isSvgElement;
-	exports.createElement = createElement;
-	exports.createTextNode = createTextNode;
-	exports.insertBefore = insertBefore;
-	exports.removeChild = removeChild;
-	exports.appendChild = appendChild;
-	exports.replaceNode = replaceNode;
-	exports.emptyElement = emptyElement;
-	exports.query = query;
-	exports.tagName = tagName;
-	exports.childNode = childNode;
-	exports.childNodes = childNodes;
-	exports.removeEventListener = removeEventListener;
-	exports.addEventListener = addEventListener;
+	exports.default = patchNode;
+	exports.patchChildren = patchChildren;
 
-	var _index = __webpack_require__(2);
+	var _set_attribute = __webpack_require__(20);
 
-	var namespaceMap = exports.namespaceMap = {
-	  svg: 'http://www.w3.org/2000/svg',
-	  math: 'http://www.w3.org/1998/Math/MathML'
-	};
+	var _create_element = __webpack_require__(19);
 
-	var svgElements = 'animate,circle,defs,ellipse,g,line,linearGradient,mask,path,pattern,polygon,polyline,radialGradient,rect,stop,svg,text,tspan'.split(',');
-	var svgMap = svgElements.reduce(function (acc, name) {
-	  acc[name] = true;
-	  return acc;
-	}, {});
-
-	var svgAttributeNamespaces = {
-	  ev: 'http://www.w3.org/2001/xml-events',
-	  xlink: 'http://www.w3.org/1999/xlink',
-	  xml: 'http://www.w3.org/XML/1998/namespace',
-	  xmlns: 'http://www.w3.org/2000/xmlns/'
-	};
-
-	/**
-	 * Get namespace of svg attribute
-	 *
-	 * @param {String} attributeName
-	 * @return {String} namespace
-	 */
-
-	function getSvgAttributeNamespace(attributeName) {
-	  // if no prefix separator in attributeName, then no namespace
-	  if (attributeName.indexOf(':') === -1) return null;
-
-	  // get prefix from attributeName
-	  var prefix = attributeName.split(':', 1)[0];
-
-	  // if prefix in supported prefixes
-	  if ((0, _index.has)(svgAttributeNamespaces, prefix)) {
-	    // then namespace of prefix
-	    return svgAttributeNamespaces[prefix];
-	  } else {
-	    // else unsupported prefix
-	    throw new Error('svg-attribute-namespace: prefix "' + prefix + '" is not supported by SVG.');
-	  }
-	}
-
-	function setAttribute(node, key, val) {
-	  var ns = getSvgAttributeNamespace(key);
-	  return ns ? node.setAttributeNS(ns, key, val) : node.setAttribute(key, val);
-	}
-
-	function isSvgElement(name) {
-	  return (0, _index.has)(svgMap, name);
-	}
-
-	function createElement(tagName) {
-	  if (isSvgElement(tagName)) {
-	    return document.createElementNS(namespaceMap.svg, tagName);
-	  }
-
-	  return document.createElement(tagName);
-	}
-
-	function createTextNode(str) {
-	  return document.createTextNode(str);
-	}
-
-	function insertBefore(parentNode, newNode, referenceNode) {
-	  var refNode = referenceNode;
-	  if ((0, _index.isUndefined)(refNode)) {
-	    refNode = null;
-	  }
-	  // If referenceNode is null, the newNode is inserted at the end of the list of child nodes.
-	  parentNode.insertBefore(newNode, refNode);
-	}
-
-	function removeChild(node, child) {
-	  node.removeChild(child);
-	}
-
-	function appendChild(node, child) {
-	  node.appendChild(child);
-	}
-
-	function replaceNode(newNode, node) {
-	  if (node.parentNode) {
-	    node.parentNode.replaceChild(newNode, node);
-	  }
-	}
-
-	function emptyElement(el) {
-	  var node = void 0;
-	  while (node = el.firstChild) {
-	    el.removeChild(node);
-	  }
-	  return el;
-	}
-
-	function query(el) {
-	  if ((0, _index.isString)(el)) {
-	    return document.querySelector(el);
-	  }
-
-	  return el;
-	}
-
-	function tagName(node) {
-	  return node.tagName;
-	}
-
-	function childNode(node, i) {
-	  return node.childNodes[i];
-	}
-
-	function childNodes(node) {
-	  return node.childNodes;
-	}
-
-	function removeEventListener(node, eventType, handler) {
-	  node.removeEventListener(eventType, handler);
-	}
-
-	function addEventListener(node, eventType, handler) {
-	  node.addEventListener(eventType, handler);
-	}
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = createElement;
+	var _create_element2 = _interopRequireDefault(_create_element);
 
 	var _vnode = __webpack_require__(6);
 
-	var _vnode2 = _interopRequireDefault(_vnode);
+	var _diff = __webpack_require__(23);
+
+	var diffActions = _interopRequireWildcard(_diff);
 
 	var _index = __webpack_require__(2);
 
-	var _dom = __webpack_require__(11);
+	var _nodeOp = __webpack_require__(8);
 
-	var dom = _interopRequireWildcard(_dom);
-
-	var _set_attribute = __webpack_require__(9);
+	var nodeOp = _interopRequireWildcard(_nodeOp);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function createElement(vnode) {
-	  var domElem;
-	  switch (vnode.type) {
-	    case _vnode2.default.Element:
-	      domElem = createHtmlElement(vnode);
-	      break;
-	    case _vnode2.default.Empty:
-	      domElem = createEmptyNode();
-	      break;
-	    case _vnode2.default.Text:
-	      domElem = createTextNode(vnode);
-	      break;
-	    case _vnode2.default.Thunk:
-	      domElem = createThunk(vnode);
-	      break;
-	  }
-	  vnode.elem = domElem;
-	  return domElem;
-	}
+	/**
+	 * Compare two virtual nodes and update the dom element
+	 */
 
-	function createThunk(vnode) {
-	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode);
-	  return createElement(vnode.thunkVnode);
-	}
-
-	function createHtmlElement(vnode) {
-	  var tagName = vnode.tagName;
-	  var children = vnode.children;
-	  var attrs = vnode.attrs;
-
-
-	  var elem = dom.createElement(tagName);
-
-	  for (var name in attrs) {
-	    (0, _set_attribute.setAttribute)(elem, name, attrs[name]);
+	function patchNode(domElem, oldVnode, newVnode) {
+	  // Skip updating this whole sub-tree
+	  if (oldVnode === newVnode) {
+	    return domElem;
 	  }
 
-	  children.forEach(function (child) {
-	    if ((0, _index.isNull)(child) || (0, _index.isUndefined)(child)) {
-	      return;
+	  // Remove the DOM
+	  if (!(0, _index.isUndefined)(oldVnode) && (0, _index.isUndefined)(newVnode)) {
+	    // Unmount the components
+	    unmountThunk(oldVnode);
+	    nodeOp.removeChild(domElem.parentNode, domElem);
+	    return domElem;
+	  }
+
+	  // Replace the DOM
+	  if (!(0, _index.isNull)(oldVnode) && (0, _index.isNull)(newVnode) || (0, _index.isNull)(oldVnode) && !(0, _index.isNull)(newVnode) || !oldVnode.isSameType(newVnode)) {
+	    return replaceNode(domElem, oldVnode, newVnode);
+	  }
+
+	  // Two nodes with the same type reaching this point
+
+	  // Element
+	  var newDomElem = domElem;
+	  if (newVnode.isElement()) {
+	    if (oldVnode.tagName !== newVnode.tagName) {
+	      // Replace the whole DOM element
+	      newDomElem = replaceNode(domElem, oldVnode, newVnode);
+	    } else {
+	      // Same tagName, update the attributes
+	      updateAttributes(domElem, oldVnode, newVnode);
+	      patchChildren(domElem, oldVnode, newVnode);
 	    }
-
-	    dom.appendChild(elem, createElement(child));
-	  });
-	  return elem;
+	  } else if (newVnode.isText()) {
+	    // Text
+	    if (oldVnode.nodeValue !== newVnode.nodeValue) {
+	      (0, _set_attribute.setAttribute)(domElem, 'nodeValue', newVnode.nodeValue, oldVnode.nodeValue);
+	    }
+	  } else if (newVnode.isThunk()) {
+	    newDomElem = updateThunk(domElem, oldVnode, newVnode);
+	  }
+	  return newDomElem;
 	}
 
-	function createTextNode(vnode) {
-	  var text = (0, _index.isNumber)(vnode.nodeValue) || (0, _index.isString)(vnode.nodeValue) ? vnode.nodeValue : '';
-	  return dom.createTextNode(text);
+	function patchChildren(parentElem, oldNode, newNode) {
+	  var CREATE = diffActions.CREATE;
+	  var UPDATE = diffActions.UPDATE;
+	  var MOVE = diffActions.MOVE;
+	  var REMOVE = diffActions.REMOVE;
+
+	  var oldChildren = (0, _vnode.groupByKey)(oldNode.children);
+	  var newChildren = (0, _vnode.groupByKey)(newNode.children);
+	  var key = function key(a) {
+	    return a.key;
+	  };
+
+	  // Make a copy of the references to children to be deleted
+	  var domChildNodes = Array.prototype.slice.call(nodeOp.childNodes(parentElem));
+
+	  function effect(type, prev, next, pos) {
+	    switch (type) {
+	      case CREATE:
+	        {
+	          var newDomElem = (0, _create_element2.default)(next.item);
+	          nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos));
+	          break;
+	        }
+	      case UPDATE:
+	        {
+	          var domElem = nodeOp.childNode(parentElem, prev.index);
+	          patchNode(domElem, prev.item, next.item);
+	          break;
+	        }
+	      case MOVE:
+	        {
+	          var childDomElem = nodeOp.childNode(parentElem, prev.index);
+	          patchNode(childDomElem, prev.item, next.item);
+	          nodeOp.insertBefore(parentElem, childDomElem, nodeOp.childNode(parentElem, pos));
+	          break;
+	        }
+	      case REMOVE:
+	        {
+	          nodeOp.removeChild(parentElem, domChildNodes[prev.index]);
+	          break;
+	        }
+	    }
+	  }
+
+	  (0, diffActions.default)(oldChildren, newChildren, effect, key);
 	}
 
-	function createEmptyNode() {
-	  return dom.createElement('noscript');
+	function updateThunk(domElem, oldNode, newNode) {
+	  var oldThunkVnode = oldNode.thunkVnode;
+	  var newThunkVnode = (0, _vnode.renderThunk)(newNode);
+	  return patchNode(domElem, oldThunkVnode, newThunkVnode);
+	}
+
+	function unmountThunk(vnode) {
+	  if (vnode.isThunk()) {
+	    // Call the lifecycle hook
+	    if (vnode.options.beforeUnmount) {}
+	    unmountThunk(vnode.thunkVnode);
+	  } else if (vnode.children) {
+	    (0, _index.each)(vnode.children, function (child) {
+	      return unmountThunk(child);
+	    });
+	  }
+	}
+	/**
+	 * compare the attributes of the two virtual nodes and update the dom attributes and event handlers
+	 * @param domElem
+	 * @param oldNode
+	 * @param newNode
+	 */
+	function updateAttributes(domElem, oldNode, newNode) {
+	  var oldAttributes = oldNode.attributes;
+	  var newAttributes = newNode.attributes;
+
+	  for (var name in newAttributes) {
+	    if (newAttributes[name] !== oldAttributes[name]) {
+	      (0, _set_attribute.setAttribute)(domElem, name, newAttributes[name], oldAttributes[name]);
+	    }
+	  }
+
+	  for (var _name in oldAttributes) {
+	    if (!(0, _index.has)(newAttributes, _name)) {
+	      (0, _set_attribute.removeAttribute)(domElem, _name, oldAttributes[_name]);
+	    }
+	  }
+	}
+
+	function replaceNode(domElem, oldNode, newNode) {
+	  unmountThunk(oldNode);
+	  var newDomElem = (0, _create_element2.default)(newNode);
+	  nodeOp.replaceNode(newDomElem, domElem);
+	  return newDomElem;
 	}
 
 /***/ },
-/* 13 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1408,185 +2098,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.UPDATE = UPDATE;
 	exports.MOVE = MOVE;
 	exports.REMOVE = REMOVE;
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _store = __webpack_require__(15);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = _store2.default;
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _index = __webpack_require__(2);
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var OpalStore = function () {
-	  function OpalStore(initialModel, updater) {
-	    _classCallCheck(this, OpalStore);
-
-	    this.model = initialModel;
-	    this.modelUpdater = updater;
-
-	    this.listeners = [];
-	  }
-
-	  _createClass(OpalStore, [{
-	    key: 'getModel',
-	    value: function getModel() {
-	      return this.model;
-	    }
-	  }, {
-	    key: 'dispatch',
-	    value: function dispatch(action) {
-	      var update = this.modelUpdater;
-	      var oldModel = this.model;
-
-	      this.model = update(oldModel, action);
-
-	      this.listeners.forEach(function (listener) {
-	        listener();
-	      });
-	    }
-	  }, {
-	    key: 'subscribe',
-	    value: function subscribe(listener) {
-	      if (!(0, _index.isFunction)(listener)) {
-	        throw new Error('Invalid argument: listener needs to be a function');
-	      }
-
-	      var allListeners = this.listeners;
-	      allListeners.push(listener);
-
-	      return function unsubscribe() {
-	        var index = allListeners.indexOf(listener);
-
-	        if (index >= 0) {
-	          allListeners.splice(index, 1);
-	        }
-	      };
-	    }
-	  }]);
-
-	  return OpalStore;
-	}();
-
-	exports.default = OpalStore;
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.bindActionCreator = bindActionCreator;
-	exports.bindActionCreators = bindActionCreators;
-	exports.createActionCreator = createActionCreator;
-	exports.createActionCreators = createActionCreators;
-	exports.createModelUpdater = createModelUpdater;
-
-	var _index = __webpack_require__(2);
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	function bindActionCreator(action, dispatch) {
-	  return function () {
-	    return dispatch(action.apply(undefined, arguments));
-	  };
-	}
-
-	function bindActionCreators(actions, dispatch) {
-	  if (!(0, _index.isObject)(actions) || (0, _index.isNull)(actions)) {
-	    throw Error('actions must be an object');
-	  }
-
-	  var result = {};
-	  var keys = (0, _index.getKeys)(actions);
-	  for (var i = 0; i < keys.length; i++) {
-	    var key = keys[i];
-	    result[key] = bindActionCreator(actions[key], dispatch);
-	  }
-	  return result;
-	}
-
-	/**
-	 * Create an action creator given the action type. the returned action creator can take any parameters
-	 * @param actionType
-	 * @returns {function()}
-	 */
-	function createActionCreator(actionType) {
-	  return function () {
-	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	      args[_key] = arguments[_key];
-	    }
-
-	    return {
-	      type: actionType,
-	      params: args
-	    };
-	  };
-	}
-	/**
-	 * Create an object whose keys are actions types and values the action creators. And all the actions creators will be
-	 * wrapped with the dispatch call, so they can be called directly to dispatch an action
-	 * @param actionTypes, array of action types
-	 */
-	function createActionCreators(actionTypes) {
-	  var actionCreators = {};
-	  (0, _index.each)(actionTypes, function (actionType) {
-	    if ((0, _index.has)(actionCreators, actionType)) {
-	      throw new Error('Duplicated action type found in' + actionType);
-	    }
-	    actionCreators[actionType] = createActionCreator(actionType);
-	  });
-	  return actionCreators;
-	}
-
-	/**
-	 * Create an update function which will handle the actions created by calling createActionCreator
-	 * @param actionHandlerMap, an object which has all the action handlers in format of {actionType: handler}, e.g.
-	 * {
-	   *  'Increase': (model) => model + 1,
-	   *  'Decrease': (model) => model - 1
-	   *  }
-	 * @returns {update}, the update function used by the OpalStore
-	 */
-	function createModelUpdater(actionHandlerMap) {
-	  return function update(model, action) {
-	    var newModel = model;
-	    // Only update the model if the action type exists
-	    if ((0, _index.has)(actionHandlerMap, action.type)) {
-	      var handler = actionHandlerMap[action.type];
-	      newModel = handler.apply(undefined, _toConsumableArray(action.params).concat([model]));
-	    }
-	    return newModel;
-	  };
-	}
 
 /***/ }
 /******/ ])

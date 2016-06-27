@@ -1,6 +1,7 @@
-import {isFunction} from '../util/index'
+import {isFunction, noop} from '../util/index'
+import {createModelUpdater} from './action'
 
-export default class Store {
+export class Store {
   constructor (initialModel, updater) {
     this.model = initialModel
     this.modelUpdater = updater
@@ -39,6 +40,13 @@ export default class Store {
       }
     }
   }
+}
 
+export default function createStore (model, update) {
+  var modelUpdater = update || noop
+  if (!isFunction(modelUpdater)) {
+    modelUpdater = createModelUpdater(update)
+  }
+  return new Store(model, modelUpdater)
 }
 
