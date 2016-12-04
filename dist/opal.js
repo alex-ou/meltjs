@@ -164,7 +164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _debug = __webpack_require__(3);
 
 	Object.keys(_debug).forEach(function (key) {
-	  if (key === "default") return;
+	  if (key === "default" || key === "__esModule") return;
 	  Object.defineProperty(exports, key, {
 	    enumerable: true,
 	    get: function get() {
@@ -176,7 +176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _type = __webpack_require__(4);
 
 	Object.keys(_type).forEach(function (key) {
-	  if (key === "default") return;
+	  if (key === "default" || key === "__esModule") return;
 	  Object.defineProperty(exports, key, {
 	    enumerable: true,
 	    get: function get() {
@@ -188,11 +188,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _bitset = __webpack_require__(5);
 
 	Object.keys(_bitset).forEach(function (key) {
-	  if (key === "default") return;
+	  if (key === "default" || key === "__esModule") return;
 	  Object.defineProperty(exports, key, {
 	    enumerable: true,
 	    get: function get() {
 	      return _bitset[key];
+	    }
+	  });
+	});
+
+	var _string = __webpack_require__(25);
+
+	Object.keys(_string).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _string[key];
 	    }
 	  });
 	});
@@ -247,7 +259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	exports.isString = isString;
 	exports.isNumber = isNumber;
@@ -471,7 +483,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *   )
 	 * ])
 	 */
-
 	var VNode = function () {
 	  function VNode(settings) {
 	    _classCallCheck(this, VNode);
@@ -1044,17 +1055,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _create_element = __webpack_require__(19);
+	var _create_element = __webpack_require__(20);
 
 	var _create_element2 = _interopRequireDefault(_create_element);
 
-	var _patch = __webpack_require__(22);
+	var _patch = __webpack_require__(23);
 
 	var _patch2 = _interopRequireDefault(_patch);
 
 	var _create = __webpack_require__(1);
 
 	var _create2 = _interopRequireDefault(_create);
+
+	var _index3 = __webpack_require__(17);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1069,17 +1082,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  render = options.render;
 	  if (!render) {
-	    (function () {
-	      var renderFn = compileTemplateToRenderFn(options.template);
-	      render = function render() {
-	        return renderFn(_create2.default);
-	      };
-	    })();
+	    render = compileTemplateToRenderFn(options.template);
 	  }
 
 	  function patch(context) {
 	    var oldVnode = vnode;
-	    vnode = render.apply(context);
+	    vnode = render.call(context, {
+	      _h: _create2.default,
+	      _s: _index3._toString
+	    });
 
 	    if (!elem) {
 	      // First time rendering
@@ -1120,7 +1131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ast_parser = __webpack_require__(15);
 
-	var _codegen = __webpack_require__(18);
+	var _codegen = __webpack_require__(19);
 
 	function compile(template) {
 	  var ast = (0, _ast_parser.parse)(template);
@@ -1130,9 +1141,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function createFunction(code) {
+	  console.log(code);
 	  try {
 	    // eslint-disable-next-line no-new-func
-	    return new Function('_h', 'with(this){return ' + code + '}');
+	    return new Function('p', ';var _h = p._h, _s = p._s; with(this){return ' + code + '};');
 	  } catch (error) {
 	    (0, _index.warn)(error);
 	    return _index.noop;
@@ -1148,7 +1160,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.AstElementType = undefined;
 	exports.parse = parse;
 
 	var _html_parser = __webpack_require__(16);
@@ -1157,10 +1168,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index2 = __webpack_require__(2);
 
-	var AstElementType = exports.AstElementType = {
-	  Element: 1,
-	  Text: 2
-	};
+	var _text_parser = __webpack_require__(18);
+
+	var _ast_type = __webpack_require__(26);
 
 	/**
 	 * Parse the template into an AST tree
@@ -1179,7 +1189,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      ensureSingleRoot(root, currentParent);
 
 	      var element = {
-	        type: AstElementType.Element,
+	        type: _ast_type.AstElementType.Element,
 	        tagName: tag,
 	        attrList: attrs,
 	        attributes: toAttributeMap(attrs),
@@ -1206,15 +1216,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    chars: function chars(text) {
 	      ensureSingleRoot(root, currentParent);
 
+	      var tokens = (0, _text_parser.parseText)(text.trim());
 	      var textElement = {
-	        type: AstElementType.Text,
-	        text: text
+	        type: _ast_type.AstElementType.Text,
+	        tokens: tokens
 	      };
 
 	      // Template only has the text, add a span to wrap the text
 	      if (!root) {
 	        root = currentParent = {
-	          type: AstElementType.Element,
+	          type: _ast_type.AstElementType.Element,
 	          tagName: 'span',
 	          children: []
 	        };
@@ -1237,10 +1248,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	function toAttributeMap(attrList) {
 	  var map = {};
 	  (0, _index2.each)(attrList, function (attr) {
-	    if ((0, _index2.has)(map, attr.name)) {
+	    var attrName = attr.name;
+	    if ((0, _index2.has)(map, attrName)) {
 	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
 	    }
-	    map[attr.name] = attr.value;
+	    map[attrName] = attr.value;
 	  });
 	  return map;
 	}
@@ -1315,24 +1327,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        // end tag
 	      } else if (html.indexOf('</') === 0) {
-	          match = html.match(endTagRE);
+	        match = html.match(endTagRE);
 
-	          if (match) {
-	            html = html.substring(match[0].length);
-	            match[0].replace(endTagRE, parseEndTag);
-	            chars = false;
-	          }
+	        if (match) {
+	          html = html.substring(match[0].length);
+	          match[0].replace(endTagRE, parseEndTag);
+	          chars = false;
+	        }
 
-	          // start tag
-	        } else if (html.indexOf('<') === 0) {
-	            match = html.match(startTagRE);
+	        // start tag
+	      } else if (html.indexOf('<') === 0) {
+	        match = html.match(startTagRE);
 
-	            if (match) {
-	              html = html.substring(match[0].length);
-	              match[0].replace(startTagRE, parseStartTag);
-	              chars = false;
-	            }
-	          }
+	        if (match) {
+	          html = html.substring(match[0].length);
+	          match[0].replace(startTagRE, parseStartTag);
+	          chars = false;
+	        }
+	      }
 
 	      if (chars) {
 	        index = html.indexOf('<');
@@ -1445,7 +1457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _elements = __webpack_require__(9);
 
 	Object.keys(_elements).forEach(function (key) {
-	  if (key === "default") return;
+	  if (key === "default" || key === "__esModule") return;
 	  Object.defineProperty(exports, key, {
 	    enumerable: true,
 	    get: function get() {
@@ -1453,6 +1465,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  });
 	});
+	exports._toString = _toString;
+	function _toString(v) {
+	  return v == null ? '' : JSON.stringify(v);
+	}
 
 /***/ },
 /* 18 */
@@ -1463,9 +1479,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.parseText = parseText;
+
+	var _ast_type = __webpack_require__(26);
+
+	var defaultTagRE = /\{((?:.|\n)+?)}/g;
+
+	/* Parse the text into tokens, e.g. This is {token} will be parsed to:
+	[
+	  {text: 'This is ', type: 0}, 0 - text literal
+	  {text: 'token', type: 1}, 1 - expression
+	]
+	* */
+	function parseText(text) {
+	  var tagRE = defaultTagRE;
+	  if (!tagRE.test(text)) {
+	    return [{
+	      token: text,
+	      type: _ast_type.AstTokenType.Literal
+	    }];
+	  }
+	  var tokens = [];
+	  var lastIndex = tagRE.lastIndex = 0;
+	  var match = void 0,
+	      index = void 0;
+	  while (match = tagRE.exec(text)) {
+	    index = match.index;
+	    // push text token
+	    if (index > lastIndex) {
+	      tokens.push({
+	        token: text.slice(lastIndex, index),
+	        type: _ast_type.AstTokenType.Literal
+	      });
+	    }
+	    // tag token
+	    var exp = match[1].trim();
+	    tokens.push({
+	      token: exp,
+	      type: _ast_type.AstTokenType.Expr
+	    });
+	    lastIndex = index + match[0].length;
+	  }
+	  if (lastIndex < text.length) {
+	    tokens.push({
+	      token: text.slice(lastIndex),
+	      type: _ast_type.AstTokenType.Literal
+	    });
+	  }
+	  return tokens;
+	}
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 	exports.generate = generate;
 
-	var _ast_parser = __webpack_require__(15);
+	var _ast_type = __webpack_require__(26);
 
 	/**
 	 * Generate the code to create the virtual DOM given the AST
@@ -1484,12 +1559,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function genElement(element) {
 	  // For element
-	  if (element.type === _ast_parser.AstElementType.Element) {
+	  if (element.type === _ast_type.AstElementType.Element) {
 	    return '_h("' + element.tagName + '",' + genAttributes(element) + ',' + genChildren(element) + ')';
 	  }
 
 	  // For text
-	  return JSON.stringify(element.text);
+	  return genText(element.tokens);
 	}
 
 	function genAttributes(element) {
@@ -1506,8 +1581,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return '[' + childrenCodeArray.join(',') + ']';
 	}
 
+	function genText(tokens) {
+	  return (tokens || []).map(function (item) {
+	    return item.type === _ast_type.AstTokenType.Literal ? JSON.stringify(item.token) : '_s(' + item.token + ')';
+	  }).join('+');
+	}
+
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1527,7 +1608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var nodeOp = _interopRequireWildcard(_nodeOp);
 
-	var _set_attribute = __webpack_require__(20);
+	var _set_attribute = __webpack_require__(21);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -1559,9 +1640,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function createHtmlElement(vnode) {
-	  var tagName = vnode.tagName;
-	  var children = vnode.children;
-	  var attributes = vnode.attributes;
+	  var tagName = vnode.tagName,
+	      children = vnode.children,
+	      attributes = vnode.attributes;
 
 
 	  var elem = nodeOp.createElement(tagName);
@@ -1590,7 +1671,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1603,7 +1684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index = __webpack_require__(2);
 
-	var _events = __webpack_require__(21);
+	var _events = __webpack_require__(22);
 
 	var _events2 = _interopRequireDefault(_events);
 
@@ -1688,7 +1769,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1769,7 +1850,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1780,15 +1861,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = patchNode;
 	exports.patchChildren = patchChildren;
 
-	var _set_attribute = __webpack_require__(20);
+	var _set_attribute = __webpack_require__(21);
 
-	var _create_element = __webpack_require__(19);
+	var _create_element = __webpack_require__(20);
 
 	var _create_element2 = _interopRequireDefault(_create_element);
 
 	var _vnode = __webpack_require__(6);
 
-	var _diff = __webpack_require__(23);
+	var _diff = __webpack_require__(24);
 
 	var diffActions = _interopRequireWildcard(_diff);
 
@@ -1850,10 +1931,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function patchChildren(parentElem, oldNode, newNode) {
-	  var CREATE = diffActions.CREATE;
-	  var UPDATE = diffActions.UPDATE;
-	  var MOVE = diffActions.MOVE;
-	  var REMOVE = diffActions.REMOVE;
+	  var CREATE = diffActions.CREATE,
+	      UPDATE = diffActions.UPDATE,
+	      MOVE = diffActions.MOVE,
+	      REMOVE = diffActions.REMOVE;
 
 	  var oldChildren = (0, _vnode.groupByKey)(oldNode.children);
 	  var newChildren = (0, _vnode.groupByKey)(newNode.children);
@@ -1944,7 +2025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2098,6 +2179,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.UPDATE = UPDATE;
 	exports.MOVE = MOVE;
 	exports.REMOVE = REMOVE;
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.camelize = camelize;
+	function camelize(s) {
+	  return s.replace(/(-[a-z])/g, function ($1) {
+	    return $1.toUpperCase().replace('-', '');
+	  });
+	}
+
+/***/ },
+/* 26 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var AstElementType = exports.AstElementType = {
+	  Element: 1,
+	  Text: 2
+	};
+
+	var AstTokenType = exports.AstTokenType = {
+	  Literal: 0,
+	  Expr: 1
+	};
 
 /***/ }
 /******/ ])

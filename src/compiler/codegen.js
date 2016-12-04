@@ -1,4 +1,5 @@
-import {AstElementType} from './ast_parser'
+import {AstElementType, AstTokenType} from './ast_type'
+
 /**
  * Generate the code to create the virtual DOM given the AST
  * The generated code should be like below:
@@ -25,9 +26,7 @@ function genElement (element) {
   }
 
   // For text
-  return (
-    JSON.stringify(element.text)
-  )
+  return genText(element.tokens)
 }
 
 function genAttributes (element) {
@@ -42,4 +41,10 @@ function genChildren (element) {
   let children = element.children
   let childrenCodeArray = children.map(genElement)
   return '[' + childrenCodeArray.join(',') + ']'
+}
+
+function genText (tokens) {
+  return (tokens || []).map(
+    item => item.type === AstTokenType.Literal ? JSON.stringify(item.token) : `_s(${item.token})`
+  ).join('+')
 }

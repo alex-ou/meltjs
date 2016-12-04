@@ -7,6 +7,8 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, './dist'),
+    libraryTarget: 'umd',
+    umdNamedDefine: true,
     filename: '[name].js'
   },
   externals: {

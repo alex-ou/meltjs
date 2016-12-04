@@ -2,6 +2,7 @@ import compile from '../compiler/index'
 import createDomElement from './create_element'
 import patchDomElement from './patch'
 import createElement from '../vdom/create'
+import {_toString} from './util/index'
 
 export function createComponent (options) {
   if (!options.render && !options.template) {
@@ -12,13 +13,15 @@ export function createComponent (options) {
 
   render = options.render
   if (!render) {
-    let renderFn = compileTemplateToRenderFn(options.template)
-    render = () => renderFn(createElement)
+    render = compileTemplateToRenderFn(options.template)
   }
 
   function patch (context) {
     var oldVnode = vnode
-    vnode = render.apply(context)
+    vnode = render.call(context, {
+      _h: createElement,
+      _s: _toString
+    })
 
     if (!elem) {
       // First time rendering

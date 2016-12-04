@@ -10,9 +10,12 @@ export default function compile (template) {
 }
 
 function createFunction (code) {
+  console.log(code)
   try {
     // eslint-disable-next-line no-new-func
-    return new Function('_h', 'with(this){return ' + code + '}')
+    return new Function('p',
+        ';var _h = p._h, _s = p._s; with(this){return ' + code + '};'
+    )
   } catch (error) {
     warn(error)
     return noop

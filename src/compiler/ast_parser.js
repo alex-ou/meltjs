@@ -1,11 +1,8 @@
 import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
-import {each, has, warn} from '../util/index'
-
-export const AstElementType = {
-  Element: 1,
-  Text: 2
-}
+import {each, has, warn, camelize} from '../util/index'
+import {parseText} from './text_parser'
+import {AstElementType} from './ast_type'
 
 /**
  * Parse the template into an AST tree
@@ -50,9 +47,10 @@ export function parse (template) {
     chars: function chars (text) {
       ensureSingleRoot(root, currentParent)
 
+      const tokens = parseText(text.trim())
       let textElement = {
         type: AstElementType.Text,
-        text: text
+        tokens: tokens
       }
 
       // Template only has the text, add a span to wrap the text
@@ -81,10 +79,11 @@ export function parse (template) {
 function toAttributeMap (attrList) {
   var map = {}
   each(attrList, attr => {
-    if (has(map, attr.name)) {
+    const attrName = attr.name
+    if (has(map, attrName)) {
       warn(`Found a duplicated attribute, name: ${attr.name}, value:${attr.value}`)
     }
-    map[attr.name] = attr.value
+    map[attrName] = attr.value
   })
   return map
 }

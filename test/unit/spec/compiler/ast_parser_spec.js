@@ -1,4 +1,5 @@
-import {parse, AstElementType} from 'src/compiler/ast_parser'
+import {parse} from 'src/compiler/ast_parser'
+import {AstElementType, AstTokenType} from 'src/compiler/ast_type'
 
 describe('AST parser', () => {
   it('can parse a single node', () => {
@@ -7,7 +8,7 @@ describe('AST parser', () => {
     expect(root.tagName).toBe('span')
     expect(root.children.length).toBe(1)
     expect(root.children[0].type).toBe(AstElementType.Text)
-    expect(root.children[0].text).toBe('1')
+    expect(root.children[0].tokens[0]).toEqual({ token: '1', type: AstTokenType.Literal })
     expect(root.attributes).toEqual({'class': 'text'})
   })
 
@@ -21,7 +22,7 @@ describe('AST parser', () => {
     expect(child.tagName).toBe('span')
     child = child.children[0]
     expect(child.type).toBe(AstElementType.Text)
-    expect(child.text).toBe('1')
+    expect(child.tokens[0]).toEqual({ token: '1', type: AstTokenType.Literal })
   })
 
   it('can parse the unclosed inner element', () => {
@@ -34,7 +35,7 @@ describe('AST parser', () => {
     expect(child.tagName).toBe('span')
     child = child.children[0]
     expect(child.type).toBe(AstElementType.Text)
-    expect(child.text).toBe('1')
+    expect(child.tokens[0]).toEqual({ token: '1', type: AstTokenType.Literal })
   })
 
   it('can parse the element with children', () => {
@@ -61,7 +62,7 @@ describe('AST parser', () => {
     child = root.children[1]
     expect(child.type).toBe(AstElementType.Element)
     expect(child.children[0].type).toBe(AstElementType.Text)
-    expect(child.children[0].text).toBe('text')
+    expect(child.children[0].tokens[0]).toEqual({ token: 'text', type: AstTokenType.Literal })
 
     child = root.children[2]
     expect(child.type).toBe(AstElementType.Element)
@@ -74,7 +75,7 @@ describe('AST parser', () => {
     expect(root).toBeDefined()
     expect(root.tagName).toBe('span')
     expect(root.children.length).toBe(1)
-    expect(root.children[0].text).toBe('aabb')
+    expect(root.children[0].tokens[0]).toEqual({ token: 'aabb', type: AstTokenType.Literal })
   })
 
   it('throws exception if there are more then one root elements', () => {
@@ -99,5 +100,19 @@ describe('AST parser', () => {
   it('can parse attributes with special chars', () => {
     let root = parse('<span class="text\'">1</span>')
     expect(root.attributes['class']).toBe('text\'')
+  })
+
+  it('can parse interpolated text', () => {
+    let root = parse('<span>My name is {firstName} {lastName}</span>')
+    expect(root).toBeDefined()
+    expect(root.tagName).toBe('span')
+    expect(root.children.length).toBe(1)
+    expect(root.children[0].type).toBe(AstElementType.Text)
+    expect(root.children[0].tokens).toEqual([
+      {token: 'My name is ', type: AstTokenType.Literal},
+      {token: 'firstName', type: AstTokenType.Expr},
+      {token: ' ', type: AstTokenType.Literal},
+      {token: 'lastName', type: AstTokenType.Expr}
+    ])
   })
 })

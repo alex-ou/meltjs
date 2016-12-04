@@ -15,18 +15,22 @@ var decrease = function (step, model) {
 
 Opal.app({
   el: '#app',
-  render: function () {
-    let h = this.createElement
-    let {increaseAsync, decrease, increase} = this.actions
-
-    return h('div', {}, [
-      this.model,
-      h('button', {'onClick': () => increase(2)}, '+'),
-      h('button', {'onClick': () => decrease(2)}, '-'),
-      h('button', {'onClick': () => increaseAsync(2)}, 'Increase Async')
-    ])
-  },
-  // template: '<div>test</div>',
+  //render: function () {
+  //  let h = this.createElement
+  //  let {increaseAsync, decrease, increase} = this.actions
+  //
+  //  return h('div', {}, [
+  //    this.model,
+  //    h('button', {'onClick': () => increase(2)}, '+'),
+  //    h('button', {'onClick': () => decrease(2)}, '-'),
+  //    h('button', {'onClick': () => increaseAsync(2)}, 'Increase Async')
+  //  ])
+  //},
+  template: `<div>
+                {model}
+                <button on-click="{actions.increase(2)}">+</button>
+                <button on-click="{actions.decrease(2)}">-</button>
+             </div>`,
   model: 0,
   update: {
     increase,
