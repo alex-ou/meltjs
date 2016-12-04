@@ -13,3 +13,18 @@ export function makeMap (str) {
   }
   return obj
 }
+
+export function uniqueId () {
+  var date = Date.now()
+
+  // If created at same millisecond as previous
+  if (date <= uniqueId.previous) {
+    date = ++uniqueId.previous
+  } else {
+    uniqueId.previous = date
+  }
+
+  return date
+}
+
+uniqueId.previous = 0

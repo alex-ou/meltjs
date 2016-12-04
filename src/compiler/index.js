@@ -4,17 +4,18 @@ import {generate} from './codegen'
 
 export default function compile (template) {
   let ast = parse(template)
-  let code = generate(ast)
-  let renderFn = createFunction(code)
-  return renderFn
+  // [variable declarations, statements]
+  let codeSnippets = generate(ast)
+  return createFunction(codeSnippets)
 }
 
-function createFunction (code) {
-  console.log(code)
+function createFunction (codeSnippets) {
+  console.log(codeSnippets[0])
+  console.log(codeSnippets[1])
   try {
     // eslint-disable-next-line no-new-func
     return new Function('p',
-        ';var _h = p._h, _s = p._s; with(this){return ' + code + '};'
+        `;var _h = p._h, _s = p._s; with(this){${codeSnippets[0]} return ${codeSnippets[1]}};`
     )
   } catch (error) {
     warn(error)

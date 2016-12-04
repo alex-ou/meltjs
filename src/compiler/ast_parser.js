@@ -1,6 +1,6 @@
 import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
-import {each, has, warn, camelize} from '../util/index'
+import {each, has, warn} from '../util/index'
 import {parseText} from './text_parser'
 import {AstElementType} from './ast_type'
 
@@ -83,7 +83,8 @@ function toAttributeMap (attrList) {
     if (has(map, attrName)) {
       warn(`Found a duplicated attribute, name: ${attr.name}, value:${attr.value}`)
     }
-    map[attrName] = attr.value
+
+    map[attrName] = parseText(attr.value.trim())
   })
   return map
 }

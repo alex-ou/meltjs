@@ -210,6 +210,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.noop = noop;
 	exports.makeMap = makeMap;
+	exports.uniqueId = uniqueId;
 	function noop() {}
 
 	function makeMap(str) {
@@ -220,6 +221,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	  return obj;
 	}
+
+	function uniqueId() {
+	  var date = Date.now();
+
+	  // If created at same millisecond as previous
+	  if (date <= uniqueId.previous) {
+	    date = ++uniqueId.previous;
+	  } else {
+	    uniqueId.previous = date;
+	  }
+
+	  return date;
+	}
+
+	uniqueId.previous = 0;
 
 /***/ },
 /* 3 */
@@ -1135,16 +1151,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function compile(template) {
 	  var ast = (0, _ast_parser.parse)(template);
-	  var code = (0, _codegen.generate)(ast);
-	  var renderFn = createFunction(code);
-	  return renderFn;
+	  // [variable declarations, statements]
+	  var codeSnippets = (0, _codegen.generate)(ast);
+	  return createFunction(codeSnippets);
 	}
 
-	function createFunction(code) {
-	  console.log(code);
+	function createFunction(codeSnippets) {
+	  console.log(codeSnippets[0]);
+	  console.log(codeSnippets[1]);
 	  try {
 	    // eslint-disable-next-line no-new-func
-	    return new Function('p', ';var _h = p._h, _s = p._s; with(this){return ' + code + '};');
+	    return new Function('p', ';var _h = p._h, _s = p._s; with(this){' + codeSnippets[0] + ' return ' + codeSnippets[1] + '};');
 	  } catch (error) {
 	    (0, _index.warn)(error);
 	    return _index.noop;
@@ -1252,7 +1269,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((0, _index2.has)(map, attrName)) {
 	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
 	    }
-	    map[attrName] = attr.value;
+
+	    map[attrName] = (0, _text_parser.parseText)(attr.value.trim());
 	  });
 	  return map;
 	}
@@ -1542,6 +1560,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ast_type = __webpack_require__(26);
 
+	var _index = __webpack_require__(2);
+
+	var _events = __webpack_require__(22);
+
+	var _events2 = _interopRequireDefault(_events);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var eventNameMap = {};
+	(0, _index.each)(_events2.default, function (eventName, standardName) {
+	  eventNameMap['on-' + eventName] = standardName;
+	});
+
+	var funcRE = /([^()]+)(\(.*\))?/;
+
 	/**
 	 * Generate the code to create the virtual DOM given the AST
 	 * The generated code should be like below:
@@ -1554,37 +1587,79 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param ast, the parsed AST
 	 */
 	function generate(ast) {
-	  return genElement(ast);
+	  var tempVarDefs = [];
+	  var code = genElement(ast, tempVarDefs);
+	  return [tempVarDefs.join(''), code];
 	}
 
-	function genElement(element) {
+	function genElement(element, tempVarDefs) {
 	  // For element
 	  if (element.type === _ast_type.AstElementType.Element) {
-	    return '_h("' + element.tagName + '",' + genAttributes(element) + ',' + genChildren(element) + ')';
+	    return '_h("' + element.tagName + '",' + genAttributes(element, tempVarDefs) + ',' + genChildren(element, tempVarDefs) + ')';
 	  }
 
 	  // For text
 	  return genText(element.tokens);
 	}
 
-	function genAttributes(element) {
-	  return JSON.stringify(element.attributes || {});
+	function genAttributes(element, tempVarDefs) {
+	  // Handles the event handlers like on-click
+	  var results = [];
+	  (0, _index.each)(element.attributes, function (attrValue, attrName) {
+	    if (eventNameMap[attrName] && attrValue.length === 1) {
+	      if (attrValue[0].type !== _ast_type.AstTokenType.Expr) {
+	        (0, _index.warn)('Event handler needs to be wrapped inside the {}');
+	      }
+	      var standardEventName = eventNameMap[attrName];
+	      var handlerInfo = genEventHandler(attrValue[0].token);
+	      results.push('"' + standardEventName + '":' + handlerInfo.funcName);
+	      tempVarDefs.push(handlerInfo.funcDef);
+	    } else {
+	      var attrExpr = genText(attrValue);
+	      results.push('"' + attrName + '":' + attrExpr);
+	    }
+	  });
+	  return '{' + results.join(',') + '}';
 	}
 
-	function genChildren(element) {
+	function genChildren(element, tempVarDefs) {
 	  if (!element.children) {
 	    return '[]';
 	  }
 
 	  var children = element.children;
-	  var childrenCodeArray = children.map(genElement);
+	  var childrenCodeArray = children.map(function (child) {
+	    return genElement(child, tempVarDefs);
+	  });
 	  return '[' + childrenCodeArray.join(',') + ']';
 	}
 
+	// Convent the tokens array into expression,e.g [{text: '11', type: Literal}, {text: 'name', type: Expr}]
+	// will be converted to '11' + _s(name)
 	function genText(tokens) {
 	  return (tokens || []).map(function (item) {
 	    return item.type === _ast_type.AstTokenType.Literal ? JSON.stringify(item.token) : '_s(' + item.token + ')';
 	  }).join('+');
+	}
+
+	// convert event attribute
+	//
+	// on-click="handleClick"
+	// on-click="handleClick(1)"
+	//
+	// to something like below:
+	// var handleClick_rand = function(event){handleClick(1);}
+	function genEventHandler(handlerCode) {
+	  funcRE.lastIndex = 0;
+	  var matches = funcRE.exec(handlerCode);
+	  var hasParam = matches.length >= 3 && matches[2];
+	  var callCode = hasParam ? handlerCode : handlerCode + '($event)';
+
+	  var wrapperName = '$$eh' + '_' + (0, _index.uniqueId)();
+	  return {
+	    funcName: wrapperName,
+	    funcDef: 'var ' + wrapperName + '=function($event){' + callCode + '};'
+	  };
 	}
 
 /***/ },

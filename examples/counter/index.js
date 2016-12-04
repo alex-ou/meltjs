@@ -30,6 +30,7 @@ Opal.app({
                 {model}
                 <button on-click="{actions.increase(2)}">+</button>
                 <button on-click="{actions.decrease(2)}">-</button>
+                <button on-click="{actions.increaseAsync(2)}">Increase Async</button>
              </div>`,
   model: 0,
   update: {
