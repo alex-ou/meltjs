@@ -2,7 +2,7 @@ import {AstTokenType} from './ast_type'
 
 const defaultTagRE = /\{((?:.|\n)+?)}/g
 
-/* Parse the text into tokens, e.g. This is {token} will be parsed to:
+/* Parse the text into tokens, e.g. 'This is {token}' will be parsed to:
 [
   {text: 'This is ', type: 0}, 0 - text literal
   {text: 'token', type: 1}, 1 - expression

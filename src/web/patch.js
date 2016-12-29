@@ -92,6 +92,7 @@ export function patchChildren (parentElem, oldNode, newNode) {
 function updateThunk (domElem, oldNode, newNode) {
   let oldThunkVnode = oldNode.thunkVnode
   let newThunkVnode = renderThunk(newNode)
+  newNode.thunkVnode = newThunkVnode
   return patchNode(domElem, oldThunkVnode, newThunkVnode)
 }
 

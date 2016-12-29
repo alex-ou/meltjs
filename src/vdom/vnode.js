@@ -64,8 +64,8 @@ export function renderThunk (vnode) {
     renderedVnode = vnode.renderFn(data)
   } else {
     // the component will get props through this.props
-    extend(data, vnode.options)
-    renderedVnode = vnode.renderFn.apply(data)
+    extend(vnode.options, data)
+    renderedVnode = vnode.renderFn.apply(vnode.options)
   }
   return renderedVnode
 }

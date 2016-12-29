@@ -8,7 +8,7 @@ const toString = ObjProto.toString
 const nativeKeys = Object.keys
 
 export function isString (value) {
-  return typeof value === 'string'
+  return typeof value === 'string' || value instanceof String
 }
 
 export function isNumber (value) {
@@ -104,9 +104,8 @@ export function extend (obj, ...sources) {
       if (isUndefined(value)) {
         continue
       }
-      obj[key] = source[key]
+      obj[key] = value
     }
   }
   return obj
 }
-

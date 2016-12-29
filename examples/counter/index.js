@@ -13,25 +13,20 @@ var decrease = function (step, model) {
   return model - step
 }
 
+Opal.component('counter', {
+  template: `<div class="{alertClass()}">
+                {count}
+                <button on-click="{increase(2)}">+</button>
+                <button on-click="{decrease(2)}">-</button>
+             </div>`,
+  alertClass: function () {
+    return this.count > 2 ? 'red' : ''
+  }
+})
+
 Opal.app({
   el: '#app',
-  //render: function () {
-  //  let h = this.createElement
-  //  let {increaseAsync, decrease, increase} = this.actions
-  //
-  //  return h('div', {}, [
-  //    this.model,
-  //    h('button', {'onClick': () => increase(2)}, '+'),
-  //    h('button', {'onClick': () => decrease(2)}, '-'),
-  //    h('button', {'onClick': () => increaseAsync(2)}, 'Increase Async')
-  //  ])
-  //},
-  template: `<div>
-                {model}
-                <button on-click="{actions.increase(2)}">+</button>
-                <button on-click="{actions.decrease(2)}">-</button>
-                <button on-click="{actions.increaseAsync(2)}">Increase Async</button>
-             </div>`,
+  template: '<counter count="{model}" increase="{actions.increase}" decrease="{actions.decrease}"></counter>',
   model: 0,
   update: {
     increase,

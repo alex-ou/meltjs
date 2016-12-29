@@ -74,7 +74,7 @@ function genChildren (element, tempVarDefs) {
 // will be converted to '11' + _s(name)
 function genText (tokens) {
   return (tokens || []).map(
-    item => item.type === AstTokenType.Literal ? JSON.stringify(item.token) : `_s(${item.token})`
+    item => item.type === AstTokenType.Literal ? JSON.stringify(item.token) : item.token
   ).join('+')
 }
 

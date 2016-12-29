@@ -15,7 +15,7 @@ describe('AST parser', () => {
   it('can generate code for the interpolated text', () => {
     let ast = parse('<span>Hello {name}</span>')
     var code = generate(ast)[1]
-    expect(code).toBe('_h("span",{},["Hello "+_s(name)])')
+    expect(code).toBe('_h("span",{},["Hello "+name])')
   })
 
   it('can generate code for the event handler', () => {
@@ -41,7 +41,7 @@ describe('AST parser', () => {
     )
     let code = generate(ast)[1]
     expect(code).toBe(
-      '_h("div",{"class":"text "+_s(color)},' +
+      '_h("div",{"class":"text "+color},' +
         '[' +
           '_h("input",{"value":"1","disabled":"disabled"},[]),' +
           '_h("a",{"href":"/link"},["link"])' +

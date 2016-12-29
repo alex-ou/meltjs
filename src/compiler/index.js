@@ -14,8 +14,8 @@ function createFunction (codeSnippets) {
   console.log(codeSnippets[1])
   try {
     // eslint-disable-next-line no-new-func
-    return new Function('p',
-        `;var _h = p._h, _s = p._s; with(this){${codeSnippets[0]} return ${codeSnippets[1]}};`
+    return new Function('',
+        `;var p = this, _h = p._h, _s = p._s; with(this){${codeSnippets[0]} return ${codeSnippets[1]}};`
     )
   } catch (error) {
     warn(error)
