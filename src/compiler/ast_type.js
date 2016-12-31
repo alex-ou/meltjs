@@ -7,3 +7,8 @@ export const AstTokenType = {
   Literal: 0,
   Expr: 1
 }
+
+export const AstDirective = {
+  If: 'if',
+  Each: 'each'
+}

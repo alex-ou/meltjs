@@ -18,6 +18,8 @@ Opal.component('counter', {
                 {count}
                 <button on-click="{increase(2)}">+</button>
                 <button on-click="{decrease(2)}">-</button>
+                <div if="{count > 4}">too big</div>
+                <div each="{(v, k) in count}">{a}</div>
              </div>`,
   alertClass: function () {
     return this.count > 2 ? 'red' : ''

@@ -2,7 +2,7 @@ import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
 import {each, has, warn} from '../util/index'
 import {parseText} from './text_parser'
-import {AstElementType} from './ast_type'
+import {AstElementType, AstTokenType, AstDirective} from './ast_type'
 
 /**
  * Parse the template into an AST tree
@@ -25,6 +25,11 @@ export function parse (template) {
         attrList: attrs,
         attributes: toAttributeMap(attrs),
         children: []
+      }
+
+      const ifAttrValue = element.attributes[AstDirective.If]
+      if (ifAttrValue) {
+        element.if = parseIf(ifAttrValue)
       }
 
       if (!root) {
@@ -87,6 +92,20 @@ function toAttributeMap (attrList) {
     map[attrName] = parseText(attr.value.trim())
   })
   return map
+}
+
+function parseIf (attrValue) {
+  if (!attrValue || attrValue.length === 0) {
+    warn('Invalid If directive expression')
+    return null
+  }
+  if (attrValue[0].type !== AstTokenType.Expr) {
+    warn(`If directive Expression ${attrValue} is ignored as it's not wrapped inside the {}`)
+    return null
+  }
+  return {
+    condition: attrValue[0].token
+  }
 }
 
 function ensureSingleRoot (root, currentParent) {

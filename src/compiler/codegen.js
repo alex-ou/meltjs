@@ -1,11 +1,13 @@
-import {AstElementType, AstTokenType} from './ast_type'
-import {each, uniqueId, warn} from '../util/index'
+import {AstElementType, AstTokenType, AstDirective} from './ast_type'
+import {each, uniqueId, warn, getValues, makeMap} from '../util/index'
 import events from '../web/util/events'
 
 const eventNameMap = {}
 each(events, (eventName, standardName) => {
   eventNameMap['on-' + eventName] = standardName
 })
+
+const directiveMap = makeMap(getValues(AstDirective).join(','))
 
 const funcRE = /([^()]+)(\(.*\))?/
 
@@ -29,11 +31,17 @@ export function generate (ast) {
 function genElement (element, tempVarDefs) {
   // For element
   if (element.type === AstElementType.Element) {
-    return (
+    let createElemCode = (
       `_h("${element.tagName}",` + genAttributes(element, tempVarDefs) + ',' +
         genChildren(element, tempVarDefs) +
       ')'
     )
+
+    // Has if directive
+    if (element.if) {
+      createElemCode = `${element.if.condition}?${createElemCode}:null`
+    }
+    return createElemCode
   }
 
   // For text
@@ -44,6 +52,11 @@ function genAttributes (element, tempVarDefs) {
   // Handles the event handlers like on-click
   var results = []
   each(element.attributes, (attrValue, attrName) => {
+    if (directiveMap[attrName]) {
+      // Do not generate the code for directives e.g. if and for
+      return
+    }
+
     if (eventNameMap[attrName] && attrValue.length === 1) {
       if (attrValue[0].type !== AstTokenType.Expr) {
         warn('Event handler needs to be wrapped inside the {}')
@@ -71,7 +84,7 @@ function genChildren (element, tempVarDefs) {
 }
 
 // Convent the tokens array into expression,e.g [{text: '11', type: Literal}, {text: 'name', type: Expr}]
-// will be converted to '11' + _s(name)
+// will be converted to '11' + name
 function genText (tokens) {
   return (tokens || []).map(
     item => item.type === AstTokenType.Literal ? JSON.stringify(item.token) : item.token
@@ -97,4 +110,3 @@ function genEventHandler (handlerCode) {
     funcDef: `var ${wrapperName}=function($event){${callCode}};`
   }
 }
-

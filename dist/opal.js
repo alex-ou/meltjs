@@ -613,6 +613,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        children: []
 	      };
 
+	      var ifAttrValue = element.attributes[_ast_type.AstDirective.If];
+	      if (ifAttrValue) {
+	        element.if = parseIf(ifAttrValue);
+	      }
+
 	      if (!root) {
 	        root = element;
 	      }
@@ -673,6 +678,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    map[attrName] = (0, _text_parser.parseText)(attr.value.trim());
 	  });
 	  return map;
+	}
+
+	function parseIf(attrValue) {
+	  if (!attrValue || attrValue.length === 0) {
+	    (0, _index2.warn)('Invalid If directive expression');
+	    return null;
+	  }
+	  if (attrValue[0].type !== _ast_type.AstTokenType.Expr) {
+	    (0, _index2.warn)('If directive Expression ' + attrValue + ' is ignored as it\'s not wrapped inside the {}');
+	    return null;
+	  }
+	  return {
+	    condition: attrValue[0].token
+	  };
 	}
 
 	function ensureSingleRoot(root, currentParent) {
@@ -1021,7 +1040,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 13 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -1034,6 +1053,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var AstTokenType = exports.AstTokenType = {
 	  Literal: 0,
 	  Expr: 1
+	};
+
+	var AstDirective = exports.AstDirective = {
+	  If: 'if',
+	  Each: 'each'
 	};
 
 /***/ },
@@ -1062,6 +1086,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  eventNameMap['on-' + eventName] = standardName;
 	});
 
+	var directiveMap = (0, _index.makeMap)((0, _index.getValues)(_ast_type.AstDirective).join(','));
+
 	var funcRE = /([^()]+)(\(.*\))?/;
 
 	/**
@@ -1084,7 +1110,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	function genElement(element, tempVarDefs) {
 	  // For element
 	  if (element.type === _ast_type.AstElementType.Element) {
-	    return '_h("' + element.tagName + '",' + genAttributes(element, tempVarDefs) + ',' + genChildren(element, tempVarDefs) + ')';
+	    var createElemCode = '_h("' + element.tagName + '",' + genAttributes(element, tempVarDefs) + ',' + genChildren(element, tempVarDefs) + ')';
+
+	    // Has if directive
+	    if (element.if) {
+	      createElemCode = element.if.condition + '?' + createElemCode + ':null';
+	    }
+	    return createElemCode;
 	  }
 
 	  // For text
@@ -1095,6 +1127,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // Handles the event handlers like on-click
 	  var results = [];
 	  (0, _index.each)(element.attributes, function (attrValue, attrName) {
+	    if (directiveMap[attrName]) {
+	      // Do not generate the code for directives e.g. if and for
+	      return;
+	    }
+
 	    if (eventNameMap[attrName] && attrValue.length === 1) {
 	      if (attrValue[0].type !== _ast_type.AstTokenType.Expr) {
 	        (0, _index.warn)('Event handler needs to be wrapped inside the {}');
@@ -1124,7 +1161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	// Convent the tokens array into expression,e.g [{text: '11', type: Literal}, {text: 'name', type: Expr}]
-	// will be converted to '11' + _s(name)
+	// will be converted to '11' + name
 	function genText(tokens) {
 	  return (tokens || []).map(function (item) {
 	    return item.type === _ast_type.AstTokenType.Literal ? JSON.stringify(item.token) : item.token;

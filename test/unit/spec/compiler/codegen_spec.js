@@ -48,4 +48,10 @@ describe('AST parser', () => {
         ']' +
       ')')
   })
+
+  it('can generate code for the if directive', () => {
+    let ast = parse('<span if="{a>0}">1</span>')
+    var code = generate(ast)[1]
+    expect(code).toBe('a>0?_h("span",{},["1"]):null')
+  })
 })
