@@ -4,44 +4,33 @@ OpalJS is a very light framework that allows you to create web applications that
 
 * **Model**: the state of the whole application
 * **Update**: the only place the model can be mutated
-* **Render/Template**: the way to render the model as HTML
+* **Template/Render**: the way to render the model as HTML
 
 ## Example
 [jsfiddle Demo](https://jsfiddle.net/alex_ou/fomL88qw/)
 
 ```javascript
-// The initial model
-let model = 0
-
-// the update that routes actions to the model mutators
-let update = {
-    //Opal passes the arguments and the model object here
-	increase: function (step, model) {
-  	  return model + step
-	},
-	decrease: function (step, model) {
-  	  return model - step
-	}
+// The pure functons that update the model
+// Notice that the model is passed in as the argument
+function increase (model) {
+  return model + 1
 }
-
-//the render function 
-let render = function () {
-    /* OpalJS automatically generates the action creators based on 
-    the keys of the update object */
-    let {increase, decrease} = this.actions
-    let h = Opal.createElement
-    return h('div', {}, [
-      this.model,
-      h('button', {'onClick': () => increase(2)}, '+'),
-      h('button', {'onClick': () => decrease(2)}, '-')
-    ])
-  }
+function decrease (model) {
+  return model - 1
+}
 
 Opal.app({
   el: '#app', //the root DOM element
-  model,
-  update,
-  render
+  model: 0,
+  update: {
+  	increase,
+    decrease
+  },
+  template:
+  `<div>{model}
+  	<button on-click='{actions.increase()}'>+</button>
+    <button on-click='{actions.decrease()}'>-</button>
+  </div>`
 })
 
 ```
