@@ -10,7 +10,7 @@ function flatten (attrs) {
   }
   var result = {}
   for (var key in attrs) {
-    result[key] = flatenTokens(attrs[key])
+    result[key] = flatenTokens(attrs[key].tokens)
   }
   return result
 }
@@ -113,7 +113,6 @@ describe('AST parser', () => {
 
   it('can parse attributes with special chars', () => {
     let root = parse('<span class="text\'">1</span>')
-    console.log(root.attributes)
     expect(flatten(root.attributes)).toEqual({class: 'text\''})
   })
 
@@ -129,5 +128,35 @@ describe('AST parser', () => {
       {token: ' ', type: AstTokenType.Literal},
       {token: 'lastName', type: AstTokenType.Expr}
     ])
+  })
+
+  it('should ignore the leading and trailing whitespaces that are in in pre element', () => {
+    let root = parse(`
+      <div>
+        <span>1</span>
+      </div>
+    `)
+    expect(root).toBeDefined()
+    expect(root.tagName).toBe('div')
+    expect(root.children[0].tagName).toBe('span')
+    expect(root.children[0].children[0].rawValue).toBe('1')
+  })
+
+  it('should preserve the leading and trailing whitespaces for pre element', () => {
+    let root = parse(`<pre><span> 1 </span>
+      </pre>`)
+    expect(root).toBeDefined()
+    expect(root.tagName).toBe('pre')
+    expect(root.children.length).toBe(2)
+    expect(root.children[0].tagName).toBe('span')
+    expect(root.children[0].children[0].rawValue).toBe(' 1 ')
+    expect(root.children[1].type).toBe(AstElementType.Text)
+  })
+
+  describe('Invalid scenarios', () => {
+    it('should ignore the invalid if directive', () => {
+      let root = parse('<span if="{df} a">1</span>')
+      expect(flatten(root.attributes)).toEqual({})
+    })
   })
 })

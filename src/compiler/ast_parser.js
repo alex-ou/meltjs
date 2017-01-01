@@ -1,8 +1,10 @@
 import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
-import {each, has, warn} from '../util/index'
+import {each, has, warn, error} from '../util/index'
 import {parseText} from './text_parser'
-import {AstElementType, AstTokenType, AstDirective} from './ast_type'
+import {AstElementType, AstDirective} from './ast_type'
+
+const eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/
 
 /**
  * Parse the template into an AST tree
@@ -11,11 +13,15 @@ import {AstElementType, AstTokenType, AstDirective} from './ast_type'
 export function parse (template) {
   let root, currentParent
   let stack = []
+  let isInPre = false
   parseHtml(template, {
     start: function startTag (tagName, attrs, unary) {
       let tag = tagName.toLowerCase()
       if (isSpecialTag(tag)) {
         throw new Error('Tag is not allowed in the template:' + tagName)
+      }
+      if (tag === 'pre') {
+        isInPre = true
       }
       ensureSingleRoot(root, currentParent)
 
@@ -27,9 +33,11 @@ export function parse (template) {
         children: []
       }
 
-      const ifAttrValue = element.attributes[AstDirective.If]
-      if (ifAttrValue) {
-        element.if = parseIf(ifAttrValue)
+      if (element.attributes[AstDirective.Each]) {
+        parseEach(element)
+      }
+      if (element.attributes[AstDirective.If]) {
+        parseIf(element)
       }
 
       if (!root) {
@@ -46,15 +54,26 @@ export function parse (template) {
       }
     },
     end: function endTag () {
+      const elem = stack[stack.length - 1]
       stack.pop()
+      if (elem.tagName === 'pre') {
+        isInPre = false
+      }
       currentParent = stack.length > 0 ? stack[stack.length - 1] : null
     },
     chars: function chars (text) {
+      if (!isInPre) {
+        text = text.trim()
+      }
+      if (text.length === 0) {
+        return
+      }
       ensureSingleRoot(root, currentParent)
 
-      const tokens = parseText(text.trim())
+      const tokens = parseText(text)
       let textElement = {
         type: AstElementType.Text,
+        rawValue: text,
         tokens: tokens
       }
 
@@ -89,27 +108,68 @@ function toAttributeMap (attrList) {
       warn(`Found a duplicated attribute, name: ${attr.name}, value:${attr.value}`)
     }
 
-    map[attrName] = parseText(attr.value.trim())
+    let attrInfo = {
+      rawValue: attr.value,
+      tokens: parseText(attr.value.trim())
+    }
+
+    map[attrName] = attrInfo
   })
   return map
 }
 
-function parseIf (attrValue) {
-  if (!attrValue || attrValue.length === 0) {
-    warn('Invalid If directive expression')
-    return null
+function parseIf (element) {
+  const attr = element.attributes[AstDirective.If]
+  delete element.attributes[AstDirective.If]
+
+  if (!validateDirectiveSyntax(attr, AstDirective.If)) {
+    return
   }
-  if (attrValue[0].type !== AstTokenType.Expr) {
-    warn(`If directive Expression ${attrValue} is ignored as it's not wrapped inside the {}`)
-    return null
+
+  element.if = {
+    condition: attr.tokens[0].token
   }
-  return {
-    condition: attrValue[0].token
+}
+
+function parseEach (element) {
+  const attr = element.attributes[AstDirective.Each]
+  delete element.attributes[AstDirective.Each]
+
+  if (!validateDirectiveSyntax(attr, AstDirective.Each)) {
+    return
   }
+
+  // Supported syntax:
+  // each={value in array}, each={(value,index) in array}
+  // each={value in object}, each={(value,key) in object}
+  const eachStatement = attr.tokens[0].token
+  eachRE.lastIndex = 0
+  const matches = eachRE.exec(eachStatement)
+  if (!matches) {
+    error(`Invalid each statement: ${eachStatement}`)
+  } else {
+    element.each = {
+      variables: matches[1].split(',').join(','), // remove the trailing and preceding ','
+      object: matches[2]
+    }
+  }
+}
+
+function validateDirectiveSyntax (attr, dirType) {
+  if (!attr.rawValue) {
+    warn(`${dirType} directive cannot be empty`)
+    return false
+  }
+
+  if (attr.tokens.length !== 1) {
+    warn(`The Expression of directive ${dirType}: ${attr.rawValue} is invalid`)
+    return false
+  }
+  return true
 }
 
 function ensureSingleRoot (root, currentParent) {
   if (!currentParent && root) {
-    throw new Error('Component template can only has one root element')
+    throw new Error('Component template can only have one root element')
   }
 }

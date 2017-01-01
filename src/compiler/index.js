@@ -10,8 +10,6 @@ export default function compile (template) {
 }
 
 function createFunction (codeSnippets) {
-  console.log(codeSnippets[0])
-  console.log(codeSnippets[1])
   try {
     // eslint-disable-next-line no-new-func
     return new Function('',

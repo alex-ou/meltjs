@@ -6,11 +6,13 @@ var increaseAsync = function (step, model, actions) {
 }
 
 var increase = function (step, model) {
-  return model + step
+  model.count += step
+  return model
 }
 
 var decrease = function (step, model) {
-  return model - step
+  model.count -= step
+  return model
 }
 
 Opal.component('counter', {
@@ -19,7 +21,9 @@ Opal.component('counter', {
                 <button on-click="{increase(2)}">+</button>
                 <button on-click="{decrease(2)}">-</button>
                 <div if="{count > 4}">too big</div>
-                <div each="{(v, k) in count}">{a}</div>
+                <div>
+                  <span each="n in range(count)">{n + ','}</span>
+                </div>
              </div>`,
   alertClass: function () {
     return this.count > 2 ? 'red' : ''
@@ -28,8 +32,10 @@ Opal.component('counter', {
 
 Opal.app({
   el: '#app',
-  template: '<counter count="{model}" increase="{actions.increase}" decrease="{actions.decrease}"></counter>',
-  model: 0,
+  template: '<counter count="{model.count}" increase="{actions.increase}" decrease="{actions.decrease}"></counter>',
+  model: {
+    count: 0
+  },
   update: {
     increase,
     increaseAsync,

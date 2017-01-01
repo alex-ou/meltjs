@@ -1,5 +1,5 @@
 import VNode, {renderThunk} from '../vdom/vnode'
-import {isNumber, isString, isNull, isUndefined, extend} from '../util/index'
+import {isNumber, isString, isNull, isUndefined} from '../util/index'
 import * as nodeOp from './node-op'
 import {setAttribute} from './set_attribute'
 

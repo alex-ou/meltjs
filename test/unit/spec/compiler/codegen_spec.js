@@ -54,4 +54,10 @@ describe('AST parser', () => {
     var code = generate(ast)[1]
     expect(code).toBe('a>0?_h("span",{},["1"]):null')
   })
+
+  it('can generate code for the each directive', () => {
+    let ast = parse('<span each="{n in array}">{n}</span>')
+    var code = generate(ast)[1]
+    expect(code).toBe('_c(array,function(n){return _h("span",{},[n])})')
+  })
 })

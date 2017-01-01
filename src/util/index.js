@@ -28,3 +28,24 @@ export function uniqueId () {
 }
 
 uniqueId.previous = 0
+
+export function range (start, stop, step) {
+  if (typeof stop === 'undefined') {
+    stop = start
+    start = 0
+  }
+
+  if (typeof step === 'undefined') {
+    step = 1
+  }
+
+  let index = -1
+  let length = Math.max(Math.ceil((stop - start) / (step || 1)), 0)
+  let result = Array(length)
+
+  while (length--) {
+    result[++index] = start
+    start += step
+  }
+  return result
+}

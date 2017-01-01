@@ -1,13 +1,11 @@
-import {AstElementType, AstTokenType, AstDirective} from './ast_type'
-import {each, uniqueId, warn, getValues, makeMap} from '../util/index'
+import {AstElementType, AstTokenType} from './ast_type'
+import {each, uniqueId, warn} from '../util/index'
 import events from '../web/util/events'
 
 const eventNameMap = {}
 each(events, (eventName, standardName) => {
   eventNameMap['on-' + eventName] = standardName
 })
-
-const directiveMap = makeMap(getValues(AstDirective).join(','))
 
 const funcRE = /([^()]+)(\(.*\))?/
 
@@ -37,7 +35,12 @@ function genElement (element, tempVarDefs) {
       ')'
     )
 
-    // Has if directive
+    // Has Each directive: each="(v, k) in obj"
+    if (element.each) {
+      createElemCode = `_c(${element.each.object},function(${element.each.variables}){return ${createElemCode}})`
+    }
+
+    // Has If directive, if="a > 0"
     if (element.if) {
       createElemCode = `${element.if.condition}?${createElemCode}:null`
     }
@@ -51,22 +54,17 @@ function genElement (element, tempVarDefs) {
 function genAttributes (element, tempVarDefs) {
   // Handles the event handlers like on-click
   var results = []
-  each(element.attributes, (attrValue, attrName) => {
-    if (directiveMap[attrName]) {
-      // Do not generate the code for directives e.g. if and for
-      return
-    }
-
-    if (eventNameMap[attrName] && attrValue.length === 1) {
-      if (attrValue[0].type !== AstTokenType.Expr) {
+  each(element.attributes, (attr, attrName) => {
+    if (eventNameMap[attrName] && attr.tokens.length === 1) {
+      if (attr.tokens[0].type !== AstTokenType.Expr) {
         warn('Event handler needs to be wrapped inside the {}')
       }
       const standardEventName = eventNameMap[attrName]
-      const handlerInfo = genEventHandler(attrValue[0].token)
+      const handlerInfo = genEventHandler(attr.tokens[0].token)
       results.push(`"${standardEventName}":${handlerInfo.funcName}`)
       tempVarDefs.push(handlerInfo.funcDef)
     } else {
-      const attrExpr = genText(attrValue)
+      const attrExpr = genText(attr.tokens)
       results.push(`"${attrName}":${attrExpr}`)
     }
   })

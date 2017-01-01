@@ -2,7 +2,7 @@ import createElement from 'src/web/create_element'
 import h, {registerComponent, clearComponenetRegistry} from 'src/web/component'
 
 describe('createElement', () => {
-  beforeEach (() => {
+  beforeEach(() => {
     clearComponenetRegistry()
   })
 
@@ -18,7 +18,8 @@ describe('createElement', () => {
       render: function () {
         expect(this.createElement).toBeDefined()
         expect(this._h).toBeDefined()
-        expect(this._s).toBeDefined()
+        expect(this._c).toBeDefined()
+        expect(this.range).toBeDefined()
 
         const h = this.createElement
         return h('span')

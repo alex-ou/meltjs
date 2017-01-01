@@ -15,7 +15,7 @@ let model = 0
 
 // the update that routes actions to the model mutators
 let update = {
-  //Opal passes the arguments and the model object here
+    //Opal passes the arguments and the model object here
 	increase: function (step, model) {
   	  return model + step
 	},
@@ -53,8 +53,8 @@ Opal supports two kinds of components: stateless function components and compone
 ### Enforces one way data flow
 In Opal, data only flows in one way. In the view, if you want to change the model, actions have to be used to dispatch the data to the application's update method. After the model changes, Opal propagates the changes from the root component to the leaf ones. This is to help maintain a predicable application state and improve the performance
 
-### Provides duo-way view rendering - JSX and templates
-On one hand, JSX allows you to describe the view using JavaScript, this makes it really flexible as you can utilize all the build-in JS language features, that's why a lot of developers like it. Opal uses virtual DOM to represent the DOM as well, and the `Opal.createElement` function used to create virtual elements is compatible with JSX.
+### Provides two-way view rendering - JSX and templates
+On one hand, JSX allows you to describe the view using JavaScript, this makes it really flexible as you can utilize all the build-in JS language features, that's why a lot of developers like it. Opal uses virtual DOM to represent the DOM as well, and the `Opal.createElement` function used to create virtual elements is fully compatible with JSX.
 On the other hand, writing views using templates with some framework provided directives, e.g. `each`, `if`, `ref` etc, you will end up with very expressive and concise views. Consider the following example, with a glimpse, you can tell that it'll render into a list:
 
 ```html
@@ -62,4 +62,4 @@ On the other hand, writing views using templates with some framework provided di
   <li each="{item in items}"></li>
 </ul>
 ```
-All the templates in Opal will be compiled into virtual DOM so it'll be transparent to developers. (Template rendering is still work in progress)
+All the templates in Opal will be compiled into virtual DOM so it'll be transparent to developers.

@@ -1,4 +1,4 @@
-import {isObject, isArray, getValues, getKeys, each, extend, isUndefined} from 'src/util/index'
+import {isObject, isArray, getValues, getKeys, each, extend, range} from 'src/util/index'
 
 describe('util', () => {
   it('check objects correctly', () => {
@@ -19,7 +19,13 @@ describe('util', () => {
   })
 
   it('gets keys from the objects', () => {
-    let obj = {a: 1, b: 2}
+    function Test () {
+      this.a = 1
+      this.b = 2
+    }
+    Test.prototype.foo = 'foo'
+
+    let obj = new Test()
     expect(getKeys(obj)).toEqual(['a', 'b'])
 
     obj = {}
@@ -28,6 +34,10 @@ describe('util', () => {
     obj = function () { }
     obj.aa = 1
     expect(getKeys(obj)).toEqual(['aa'])
+
+    let iterable = [3, 5]
+    iterable.foo = 'hello'
+    expect(getKeys(iterable)).toEqual(['0', '1', 'foo'])
   })
 
   it('gets values from the objects', () => {
@@ -67,6 +77,18 @@ describe('util', () => {
   it('can extend data from other objects', () => {
     expect(extend({}, {a: 1, b: undefined})).toEqual({a: 1})
     expect(extend({}, {a: 1, b: undefined}, {c: 1})).toEqual({a: 1, c: 1})
+  })
+
+  it('can generate the range correctly', () => {
+    expect(range(4)).toEqual([0, 1, 2, 3])
+    expect(range(3, 6)).toEqual([3, 4, 5])
+    expect(range(0, 10, 2)).toEqual([0, 2, 4, 6, 8])
+    expect(range(10, 0, -1)).toEqual([10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
+    expect(range(8, 2, -2)).toEqual([8, 6, 4])
+    expect(range(8, 2)).toEqual([])
+    expect(range(8, 2, 2)).toEqual([])
+    expect(range(1, 5, -1)).toEqual([])
+    expect(range(1, 5, -2)).toEqual([])
   })
 })
 

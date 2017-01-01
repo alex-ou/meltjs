@@ -2,8 +2,7 @@ import compile from '../compiler/index'
 import createDomElement from './create_element'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {_toString} from './util/index'
-import {warn, isString, extend, each} from '../util/index'
+import {warn, isString, extend, each, range} from '../util/index'
 
 export function Component (options) {
   if (!options.render && !options.template) {
@@ -17,9 +16,17 @@ export function Component (options) {
   extend(this, this.options)
 }
 
+Component.prototype.range = range
 Component.prototype.createElement = createElement
 Component.prototype._h = createElement
-Component.prototype._s = _toString
+// Render the collection
+Component.prototype._c = function renderCollection (items, itemRenderer) {
+  let results = []
+  each(items, (v, k) => {
+    results.push(itemRenderer(v, k))
+  })
+  return results
+}
 
 Component.prototype.render = function () {
   if (this.options.template) {
@@ -70,7 +77,9 @@ export function registerComponent (name, options) {
   if (componentRegistry[name]) {
     warn(`Component ${name} is already registered`)
   }
-  componentRegistry[name] = new Component(options)
+  let component = new Component(options)
+  componentRegistry[name] = component
+  return component
 }
 
 export default function createElement (tag, attributes, ...children) {

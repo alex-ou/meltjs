@@ -106,9 +106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _create2 = _interopRequireDefault(_create);
 
-	var _index3 = __webpack_require__(10);
-
-	var _index4 = __webpack_require__(3);
+	var _index3 = __webpack_require__(3);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -116,24 +114,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (!options.render && !options.template) {
 	    throw new Error('Components need to have either a render function or a template to get rendered');
 	  }
-	  this.options = (0, _index4.extend)({}, options || {});
+	  this.options = (0, _index3.extend)({}, options || {});
 	  this.renderFn = options.render;
 
 	  // do not override Component.render function
 	  delete this.options.render;
-	  (0, _index4.extend)(this, this.options);
+	  (0, _index3.extend)(this, this.options);
 	}
 
+	Component.prototype.range = _index3.range;
 	Component.prototype.createElement = createElement;
 	Component.prototype._h = createElement;
-	Component.prototype._s = _index3._toString;
+	// Render the collection
+	Component.prototype._c = function renderCollection(items, itemRenderer) {
+	  var results = [];
+	  (0, _index3.each)(items, function (v, k) {
+	    results.push(itemRenderer(v, k));
+	  });
+	  return results;
+	};
 
 	Component.prototype.render = function () {
 	  var _this = this;
 
 	  if (this.options.template) {
 	    // Allows the template to access the props without using this.props
-	    (0, _index4.each)(this.props, function (value, key) {
+	    (0, _index3.each)(this.props, function (value, key) {
 	      _this[key] = value;
 	    });
 	  }
@@ -146,7 +152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Component.prototype.patch = function (context) {
 	  var _this2 = this;
 
-	  (0, _index4.each)(context, function (value, key) {
+	  (0, _index3.each)(context, function (value, key) {
 	    _this2[key] = value;
 	  });
 
@@ -170,7 +176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var componentRegistry = {};
 
 	function isRegisteredComponent(tag) {
-	  return (0, _index4.isString)(tag) && componentRegistry[tag];
+	  return (0, _index3.isString)(tag) && componentRegistry[tag];
 	}
 
 	function clearComponenetRegistry() {
@@ -179,9 +185,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function registerComponent(name, options) {
 	  if (componentRegistry[name]) {
-	    (0, _index4.warn)('Component ' + name + ' is already registered');
+	    (0, _index3.warn)('Component ' + name + ' is already registered');
 	  }
-	  componentRegistry[name] = new Component(options);
+	  var component = new Component(options);
+	  componentRegistry[name] = component;
+	  return component;
 	}
 
 	function createElement(tag, attributes) {
@@ -222,8 +230,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function createFunction(codeSnippets) {
-	  console.log(codeSnippets[0]);
-	  console.log(codeSnippets[1]);
 	  try {
 	    // eslint-disable-next-line no-new-func
 	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(this){' + codeSnippets[0] + ' return ' + codeSnippets[1] + '};');
@@ -293,6 +299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.noop = noop;
 	exports.makeMap = makeMap;
 	exports.uniqueId = uniqueId;
+	exports.range = range;
 	function noop() {}
 
 	function makeMap(str) {
@@ -318,6 +325,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	uniqueId.previous = 0;
+
+	function range(start, stop, step) {
+	  if (typeof stop === 'undefined') {
+	    stop = start;
+	    start = 0;
+	  }
+
+	  if (typeof step === 'undefined') {
+	    step = 1;
+	  }
+
+	  var index = -1;
+	  var length = Math.max(Math.ceil((stop - start) / (step || 1)), 0);
+	  var result = Array(length);
+
+	  while (length--) {
+	    result[++index] = start;
+	    start += step;
+	  }
+	  return result;
+	}
 
 /***/ },
 /* 4 */
@@ -589,6 +617,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ast_type = __webpack_require__(13);
 
+	var eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/;
+
 	/**
 	 * Parse the template into an AST tree
 	 * @param template, the html template
@@ -597,11 +627,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var root = void 0,
 	      currentParent = void 0;
 	  var stack = [];
+	  var isInPre = false;
 	  (0, _html_parser.parseHtml)(template, {
 	    start: function startTag(tagName, attrs, unary) {
 	      var tag = tagName.toLowerCase();
 	      if ((0, _index.isSpecialTag)(tag)) {
 	        throw new Error('Tag is not allowed in the template:' + tagName);
+	      }
+	      if (tag === 'pre') {
+	        isInPre = true;
 	      }
 	      ensureSingleRoot(root, currentParent);
 
@@ -613,9 +647,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        children: []
 	      };
 
-	      var ifAttrValue = element.attributes[_ast_type.AstDirective.If];
-	      if (ifAttrValue) {
-	        element.if = parseIf(ifAttrValue);
+	      if (element.attributes[_ast_type.AstDirective.Each]) {
+	        parseEach(element);
+	      }
+	      if (element.attributes[_ast_type.AstDirective.If]) {
+	        parseIf(element);
 	      }
 
 	      if (!root) {
@@ -632,15 +668,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    },
 	    end: function endTag() {
+	      var elem = stack[stack.length - 1];
 	      stack.pop();
+	      if (elem.tagName === 'pre') {
+	        isInPre = false;
+	      }
 	      currentParent = stack.length > 0 ? stack[stack.length - 1] : null;
 	    },
 	    chars: function chars(text) {
+	      if (!isInPre) {
+	        text = text.trim();
+	      }
+	      if (text.length === 0) {
+	        return;
+	      }
 	      ensureSingleRoot(root, currentParent);
 
-	      var tokens = (0, _text_parser.parseText)(text.trim());
+	      var tokens = (0, _text_parser.parseText)(text);
 	      var textElement = {
 	        type: _ast_type.AstElementType.Text,
+	        rawValue: text,
 	        tokens: tokens
 	      };
 
@@ -675,28 +722,69 @@ return /******/ (function(modules) { // webpackBootstrap
 	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
 	    }
 
-	    map[attrName] = (0, _text_parser.parseText)(attr.value.trim());
+	    var attrInfo = {
+	      rawValue: attr.value,
+	      tokens: (0, _text_parser.parseText)(attr.value.trim())
+	    };
+
+	    map[attrName] = attrInfo;
 	  });
 	  return map;
 	}
 
-	function parseIf(attrValue) {
-	  if (!attrValue || attrValue.length === 0) {
-	    (0, _index2.warn)('Invalid If directive expression');
-	    return null;
+	function parseIf(element) {
+	  var attr = element.attributes[_ast_type.AstDirective.If];
+	  delete element.attributes[_ast_type.AstDirective.If];
+
+	  if (!validateDirectiveSyntax(attr, _ast_type.AstDirective.If)) {
+	    return;
 	  }
-	  if (attrValue[0].type !== _ast_type.AstTokenType.Expr) {
-	    (0, _index2.warn)('If directive Expression ' + attrValue + ' is ignored as it\'s not wrapped inside the {}');
-	    return null;
-	  }
-	  return {
-	    condition: attrValue[0].token
+
+	  element.if = {
+	    condition: attr.tokens[0].token
 	  };
+	}
+
+	function parseEach(element) {
+	  var attr = element.attributes[_ast_type.AstDirective.Each];
+	  delete element.attributes[_ast_type.AstDirective.Each];
+
+	  if (!validateDirectiveSyntax(attr, _ast_type.AstDirective.Each)) {
+	    return;
+	  }
+
+	  // Supported syntax:
+	  // each={value in array}, each={(value,index) in array}
+	  // each={value in object}, each={(value,key) in object}
+	  var eachStatement = attr.tokens[0].token;
+	  eachRE.lastIndex = 0;
+	  var matches = eachRE.exec(eachStatement);
+	  if (!matches) {
+	    (0, _index2.error)('Invalid each statement: ' + eachStatement);
+	  } else {
+	    element.each = {
+	      variables: matches[1].split(',').join(','), // remove the trailing and preceding ','
+	      object: matches[2]
+	    };
+	  }
+	}
+
+	function validateDirectiveSyntax(attr, dirType) {
+	  if (!attr.rawValue) {
+	    (0, _index2.warn)(dirType + ' directive cannot be empty');
+	    return false;
+	  }
+
+	  if (attr.tokens.length !== 1) {
+	    (0, _index2.warn)('The Expression of directive ' + dirType + ': ' + attr.rawValue + ' is invalid');
+	    return false;
+	  }
+	  return true;
 	}
 
 	function ensureSingleRoot(root, currentParent) {
 	  if (!currentParent && root) {
-	    throw new Error('Component template can only has one root element');
+	    throw new Error('Component template can only have one root element');
 	  }
 	}
 
@@ -794,7 +882,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	    } else {
-	      html = html.replace(new RegExp('([\\s\\S]*?)<\/' + stack.last() + '[^>]*>'), function (all, text) {
+	      html = html.replace(new RegExp('([\\s\\S]*?)</' + stack.last() + '[^>]*>'), function (all, text) {
 	        text = text.replace(/<!--([\s\S]*?)-->|<!\[CDATA\[([\s\S]*?)]]>/g, '$1$2');
 	        if (handler.chars) {
 	          handler.chars(text);
@@ -843,7 +931,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        attrs.push({
 	          name: name,
 	          value: value,
-	          escaped: value.replace(/(^|[^\\])"/g, '$1\\\"') // "
+	          escaped: value.replace(/(^|[^\\])"/g, '$1\\"') // "
 	        });
 	      });
 
@@ -1086,8 +1174,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  eventNameMap['on-' + eventName] = standardName;
 	});
 
-	var directiveMap = (0, _index.makeMap)((0, _index.getValues)(_ast_type.AstDirective).join(','));
-
 	var funcRE = /([^()]+)(\(.*\))?/;
 
 	/**
@@ -1112,7 +1198,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (element.type === _ast_type.AstElementType.Element) {
 	    var createElemCode = '_h("' + element.tagName + '",' + genAttributes(element, tempVarDefs) + ',' + genChildren(element, tempVarDefs) + ')';
 
-	    // Has if directive
+	    // Has Each directive: each="(v, k) in obj"
+	    if (element.each) {
+	      createElemCode = '_c(' + element.each.object + ',function(' + element.each.variables + '){return ' + createElemCode + '})';
+	    }
+
+	    // Has If directive, if="a > 0"
 	    if (element.if) {
 	      createElemCode = element.if.condition + '?' + createElemCode + ':null';
 	    }
@@ -1126,22 +1217,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	function genAttributes(element, tempVarDefs) {
 	  // Handles the event handlers like on-click
 	  var results = [];
-	  (0, _index.each)(element.attributes, function (attrValue, attrName) {
-	    if (directiveMap[attrName]) {
-	      // Do not generate the code for directives e.g. if and for
-	      return;
-	    }
-
-	    if (eventNameMap[attrName] && attrValue.length === 1) {
-	      if (attrValue[0].type !== _ast_type.AstTokenType.Expr) {
+	  (0, _index.each)(element.attributes, function (attr, attrName) {
+	    if (eventNameMap[attrName] && attr.tokens.length === 1) {
+	      if (attr.tokens[0].type !== _ast_type.AstTokenType.Expr) {
 	        (0, _index.warn)('Event handler needs to be wrapped inside the {}');
 	      }
 	      var standardEventName = eventNameMap[attrName];
-	      var handlerInfo = genEventHandler(attrValue[0].token);
+	      var handlerInfo = genEventHandler(attr.tokens[0].token);
 	      results.push('"' + standardEventName + '":' + handlerInfo.funcName);
 	      tempVarDefs.push(handlerInfo.funcDef);
 	    } else {
-	      var attrExpr = genText(attrValue);
+	      var attrExpr = genText(attr.tokens);
 	      results.push('"' + attrName + '":' + attrExpr);
 	    }
 	  });

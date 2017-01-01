@@ -78,7 +78,7 @@ export function parseHtml (html, handler) {
         }
       }
     } else {
-      html = html.replace(new RegExp('([\\s\\S]*?)<\/' + stack.last() + '[^>]*>'), function (all, text) {
+      html = html.replace(new RegExp('([\\s\\S]*?)</' + stack.last() + '[^>]*>'), function (all, text) {
         text = text.replace(/<!--([\s\S]*?)-->|<!\[CDATA\[([\s\S]*?)]]>/g, '$1$2')
         if (handler.chars) {
           handler.chars(text)
@@ -130,7 +130,7 @@ export function parseHtml (html, handler) {
         attrs.push({
           name: name,
           value: value,
-          escaped: value.replace(/(^|[^\\])"/g, '$1\\\"') // "
+          escaped: value.replace(/(^|[^\\])"/g, '$1\\"') // "
         })
       })
 
