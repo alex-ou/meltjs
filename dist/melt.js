@@ -2144,7 +2144,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function reduceChildren(acc, vnode) {
 	  if ((0, _index.isUndefined)(vnode)) {
-	    throw new Error('vnode cannot be undefined');
+	    vnode = 'undefined';
+	    (0, _index.warn)('Node value is undefined');
 	  }
 
 	  var result;

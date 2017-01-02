@@ -1,4 +1,4 @@
-import {isString, isNumber, isNull, isUndefined, isFunction, isObject} from '../util/index'
+import {isString, isNumber, isNull, isUndefined, isFunction, isObject, warn} from '../util/index'
 import VNode from './vnode'
 
 export default function create (tag, attributes, ...children) {
@@ -33,7 +33,8 @@ export default function create (tag, attributes, ...children) {
 
 function reduceChildren (acc, vnode) {
   if (isUndefined(vnode)) {
-    throw new Error('vnode cannot be undefined')
+    vnode = 'undefined'
+    warn('Node value is undefined')
   }
 
   var result
