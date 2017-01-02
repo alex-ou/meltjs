@@ -2,18 +2,28 @@ import compile from '../compiler/index'
 import createDomElement from './create_element'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {warn, isString, extend, each, range} from '../util/index'
+import {warn, isString, isArray, extend, each, range} from '../util/index'
 
 export function Component (options) {
   if (!options.render && !options.template) {
     throw new Error('Components need to have either a render function or a template to get rendered')
   }
-  this.options = extend({}, options || {})
+  this.options = extend({inputs: {}}, options || {})
   this.renderFn = options.render
 
   // do not override Component.render function
   delete this.options.render
   extend(this, this.options)
+
+  // Convert inputs to map: ['foo', 'bar']
+  this.inputsMap = {}
+  if (isArray(this.inputs)) {
+    each(this.inputs, inputName => {
+      this.inputsMap[inputName] = true
+    })
+  } else {
+    this.inputsMap = this.inputs
+  }
 }
 
 Component.prototype.range = range
@@ -30,9 +40,11 @@ Component.prototype._c = function renderCollection (items, itemRenderer) {
 
 Component.prototype.render = function () {
   if (this.options.template) {
-    // Allows the template to access the props without using this.props
+    // If the props are specified in the inputs, then allows the template to access the props without using this.props
     each(this.props, (value, key) => {
-      this[key] = value
+      if (this.inputsMap[key]) {
+        this[key] = value
+      }
     })
   }
   if (!this.renderFn) {

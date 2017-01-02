@@ -86,6 +86,7 @@ describe('createElement', () => {
 
   it('should have access to the props in the template', () => {
     registerComponent('counter', {
+      inputs: ['foo', 'bar'],
       template: '<span class="{foo}">{bar}</span>'
     })
 
@@ -101,5 +102,21 @@ describe('createElement', () => {
     expect(child.tagName).toBe('SPAN')
     expect(child.className).toBe('foo')
     expect(child.textContent).toBe('bar')
+  })
+
+  it('should have access to the children property in the template', () => {
+    registerComponent('my-link', {
+      template: '<a href="#">{children}</a>'
+    })
+
+    const app = registerComponent('app', {
+      template: '<my-link><span>my link</span></my-link>'
+    })
+    var node = app.patch()
+    expect(node.tagName).toBe('A')
+    expect(node.children.length).toBe(1)
+    let child = node.children[0]
+    expect(child.tagName).toBe('SPAN')
+    expect(child.textContent).toBe('my link')
   })
 })

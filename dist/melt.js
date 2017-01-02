@@ -111,15 +111,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function Component(options) {
+	  var _this = this;
+
 	  if (!options.render && !options.template) {
 	    throw new Error('Components need to have either a render function or a template to get rendered');
 	  }
-	  this.options = (0, _index3.extend)({}, options || {});
+	  this.options = (0, _index3.extend)({ inputs: {} }, options || {});
 	  this.renderFn = options.render;
 
 	  // do not override Component.render function
 	  delete this.options.render;
 	  (0, _index3.extend)(this, this.options);
+
+	  // Convert inputs to map: ['foo', 'bar']
+	  this.inputsMap = {};
+	  if ((0, _index3.isArray)(this.inputs)) {
+	    (0, _index3.each)(this.inputs, function (inputName) {
+	      _this.inputsMap[inputName] = true;
+	    });
+	  } else {
+	    this.inputsMap = this.inputs;
+	  }
 	}
 
 	Component.prototype.range = _index3.range;
@@ -135,12 +147,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Component.prototype.render = function () {
-	  var _this = this;
+	  var _this2 = this;
 
 	  if (this.options.template) {
-	    // Allows the template to access the props without using this.props
+	    // If the props are specified in the inputs, then allows the template to access the props without using this.props
 	    (0, _index3.each)(this.props, function (value, key) {
-	      _this[key] = value;
+	      if (_this2.inputsMap[key]) {
+	        _this2[key] = value;
+	      }
 	    });
 	  }
 	  if (!this.renderFn) {
@@ -150,10 +164,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Component.prototype.patch = function (context) {
-	  var _this2 = this;
+	  var _this3 = this;
 
 	  (0, _index3.each)(context, function (value, key) {
-	    _this2[key] = value;
+	    _this3[key] = value;
 	  });
 
 	  var oldVnode = this._vnode;
