@@ -54,7 +54,7 @@ export function createActionCreators (actionTypes) {
    *  'Increase': (model) => model + 1,
    *  'Decrease': (model) => model - 1
    *  }
- * @returns {update}, the update function used by the OpalStore
+ * @returns {update}, the update function used by the MeltStore
  */
 export function createModelUpdater (actionHandlerMap) {
   return function update (model, action) {

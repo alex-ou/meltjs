@@ -1,9 +1,9 @@
-import OpalStore from 'src/store/index'
+import Store from 'src/store/index'
 
 describe('store', () => {
   let store
   beforeEach(() => {
-    store = new OpalStore(1, (model, msg) => {
+    store = new Store(1, (model, msg) => {
       switch (msg) {
         case 'INCREASE': {
           return model + 1

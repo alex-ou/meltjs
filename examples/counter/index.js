@@ -15,7 +15,7 @@ var decrease = function (step, model) {
   return model
 }
 
-Opal.component('counter', {
+Melt.component('counter', {
   template: `<div class="{alertClass()}">
                 {count}
                 <button on-click="{increase(2)}">+</button>
@@ -30,7 +30,7 @@ Opal.component('counter', {
   }
 })
 
-Opal.app({
+Melt.app({
   el: '#app',
   template: '<counter count="{model.count}" increase="{actions.increase}" decrease="{actions.decrease}"></counter>',
   model: {

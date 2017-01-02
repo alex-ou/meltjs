@@ -3,14 +3,14 @@ var webpack = require('webpack')
 
 module.exports = {
   entry: {
-    'opal': './src/index.js',
-    'opal.min': './src/index.js'
+    'melt': './src/index.js',
+    'melt.min': './src/index.js'
   },
   output: {
     path: path.resolve(__dirname, './dist'),
     libraryTarget: 'umd',
     umdNamedDefine: true,
-    library: 'Opal',
+    library: 'Melt',
     filename: '[name].js'
   },
   externals: {

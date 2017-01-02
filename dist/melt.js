@@ -2,11 +2,11 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("Opal", [], factory);
+		define("Melt", [], factory);
 	else if(typeof exports === 'object')
-		exports["Opal"] = factory();
+		exports["Melt"] = factory();
 	else
-		root["Opal"] = factory();
+		root["Melt"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -66,14 +66,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function Opal() {}
-	Opal.createElement = _component2.default;
-	Opal.component = _component.registerComponent;
-	Opal.app = function (options) {
+	function Melt() {}
+	Melt.createElement = _component2.default;
+	Melt.component = _component.registerComponent;
+	Melt.app = function (options) {
 	  return (0, _app2.default)(options);
 	};
 
-	module.exports = Opal;
+	module.exports = Melt;
 
 /***/ },
 /* 1 */
@@ -2442,7 +2442,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	   *  'Increase': (model) => model + 1,
 	   *  'Decrease': (model) => model - 1
 	   *  }
-	 * @returns {update}, the update function used by the OpalStore
+	 * @returns {update}, the update function used by the MeltStore
 	 */
 	function createModelUpdater(actionHandlerMap) {
 	  return function update(model, action) {

@@ -1,9 +1,9 @@
 import createElement, {registerComponent} from './web/component'
 import createApp from './app'
 
-function Opal () {}
-Opal.createElement = createElement
-Opal.component = registerComponent
-Opal.app = options => createApp(options)
+function Melt () {}
+Melt.createElement = createElement
+Melt.component = registerComponent
+Melt.app = options => createApp(options)
 
-module.exports = Opal
+module.exports = Melt
