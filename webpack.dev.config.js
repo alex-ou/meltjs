@@ -3,7 +3,8 @@ var webpack = require('webpack')
 
 module.exports = {
   entry: {
-    'counter': ['./examples/counter/index.js']
+    'counter': ['./examples/counter/index.js'],
+    'todos': ['./examples/todos/index.js']
   },
   output: {
     path: path.resolve(__dirname, './dist'),

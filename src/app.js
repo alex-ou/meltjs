@@ -1,4 +1,4 @@
-import {isFunction, getKeys, each} from './util/index'
+import {isFunction, getKeys, each, extend} from './util/index'
 import {emptyElement, query, appendChild} from './web/node-op'
 import createStore from './store/index'
 import {bindActionCreators, createActionCreators} from './store/action'
@@ -45,7 +45,7 @@ export default function createApp (options) {
     each(actionHandlerMap, (actionHandler, actionType) => {
       let newHandler = (...params) => {
         // inject 1 more param to the handler, and execute the original handler in the application context
-        return actionHandler.apply(getAppContext(), [...params, actions])
+        return actionHandler(getAppContext(), ...params)
       }
       enhanced[actionType] = newHandler
     })
@@ -53,19 +53,21 @@ export default function createApp (options) {
   }
 
   function getAppContext () {
-    return {
+    return extend({
       model: store.getModel(),
-      dispatch,
-      actions
-    }
+      dispatch
+    }, actions)
   }
 
   updateView()
 
-  return {
-    store,
-    actions,
-    component,
-    el: rootEl
-  }
+  return extend(
+    {
+      el: rootEl,
+      component,
+      update: updateView,
+      getModel: () => store.getModel()
+    },
+    actions
+  )
 }

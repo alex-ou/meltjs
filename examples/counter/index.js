@@ -1,12 +1,13 @@
-var increase = function (step, model) {
-  return model + step
+var increase = function (context, step) {
+  return context.model + step
 }
 
-var decrease = function (step, model) {
+var decrease = function ({model}, step) {
   return model - step
 }
 
 Melt.component('counter', {
+  inputs: ['count', 'increase', 'decrease'],
   template: `<div>
                 {count}
                 <button on-click="{increase(2)}">+</button>
@@ -16,7 +17,7 @@ Melt.component('counter', {
 
 Melt.app({
   el: '#app',
-  template: '<counter count="{model}" increase="{actions.increase}" decrease="{actions.decrease}"></counter>',
+  template: '<counter count="{model}" increase="{increase}" decrease="{decrease}"></counter>',
   model: 0,
   update: {
     increase,

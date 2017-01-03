@@ -66,12 +66,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function Melt() {}
+	function Melt(options) {
+	  return (0, _app2.default)(options);
+	}
+
 	Melt.createElement = _component2.default;
 	Melt.component = _component.registerComponent;
-	Melt.app = function (options) {
-	  return (0, _app2.default)(options);
-	};
+	Melt.app = Melt;
 
 	module.exports = Melt;
 
@@ -2256,7 +2257,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        // inject 1 more param to the handler, and execute the original handler in the application context
-	        return actionHandler.apply(getAppContext(), [].concat(params, [actions]));
+	        return actionHandler.apply(undefined, [getAppContext()].concat(params));
 	      };
 	      enhanced[actionType] = newHandler;
 	    });
@@ -2264,21 +2265,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  function getAppContext() {
-	    return {
+	    return (0, _index.extend)({
 	      model: store.getModel(),
-	      dispatch: dispatch,
-	      actions: actions
-	    };
+	      dispatch: dispatch
+	    }, actions);
 	  }
 
 	  updateView();
 
-	  return {
-	    store: store,
-	    actions: actions,
+	  return (0, _index.extend)({
+	    el: rootEl,
 	    component: component,
-	    el: rootEl
-	  };
+	    update: updateView,
+	    getModel: function getModel() {
+	      return store.getModel();
+	    }
+	  }, actions);
 	}
 
 /***/ },
