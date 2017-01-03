@@ -605,10 +605,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	exports.camelize = camelize;
+	exports.capitalize = capitalize;
 	function camelize(s) {
 	  return s.replace(/(-[a-z])/g, function ($1) {
 	    return $1.toUpperCase().replace('-', '');
 	  });
+	}
+
+	function capitalize(s) {
+	  return s.charAt(0).toUpperCase() + s.slice(1);
 	}
 
 /***/ },
@@ -732,12 +737,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	function toAttributeMap(attrList) {
 	  var map = {};
 	  (0, _index2.each)(attrList, function (attr) {
-	    var attrName = attr.name;
+	    var attrName = (0, _index2.camelize)(attr.name);
 	    if ((0, _index2.has)(map, attrName)) {
 	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
 	    }
 
 	    var attrInfo = {
+	      rawName: attr.name,
 	      rawValue: attr.value,
 	      tokens: (0, _text_parser.parseText)(attr.value.trim())
 	    };
@@ -1186,7 +1192,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var eventNameMap = {};
 	(0, _index.each)(_events2.default, function (eventName, standardName) {
-	  eventNameMap['on-' + eventName] = standardName;
+	  eventNameMap['on' + (0, _index.capitalize)(eventName)] = standardName;
 	});
 
 	var funcRE = /([^()]+)(\(.*\))?/;
@@ -1234,9 +1240,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var results = [];
 	  (0, _index.each)(element.attributes, function (attr, attrName) {
 	    if (eventNameMap[attrName] && attr.tokens.length === 1) {
-	      if (attr.tokens[0].type !== _ast_type.AstTokenType.Expr) {
-	        (0, _index.warn)('Event handler needs to be wrapped inside the {}');
-	      }
 	      var standardEventName = eventNameMap[attrName];
 	      var handlerInfo = genEventHandler(attr.tokens[0].token);
 	      results.push('"' + standardEventName + '":' + handlerInfo.funcName);

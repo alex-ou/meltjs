@@ -1,10 +1,10 @@
 import {AstElementType, AstTokenType} from './ast_type'
-import {each, uniqueId, warn} from '../util/index'
+import {each, uniqueId, warn, capitalize} from '../util/index'
 import events from '../web/util/events'
 
 const eventNameMap = {}
 each(events, (eventName, standardName) => {
-  eventNameMap['on-' + eventName] = standardName
+  eventNameMap['on' + capitalize(eventName)] = standardName
 })
 
 const funcRE = /([^()]+)(\(.*\))?/
@@ -56,9 +56,6 @@ function genAttributes (element, tempVarDefs) {
   var results = []
   each(element.attributes, (attr, attrName) => {
     if (eventNameMap[attrName] && attr.tokens.length === 1) {
-      if (attr.tokens[0].type !== AstTokenType.Expr) {
-        warn('Event handler needs to be wrapped inside the {}')
-      }
       const standardEventName = eventNameMap[attrName]
       const handlerInfo = genEventHandler(attr.tokens[0].token)
       results.push(`"${standardEventName}":${handlerInfo.funcName}`)

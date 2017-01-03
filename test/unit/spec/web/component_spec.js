@@ -119,4 +119,17 @@ describe('createElement', () => {
     expect(child.tagName).toBe('SPAN')
     expect(child.textContent).toBe('my link')
   })
+
+  it('should convert the property names to camel case', () => {
+    registerComponent('my-link', {
+      inputs: ['first', 'secondWord', 'yetAnotherWord'],
+      template: '<span>{first} {secondWord} {yetAnotherWord}</span>'
+    })
+
+    const app = registerComponent('app', {
+      template: '<my-link first="first" second-word="second" yet-another-word="yet"></my-link>'
+    })
+    var node = app.patch()
+    expect(node.textContent).toBe('first second yet')
+  })
 })

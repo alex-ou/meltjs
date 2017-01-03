@@ -1,6 +1,6 @@
 import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
-import {each, has, warn, error} from '../util/index'
+import {each, has, warn, error, camelize} from '../util/index'
 import {parseText} from './text_parser'
 import {AstElementType, AstDirective} from './ast_type'
 
@@ -103,12 +103,13 @@ export function parse (template) {
 function toAttributeMap (attrList) {
   var map = {}
   each(attrList, attr => {
-    const attrName = attr.name
+    const attrName = camelize(attr.name)
     if (has(map, attrName)) {
       warn(`Found a duplicated attribute, name: ${attr.name}, value:${attr.value}`)
     }
 
     let attrInfo = {
+      rawName: attr.name,
       rawValue: attr.value,
       tokens: parseText(attr.value.trim())
     }
