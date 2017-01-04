@@ -9,7 +9,7 @@ import * as nodeOp from './node-op'
  * Compare two virtual nodes and update the dom element
  */
 
-export default function patchNode (domElem, oldVnode, newVnode) {
+export default function patchNode (domElem, oldVnode, newVnode, context) {
   // Skip updating this whole sub-tree
   if (oldVnode === newVnode) {
     return domElem
@@ -25,7 +25,7 @@ export default function patchNode (domElem, oldVnode, newVnode) {
 
   // Replace the DOM
   if (!isNull(oldVnode) && isNull(newVnode) || isNull(oldVnode) && !isNull(newVnode) || !oldVnode.isSameType(newVnode)) {
-    return replaceNode(domElem, oldVnode, newVnode)
+    return replaceNode(domElem, oldVnode, newVnode, context)
   }
 
   // Two nodes with the same type reaching this point
@@ -35,11 +35,11 @@ export default function patchNode (domElem, oldVnode, newVnode) {
   if (newVnode.isElement()) {
     if (oldVnode.tagName !== newVnode.tagName) {
       // Replace the whole DOM element
-      newDomElem = replaceNode(domElem, oldVnode, newVnode)
+      newDomElem = replaceNode(domElem, oldVnode, newVnode, context)
     } else {
       // Same tagName, update the attributes
       updateAttributes(domElem, oldVnode, newVnode)
-      patchChildren(domElem, oldVnode, newVnode)
+      patchChildren(domElem, oldVnode, newVnode, context)
     }
   } else if (newVnode.isText()) {
     // Text
@@ -47,12 +47,12 @@ export default function patchNode (domElem, oldVnode, newVnode) {
       setAttribute(domElem, 'nodeValue', newVnode.nodeValue, oldVnode.nodeValue)
     }
   } else if (newVnode.isThunk()) {
-    newDomElem = updateThunk(domElem, oldVnode, newVnode)
+    newDomElem = updateThunk(domElem, oldVnode, newVnode, context)
   }
   return newDomElem
 }
 
-export function patchChildren (parentElem, oldNode, newNode) {
+export function patchChildren (parentElem, oldNode, newNode, context) {
   let { CREATE, UPDATE, MOVE, REMOVE } = diffActions
   let oldChildren = groupByKey(oldNode.children)
   let newChildren = groupByKey(newNode.children)
@@ -64,18 +64,18 @@ export function patchChildren (parentElem, oldNode, newNode) {
   function effect (type, prev, next, pos) {
     switch (type) {
       case CREATE: {
-        let newDomElem = createElement(next.item)
+        let newDomElem = createElement(next.item, context)
         nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
       case UPDATE: {
         let domElem = nodeOp.childNode(parentElem, prev.index)
-        patchNode(domElem, prev.item, next.item)
+        patchNode(domElem, prev.item, next.item, context)
         break
       }
       case MOVE: {
         let childDomElem = nodeOp.childNode(parentElem, prev.index)
-        patchNode(childDomElem, prev.item, next.item)
+        patchNode(childDomElem, prev.item, next.item, context)
         nodeOp.insertBefore(parentElem, childDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
@@ -89,11 +89,11 @@ export function patchChildren (parentElem, oldNode, newNode) {
   diff(oldChildren, newChildren, effect, key)
 }
 
-function updateThunk (domElem, oldNode, newNode) {
+function updateThunk (domElem, oldNode, newNode, context) {
   let oldThunkVnode = oldNode.thunkVnode
-  let newThunkVnode = renderThunk(newNode)
+  let newThunkVnode = renderThunk(newNode, context)
   newNode.thunkVnode = newThunkVnode
-  return patchNode(domElem, oldThunkVnode, newThunkVnode)
+  return patchNode(domElem, oldThunkVnode, newThunkVnode, context)
 }
 
 function unmountThunk (vnode) {
@@ -128,9 +128,9 @@ function updateAttributes (domElem, oldNode, newNode) {
   }
 }
 
-function replaceNode (domElem, oldNode, newNode) {
+function replaceNode (domElem, oldNode, newNode, context) {
   unmountThunk(oldNode)
-  let newDomElem = createElement(newNode)
+  let newDomElem = createElement(newNode, context)
   nodeOp.replaceNode(newDomElem, domElem)
   return newDomElem
 }

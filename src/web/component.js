@@ -4,25 +4,59 @@ import patchDomElement from './patch'
 import create from '../vdom/create'
 import {warn, isString, isArray, extend, each, range} from '../util/index'
 
-export function Component (options) {
-  if (!options.render && !options.template) {
-    throw new Error('Components need to have either a render function or a template to get rendered')
+export class Component {
+  constructor (options) {
+    if (!options.render && !options.template) {
+      throw new Error('Components need to have either a render function or a template to get rendered')
+    }
+    this.options = extend({inputs: {}}, options || {})
+    this.renderFn = options.render
+
+    // do not override Component.render function
+    delete this.options.render
+    extend(this, this.options)
+
+    // Convert inputs to map: ['foo', 'bar']
+    this._inputsMap = {}
+    if (isArray(this.inputs)) {
+      each(this.inputs, inputName => {
+        this._inputsMap[inputName] = true
+      })
+    } else {
+      this._inputsMap = this.inputs
+    }
   }
-  this.options = extend({inputs: {}}, options || {})
-  this.renderFn = options.render
 
-  // do not override Component.render function
-  delete this.options.render
-  extend(this, this.options)
+  render (context) {
+    if (this.options.template) {
+      // If the props are specified in the inputs, then allows the template to access the props without using this.props
+      each(this.props, (value, key) => {
+        if (this._inputsMap[key]) {
+          this[key] = value
+        }
+      })
+    }
+    if (!this.renderFn) {
+      this.renderFn = compile(this.options.template)
+    }
+    return this.renderFn()
+  }
 
-  // Convert inputs to map: ['foo', 'bar']
-  this.inputsMap = {}
-  if (isArray(this.inputs)) {
-    each(this.inputs, inputName => {
-      this.inputsMap[inputName] = true
-    })
-  } else {
-    this.inputsMap = this.inputs
+  patch (context) {
+    let oldVnode = this._vnode
+    let vnode = this.render(context)
+    let elem = this._elem
+    if (!elem) {
+      // First time rendering
+      elem = createDomElement(vnode, context)
+    } else {
+      // Patch the DOM
+      elem = patchDomElement(elem, oldVnode, vnode, context)
+    }
+    this._elem = elem
+    this._vnode = vnode
+
+    return elem
   }
 }
 
@@ -38,40 +72,14 @@ Component.prototype._c = function renderCollection (items, itemRenderer) {
   return results
 }
 
-Component.prototype.render = function () {
-  if (this.options.template) {
-    // If the props are specified in the inputs, then allows the template to access the props without using this.props
-    each(this.props, (value, key) => {
-      if (this.inputsMap[key]) {
-        this[key] = value
-      }
+export class Container extends Component {
+  render (context) {
+    // For container, injects the data in context to 'this' to allow the render function to access them
+    each(context, (value, key) => {
+      this[key] = value
     })
+    return super.render(context)
   }
-  if (!this.renderFn) {
-    this.renderFn = compile(this.options.template)
-  }
-  return this.renderFn()
-}
-
-Component.prototype.patch = function (context) {
-  each(context, (value, key) => {
-    this[key] = value
-  })
-
-  let oldVnode = this._vnode
-  let vnode = this.render()
-  let elem = this._elem
-  if (!elem) {
-    // First time rendering
-    elem = createDomElement(vnode)
-  } else {
-    // Patch the DOM
-    elem = patchDomElement(elem, oldVnode, vnode)
-  }
-  this._elem = elem
-  this._vnode = vnode
-
-  return elem
 }
 
 // Component Management
@@ -85,13 +93,17 @@ export function clearComponenetRegistry () {
   componentRegistry = {}
 }
 
-export function registerComponent (name, options) {
+export function registerComponent (name, options, isContainer) {
   if (componentRegistry[name]) {
     warn(`Component ${name} is already registered`)
   }
-  let component = new Component(options)
+  let component = isContainer ? new Container(options) : new Component(options)
   componentRegistry[name] = component
   return component
+}
+
+export function registerContainer (name, options) {
+  return registerComponent(name, options, true)
 }
 
 export default function createElement (tag, attributes, ...children) {

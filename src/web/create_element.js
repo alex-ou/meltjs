@@ -3,11 +3,11 @@ import {isNumber, isString, isNull, isUndefined} from '../util/index'
 import * as nodeOp from './node-op'
 import {setAttribute} from './set_attribute'
 
-export default function createElement (vnode) {
+export default function createElement (vnode, context) {
   var domElem
   switch (vnode.type) {
     case VNode.Element:
-      domElem = createHtmlElement(vnode)
+      domElem = createHtmlElement(vnode, context)
       break
     case VNode.Empty:
       domElem = createEmptyNode()
@@ -16,19 +16,19 @@ export default function createElement (vnode) {
       domElem = createTextNode(vnode)
       break
     case VNode.Thunk:
-      domElem = createThunk(vnode)
+      domElem = createThunk(vnode, context)
       break
   }
   vnode.elem = domElem
   return domElem
 }
 
-function createThunk (vnode) {
-  vnode.thunkVnode = renderThunk(vnode)
-  return createElement(vnode.thunkVnode)
+function createThunk (vnode, context) {
+  vnode.thunkVnode = renderThunk(vnode, context)
+  return createElement(vnode.thunkVnode, context)
 }
 
-function createHtmlElement (vnode) {
+function createHtmlElement (vnode, context) {
   let {tagName, children, attributes} = vnode
 
   var elem = nodeOp.createElement(tagName)
@@ -42,7 +42,7 @@ function createHtmlElement (vnode) {
       return
     }
 
-    nodeOp.appendChild(elem, createElement(child))
+    nodeOp.appendChild(elem, createElement(child, context))
   })
   return elem
 }

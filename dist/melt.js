@@ -72,6 +72,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Melt.createElement = _component2.default;
 	Melt.component = _component.registerComponent;
+	Melt.container = _component.registerContainer;
 	Melt.app = Melt;
 
 	module.exports = Melt;
@@ -85,10 +86,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Component = Component;
+	exports.Container = exports.Component = undefined;
+
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 	exports.isRegisteredComponent = isRegisteredComponent;
 	exports.clearComponenetRegistry = clearComponenetRegistry;
 	exports.registerComponent = registerComponent;
+	exports.registerContainer = registerContainer;
 	exports.default = createElement;
 
 	var _index = __webpack_require__(2);
@@ -111,29 +118,79 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function Component(options) {
-	  var _this = this;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	  if (!options.render && !options.template) {
-	    throw new Error('Components need to have either a render function or a template to get rendered');
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Component = exports.Component = function () {
+	  function Component(options) {
+	    var _this = this;
+
+	    _classCallCheck(this, Component);
+
+	    if (!options.render && !options.template) {
+	      throw new Error('Components need to have either a render function or a template to get rendered');
+	    }
+	    this.options = (0, _index3.extend)({ inputs: {} }, options || {});
+	    this.renderFn = options.render;
+
+	    // do not override Component.render function
+	    delete this.options.render;
+	    (0, _index3.extend)(this, this.options);
+
+	    // Convert inputs to map: ['foo', 'bar']
+	    this._inputsMap = {};
+	    if ((0, _index3.isArray)(this.inputs)) {
+	      (0, _index3.each)(this.inputs, function (inputName) {
+	        _this._inputsMap[inputName] = true;
+	      });
+	    } else {
+	      this._inputsMap = this.inputs;
+	    }
 	  }
-	  this.options = (0, _index3.extend)({ inputs: {} }, options || {});
-	  this.renderFn = options.render;
 
-	  // do not override Component.render function
-	  delete this.options.render;
-	  (0, _index3.extend)(this, this.options);
+	  _createClass(Component, [{
+	    key: 'render',
+	    value: function render(context) {
+	      var _this2 = this;
 
-	  // Convert inputs to map: ['foo', 'bar']
-	  this.inputsMap = {};
-	  if ((0, _index3.isArray)(this.inputs)) {
-	    (0, _index3.each)(this.inputs, function (inputName) {
-	      _this.inputsMap[inputName] = true;
-	    });
-	  } else {
-	    this.inputsMap = this.inputs;
-	  }
-	}
+	      if (this.options.template) {
+	        // If the props are specified in the inputs, then allows the template to access the props without using this.props
+	        (0, _index3.each)(this.props, function (value, key) {
+	          if (_this2._inputsMap[key]) {
+	            _this2[key] = value;
+	          }
+	        });
+	      }
+	      if (!this.renderFn) {
+	        this.renderFn = (0, _index2.default)(this.options.template);
+	      }
+	      return this.renderFn();
+	    }
+	  }, {
+	    key: 'patch',
+	    value: function patch(context) {
+	      var oldVnode = this._vnode;
+	      var vnode = this.render(context);
+	      var elem = this._elem;
+	      if (!elem) {
+	        // First time rendering
+	        elem = (0, _create_element2.default)(vnode, context);
+	      } else {
+	        // Patch the DOM
+	        elem = (0, _patch2.default)(elem, oldVnode, vnode, context);
+	      }
+	      this._elem = elem;
+	      this._vnode = vnode;
+
+	      return elem;
+	    }
+	  }]);
+
+	  return Component;
+	}();
 
 	Component.prototype.range = _index3.range;
 	Component.prototype.createElement = createElement;
@@ -147,47 +204,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return results;
 	};
 
-	Component.prototype.render = function () {
-	  var _this2 = this;
+	var Container = exports.Container = function (_Component) {
+	  _inherits(Container, _Component);
 
-	  if (this.options.template) {
-	    // If the props are specified in the inputs, then allows the template to access the props without using this.props
-	    (0, _index3.each)(this.props, function (value, key) {
-	      if (_this2.inputsMap[key]) {
-	        _this2[key] = value;
-	      }
-	    });
+	  function Container() {
+	    _classCallCheck(this, Container);
+
+	    return _possibleConstructorReturn(this, (Container.__proto__ || Object.getPrototypeOf(Container)).apply(this, arguments));
 	  }
-	  if (!this.renderFn) {
-	    this.renderFn = (0, _index2.default)(this.options.template);
-	  }
-	  return this.renderFn();
-	};
 
-	Component.prototype.patch = function (context) {
-	  var _this3 = this;
+	  _createClass(Container, [{
+	    key: 'render',
+	    value: function render(context) {
+	      var _this4 = this;
 
-	  (0, _index3.each)(context, function (value, key) {
-	    _this3[key] = value;
-	  });
+	      // For container, injects the data in context to 'this' to allow the render function to access them
+	      (0, _index3.each)(context, function (value, key) {
+	        _this4[key] = value;
+	      });
+	      return _get(Container.prototype.__proto__ || Object.getPrototypeOf(Container.prototype), 'render', this).call(this, context);
+	    }
+	  }]);
 
-	  var oldVnode = this._vnode;
-	  var vnode = this.render();
-	  var elem = this._elem;
-	  if (!elem) {
-	    // First time rendering
-	    elem = (0, _create_element2.default)(vnode);
-	  } else {
-	    // Patch the DOM
-	    elem = (0, _patch2.default)(elem, oldVnode, vnode);
-	  }
-	  this._elem = elem;
-	  this._vnode = vnode;
-
-	  return elem;
-	};
+	  return Container;
+	}(Component);
 
 	// Component Management
+
+
 	var componentRegistry = {};
 
 	function isRegisteredComponent(tag) {
@@ -198,13 +242,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  componentRegistry = {};
 	}
 
-	function registerComponent(name, options) {
+	function registerComponent(name, options, isContainer) {
 	  if (componentRegistry[name]) {
 	    (0, _index3.warn)('Component ' + name + ' is already registered');
 	  }
-	  var component = new Component(options);
+	  var component = isContainer ? new Container(options) : new Component(options);
 	  componentRegistry[name] = component;
 	  return component;
+	}
+
+	function registerContainer(name, options) {
+	  return registerComponent(name, options, true);
 	}
 
 	function createElement(tag, attributes) {
@@ -1400,11 +1448,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function createElement(vnode) {
+	function createElement(vnode, context) {
 	  var domElem;
 	  switch (vnode.type) {
 	    case _vnode2.default.Element:
-	      domElem = createHtmlElement(vnode);
+	      domElem = createHtmlElement(vnode, context);
 	      break;
 	    case _vnode2.default.Empty:
 	      domElem = createEmptyNode();
@@ -1413,19 +1461,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      domElem = createTextNode(vnode);
 	      break;
 	    case _vnode2.default.Thunk:
-	      domElem = createThunk(vnode);
+	      domElem = createThunk(vnode, context);
 	      break;
 	  }
 	  vnode.elem = domElem;
 	  return domElem;
 	}
 
-	function createThunk(vnode) {
-	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode);
-	  return createElement(vnode.thunkVnode);
+	function createThunk(vnode, context) {
+	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
+	  return createElement(vnode.thunkVnode, context);
 	}
 
-	function createHtmlElement(vnode) {
+	function createHtmlElement(vnode, context) {
 	  var tagName = vnode.tagName,
 	      children = vnode.children,
 	      attributes = vnode.attributes;
@@ -1442,7 +1490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return;
 	    }
 
-	    nodeOp.appendChild(elem, createElement(child));
+	    nodeOp.appendChild(elem, createElement(child, context));
 	  });
 	  return elem;
 	}
@@ -1542,7 +1590,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	VNode.Empty = 'empty';
 	VNode.Thunk = 'thunk';
 
-	function renderThunk(vnode) {
+	function renderThunk(vnode, context) {
 	  var data = {
 	    props: vnode.attributes,
 	    children: vnode.children
@@ -1550,11 +1598,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var renderedVnode = void 0;
 	  if (!vnode.options.render) {
 	    // the stateless function will get props through function params
+	    // and it should not have access to the context
 	    renderedVnode = vnode.renderFn(data);
 	  } else {
 	    // the component will get props through this.props
 	    (0, _index.extend)(vnode.options, data);
-	    renderedVnode = vnode.renderFn.apply(vnode.options);
+	    renderedVnode = vnode.renderFn.call(vnode.options, context);
 	  }
 	  return renderedVnode;
 	}
@@ -1813,7 +1862,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Compare two virtual nodes and update the dom element
 	 */
 
-	function patchNode(domElem, oldVnode, newVnode) {
+	function patchNode(domElem, oldVnode, newVnode, context) {
 	  // Skip updating this whole sub-tree
 	  if (oldVnode === newVnode) {
 	    return domElem;
@@ -1829,7 +1878,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  // Replace the DOM
 	  if (!(0, _index.isNull)(oldVnode) && (0, _index.isNull)(newVnode) || (0, _index.isNull)(oldVnode) && !(0, _index.isNull)(newVnode) || !oldVnode.isSameType(newVnode)) {
-	    return replaceNode(domElem, oldVnode, newVnode);
+	    return replaceNode(domElem, oldVnode, newVnode, context);
 	  }
 
 	  // Two nodes with the same type reaching this point
@@ -1839,11 +1888,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (newVnode.isElement()) {
 	    if (oldVnode.tagName !== newVnode.tagName) {
 	      // Replace the whole DOM element
-	      newDomElem = replaceNode(domElem, oldVnode, newVnode);
+	      newDomElem = replaceNode(domElem, oldVnode, newVnode, context);
 	    } else {
 	      // Same tagName, update the attributes
 	      updateAttributes(domElem, oldVnode, newVnode);
-	      patchChildren(domElem, oldVnode, newVnode);
+	      patchChildren(domElem, oldVnode, newVnode, context);
 	    }
 	  } else if (newVnode.isText()) {
 	    // Text
@@ -1851,12 +1900,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      (0, _set_attribute.setAttribute)(domElem, 'nodeValue', newVnode.nodeValue, oldVnode.nodeValue);
 	    }
 	  } else if (newVnode.isThunk()) {
-	    newDomElem = updateThunk(domElem, oldVnode, newVnode);
+	    newDomElem = updateThunk(domElem, oldVnode, newVnode, context);
 	  }
 	  return newDomElem;
 	}
 
-	function patchChildren(parentElem, oldNode, newNode) {
+	function patchChildren(parentElem, oldNode, newNode, context) {
 	  var CREATE = diffActions.CREATE,
 	      UPDATE = diffActions.UPDATE,
 	      MOVE = diffActions.MOVE,
@@ -1875,20 +1924,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    switch (type) {
 	      case CREATE:
 	        {
-	          var newDomElem = (0, _create_element2.default)(next.item);
+	          var newDomElem = (0, _create_element2.default)(next.item, context);
 	          nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos));
 	          break;
 	        }
 	      case UPDATE:
 	        {
 	          var domElem = nodeOp.childNode(parentElem, prev.index);
-	          patchNode(domElem, prev.item, next.item);
+	          patchNode(domElem, prev.item, next.item, context);
 	          break;
 	        }
 	      case MOVE:
 	        {
 	          var childDomElem = nodeOp.childNode(parentElem, prev.index);
-	          patchNode(childDomElem, prev.item, next.item);
+	          patchNode(childDomElem, prev.item, next.item, context);
 	          nodeOp.insertBefore(parentElem, childDomElem, nodeOp.childNode(parentElem, pos));
 	          break;
 	        }
@@ -1903,11 +1952,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  (0, diffActions.default)(oldChildren, newChildren, effect, key);
 	}
 
-	function updateThunk(domElem, oldNode, newNode) {
+	function updateThunk(domElem, oldNode, newNode, context) {
 	  var oldThunkVnode = oldNode.thunkVnode;
-	  var newThunkVnode = (0, _vnode.renderThunk)(newNode);
+	  var newThunkVnode = (0, _vnode.renderThunk)(newNode, context);
 	  newNode.thunkVnode = newThunkVnode;
-	  return patchNode(domElem, oldThunkVnode, newThunkVnode);
+	  return patchNode(domElem, oldThunkVnode, newThunkVnode, context);
 	}
 
 	function unmountThunk(vnode) {
@@ -1944,9 +1993,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
-	function replaceNode(domElem, oldNode, newNode) {
+	function replaceNode(domElem, oldNode, newNode, context) {
 	  unmountThunk(oldNode);
-	  var newDomElem = (0, _create_element2.default)(newNode);
+	  var newDomElem = (0, _create_element2.default)(newNode, context);
 	  nodeOp.replaceNode(newDomElem, domElem);
 	  return newDomElem;
 	}
@@ -2225,7 +2274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  (0, _nodeOp.emptyElement)(rootEl);
 
 	  // the root component
-	  component = new _component.Component(options);
+	  component = new _component.Container(options);
 
 	  // Generate the action creators
 	  actions = {};

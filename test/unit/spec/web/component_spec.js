@@ -1,19 +1,12 @@
 import createElement from 'src/web/create_element'
-import h, {registerComponent, clearComponenetRegistry} from 'src/web/component'
+import h, {registerComponent, registerContainer, clearComponenetRegistry} from 'src/web/component'
 
-describe('createElement', () => {
+describe('Component', () => {
   beforeEach(() => {
     clearComponenetRegistry()
   })
 
-  it('should create a single element', () => {
-    var vtree = h('div', {'class': 'test'})
-    var node = createElement(vtree)
-    expect(node.tagName).toBe('DIV')
-    expect(node.className).toBe('test')
-  })
-
-  it('Utility functions should exist in the render function of the components', () => {
+  it('should provide utility functions in the render function', () => {
     registerComponent('counter', {
       render: function () {
         expect(this.createElement).toBeDefined()
@@ -62,7 +55,7 @@ describe('createElement', () => {
     expect(child.textContent).toBe('span2')
   })
 
-  it('should have access to the props in the render function', () => {
+  it('should provide the props to the render function', () => {
     registerComponent('counter', {
       render: function () {
         var {foo, bar} = this.props
@@ -84,7 +77,7 @@ describe('createElement', () => {
     expect(child.textContent).toBe('bar')
   })
 
-  it('should have access to the props in the template', () => {
+  it('should provide the props to the template', () => {
     registerComponent('counter', {
       inputs: ['foo', 'bar'],
       template: '<span class="{foo}">{bar}</span>'
@@ -131,5 +124,17 @@ describe('createElement', () => {
     })
     var node = app.patch()
     expect(node.textContent).toBe('first second yet')
+  })
+
+  it('should not have access to the context data', () => {
+    registerComponent('child', {
+      inputs: [],
+      template: '<span>{data}</span>'
+    })
+
+    const app = registerContainer('app', {
+      template: '<child></child>'
+    })
+    expect(() => app.patch({data: 1})).toThrow()
   })
 })

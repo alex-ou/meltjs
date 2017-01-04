@@ -1,4 +1,4 @@
-import createElement, {registerComponent} from './web/component'
+import createElement, {registerComponent, registerContainer} from './web/component'
 import createApp from './app'
 
 function Melt (options) {
@@ -7,6 +7,7 @@ function Melt (options) {
 
 Melt.createElement = createElement
 Melt.component = registerComponent
+Melt.container = registerContainer
 Melt.app = Melt
 
 module.exports = Melt

@@ -53,7 +53,7 @@ VNode.Element = 'element'
 VNode.Empty = 'empty'
 VNode.Thunk = 'thunk'
 
-export function renderThunk (vnode) {
+export function renderThunk (vnode, context) {
   let data = {
     props: vnode.attributes,
     children: vnode.children
@@ -61,11 +61,12 @@ export function renderThunk (vnode) {
   let renderedVnode
   if (!vnode.options.render) {
     // the stateless function will get props through function params
+    // and it should not have access to the context
     renderedVnode = vnode.renderFn(data)
   } else {
     // the component will get props through this.props
     extend(vnode.options, data)
-    renderedVnode = vnode.renderFn.apply(vnode.options)
+    renderedVnode = vnode.renderFn.call(vnode.options, context)
   }
   return renderedVnode
 }

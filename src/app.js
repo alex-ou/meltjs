@@ -2,7 +2,7 @@ import {isFunction, getKeys, each, extend} from './util/index'
 import {emptyElement, query, appendChild} from './web/node-op'
 import createStore from './store/index'
 import {bindActionCreators, createActionCreators} from './store/action'
-import {Component} from './web/component'
+import {Container} from './web/component'
 
 export default function createApp (options) {
   let store, component, actions, rootEl
@@ -14,7 +14,7 @@ export default function createApp (options) {
   emptyElement(rootEl)
 
   // the root component
-  component = new Component(options)
+  component = new Container(options)
 
   // Generate the action creators
   actions = {}
