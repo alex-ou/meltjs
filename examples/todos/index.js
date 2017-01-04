@@ -1,5 +1,5 @@
 let nextId = 0
-function addTodo (text, model) {
+function addTodo ({model}, text) {
   return [
     ...model,
     {
@@ -9,19 +9,49 @@ function addTodo (text, model) {
     }]
 }
 
-Melt.component('app', {
+Melt.component('todo', {
+  inputs: ['text'],
+  template: '<li>{text}</li>'
+})
+
+Melt.component('todo-list', {
   inputs: ['todos'],
-  template: `
-    <ul>
-      <todo each="todo in todos" key="{todo.id}">
-      </todo>
-    </ul>
-  `
+  template:
+    `<ul>
+      <todo each="item in todos" text="{item.text}"></todo>
+    </ul>`
+})
+
+Melt.container('add-todo', {
+  template:
+    `<form on-submit="{onSubmit}">
+      <input on-input="{onInput}">
+      <button type="submit"> Add Todo </button>
+    </form>`,
+
+  onInput: function (e) {
+    this.inputText = e.target.value
+  },
+  onSubmit: function (e) {
+    e.preventDefault()
+    if (!this.inputText.trim()) {
+      return
+    }
+    this.addTodo(this.inputText)
+  }
+})
+
+Melt.container('app', {
+  template:
+    `<div>
+      <add-todo></add-todo>
+      <todo-list todos="{model}"></todo-list>
+    </div>`
 })
 
 Melt.app({
   el: '#app',
-  template: '',
+  template: '<app></app>',
   model: [],
   update: {
     addTodo

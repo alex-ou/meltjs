@@ -1290,8 +1290,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (eventNameMap[attrName] && attr.tokens.length === 1) {
 	      var standardEventName = eventNameMap[attrName];
 	      var handlerInfo = genEventHandler(attr.tokens[0].token);
-	      results.push('"' + standardEventName + '":' + handlerInfo.funcName);
-	      tempVarDefs.push(handlerInfo.funcDef);
+	      if (handlerInfo) {
+	        results.push('"' + standardEventName + '":' + handlerInfo.funcName);
+	        tempVarDefs.push(handlerInfo.funcDef);
+	      } else {
+	        (0, _index.warn)('Invalid value found for ' + attr.rawName);
+	      }
 	    } else {
 	      var attrExpr = genText(attr.tokens);
 	      results.push('"' + attrName + '":' + attrExpr);
@@ -1330,6 +1334,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	function genEventHandler(handlerCode) {
 	  funcRE.lastIndex = 0;
 	  var matches = funcRE.exec(handlerCode);
+	  if (!matches) {
+	    return null;
+	  }
+
 	  var hasParam = matches.length >= 3 && matches[2];
 	  var callCode = hasParam ? handlerCode : handlerCode + '($event)';
 

@@ -58,8 +58,12 @@ function genAttributes (element, tempVarDefs) {
     if (eventNameMap[attrName] && attr.tokens.length === 1) {
       const standardEventName = eventNameMap[attrName]
       const handlerInfo = genEventHandler(attr.tokens[0].token)
-      results.push(`"${standardEventName}":${handlerInfo.funcName}`)
-      tempVarDefs.push(handlerInfo.funcDef)
+      if (handlerInfo) {
+        results.push(`"${standardEventName}":${handlerInfo.funcName}`)
+        tempVarDefs.push(handlerInfo.funcDef)
+      } else {
+        warn(`Invalid value found for ${attr.rawName}`)
+      }
     } else {
       const attrExpr = genText(attr.tokens)
       results.push(`"${attrName}":${attrExpr}`)
@@ -96,6 +100,10 @@ function genText (tokens) {
 function genEventHandler (handlerCode) {
   funcRE.lastIndex = 0
   const matches = funcRE.exec(handlerCode)
+  if (!matches) {
+    return null
+  }
+
   const hasParam = matches.length >= 3 && matches[2]
   let callCode = hasParam ? handlerCode : handlerCode + '($event)'
 
