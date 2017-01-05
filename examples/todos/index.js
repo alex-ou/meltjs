@@ -9,17 +9,43 @@ function addTodo ({model}, text) {
     }]
 }
 
+function toggleTodo ({model}, id) {
+  return model.map(todo => {
+    if (todo.id !== id) {
+      return todo
+    }
+
+    return {
+      id: todo.id,
+      text: todo.text,
+      completed: !todo.completed
+    }
+  })
+}
+
 Melt.component('todo', {
-  inputs: ['text'],
-  template: '<li>{text}</li>'
+  inputs: ['text', 'completed', 'onClick', 'todoId'],
+  template: '<li on-click="{onClick()}" class="{getClass()}">{text} {todoId}</li>',
+  getClass: function () {
+    return this.completed ? 'done' : ''
+  }
 })
 
 Melt.component('todo-list', {
-  inputs: ['todos'],
+  inputs: ['todos', 'onTodoClick'],
   template:
     `<ul>
-      <todo each="item in todos" text="{item.text}"></todo>
-    </ul>`
+      <todo each="item in todos" key="{item.id}" todo-id="{item.id}" completed="{item.completed}" text="{item.text}" on-click="{handleClick(item)}"></todo>
+    </ul>`,
+  handleClick: function (item) {
+    debugger
+    console.log('alex:', item)
+    this.onTodoClick(item.id)
+  }
+})
+
+Melt.container('visible-todo-list', {
+  template: '<div></div>'
 })
 
 Melt.container('add-todo', {
@@ -45,7 +71,7 @@ Melt.container('app', {
   template:
     `<div>
       <add-todo></add-todo>
-      <todo-list todos="{model}"></todo-list>
+      <todo-list todos="{model}" on-todo-click="{toggleTodo}"></todo-list>
     </div>`
 })
 
@@ -54,6 +80,7 @@ Melt.app({
   template: '<app></app>',
   model: [],
   update: {
-    addTodo
+    addTodo,
+    toggleTodo
   }
 })

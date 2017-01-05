@@ -288,14 +288,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	function compile(template) {
 	  var ast = (0, _ast_parser.parse)(template);
 	  // [variable declarations, statements]
-	  var codeSnippets = (0, _codegen.generate)(ast);
-	  return createFunction(codeSnippets);
+	  var codeSnippet = (0, _codegen.generate)(ast);
+	  return createFunction(codeSnippet);
 	}
 
-	function createFunction(codeSnippets) {
+	function createFunction(codeSnippet) {
 	  try {
 	    // eslint-disable-next-line no-new-func
-	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(this){' + codeSnippets[0] + ' return ' + codeSnippets[1] + '};');
+	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(this){return ' + codeSnippet + '};');
 	  } catch (error) {
 	    (0, _index.warn)(error);
 	    return _index.noop;
@@ -1257,15 +1257,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param ast, the parsed AST
 	 */
 	function generate(ast) {
-	  var tempVarDefs = [];
-	  var code = genElement(ast, tempVarDefs);
-	  return [tempVarDefs.join(''), code];
+	  return genElement(ast);
 	}
 
-	function genElement(element, tempVarDefs) {
+	function genElement(element) {
 	  // For element
 	  if (element.type === _ast_type.AstElementType.Element) {
-	    var createElemCode = '_h("' + element.tagName + '",' + genAttributes(element, tempVarDefs) + ',' + genChildren(element, tempVarDefs) + ')';
+	    var createElemCode = '_h("' + element.tagName + '",' + genAttributes(element) + ',' + genChildren(element) + ')';
 
 	    // Has Each directive: each="(v, k) in obj"
 	    if (element.each) {
@@ -1283,16 +1281,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return genText(element.tokens);
 	}
 
-	function genAttributes(element, tempVarDefs) {
+	function genAttributes(element) {
 	  // Handles the event handlers like on-click
 	  var results = [];
 	  (0, _index.each)(element.attributes, function (attr, attrName) {
 	    if (eventNameMap[attrName] && attr.tokens.length === 1) {
 	      var standardEventName = eventNameMap[attrName];
-	      var handlerInfo = genEventHandler(attr.tokens[0].token);
-	      if (handlerInfo) {
-	        results.push('"' + standardEventName + '":' + handlerInfo.funcName);
-	        tempVarDefs.push(handlerInfo.funcDef);
+	      var handlerCode = genEventHandler(attr.tokens[0].token);
+	      if (handlerCode) {
+	        results.push('"' + standardEventName + '":' + handlerCode);
 	      } else {
 	        (0, _index.warn)('Invalid value found for ' + attr.rawName);
 	      }
@@ -1304,14 +1301,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return '{' + results.join(',') + '}';
 	}
 
-	function genChildren(element, tempVarDefs) {
+	function genChildren(element) {
 	  if (!element.children) {
 	    return '[]';
 	  }
 
 	  var children = element.children;
 	  var childrenCodeArray = children.map(function (child) {
-	    return genElement(child, tempVarDefs);
+	    return genElement(child);
 	  });
 	  return '[' + childrenCodeArray.join(',') + ']';
 	}
@@ -1341,11 +1338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var hasParam = matches.length >= 3 && matches[2];
 	  var callCode = hasParam ? handlerCode : handlerCode + '($event)';
 
-	  var wrapperName = '$$eh' + '_' + (0, _index.uniqueId)();
-	  return {
-	    funcName: wrapperName,
-	    funcDef: 'var ' + wrapperName + '=function($event){' + callCode + '};'
-	  };
+	  return 'function($event){' + callCode + '}';
 	}
 
 /***/ },

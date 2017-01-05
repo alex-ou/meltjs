@@ -21,17 +21,15 @@ const funcRE = /([^()]+)(\(.*\))?/
  * @param ast, the parsed AST
  */
 export function generate (ast) {
-  var tempVarDefs = []
-  var code = genElement(ast, tempVarDefs)
-  return [tempVarDefs.join(''), code]
+  return genElement(ast)
 }
 
-function genElement (element, tempVarDefs) {
+function genElement (element) {
   // For element
   if (element.type === AstElementType.Element) {
     let createElemCode = (
-      `_h("${element.tagName}",` + genAttributes(element, tempVarDefs) + ',' +
-        genChildren(element, tempVarDefs) +
+      `_h("${element.tagName}",` + genAttributes(element) + ',' +
+        genChildren(element) +
       ')'
     )
 
@@ -51,16 +49,15 @@ function genElement (element, tempVarDefs) {
   return genText(element.tokens)
 }
 
-function genAttributes (element, tempVarDefs) {
+function genAttributes (element) {
   // Handles the event handlers like on-click
   var results = []
   each(element.attributes, (attr, attrName) => {
     if (eventNameMap[attrName] && attr.tokens.length === 1) {
       const standardEventName = eventNameMap[attrName]
-      const handlerInfo = genEventHandler(attr.tokens[0].token)
-      if (handlerInfo) {
-        results.push(`"${standardEventName}":${handlerInfo.funcName}`)
-        tempVarDefs.push(handlerInfo.funcDef)
+      const handlerCode = genEventHandler(attr.tokens[0].token)
+      if (handlerCode) {
+        results.push(`"${standardEventName}":${handlerCode}`)
       } else {
         warn(`Invalid value found for ${attr.rawName}`)
       }
@@ -72,13 +69,13 @@ function genAttributes (element, tempVarDefs) {
   return '{' + results.join(',') + '}'
 }
 
-function genChildren (element, tempVarDefs) {
+function genChildren (element) {
   if (!element.children) {
     return '[]'
   }
 
   let children = element.children
-  let childrenCodeArray = children.map(child => genElement(child, tempVarDefs))
+  let childrenCodeArray = children.map(child => genElement(child))
   return '[' + childrenCodeArray.join(',') + ']'
 }
 
@@ -107,9 +104,5 @@ function genEventHandler (handlerCode) {
   const hasParam = matches.length >= 3 && matches[2]
   let callCode = hasParam ? handlerCode : handlerCode + '($event)'
 
-  const wrapperName = '$$eh' + '_' + uniqueId()
-  return {
-    funcName: wrapperName,
-    funcDef: `var ${wrapperName}=function($event){${callCode}};`
-  }
+  return `function($event){${callCode}}`
 }
