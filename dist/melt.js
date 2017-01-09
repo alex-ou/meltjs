@@ -96,6 +96,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.clearComponenetRegistry = clearComponenetRegistry;
 	exports.registerComponent = registerComponent;
 	exports.registerContainer = registerContainer;
+	exports.instantiateComponent = instantiateComponent;
 	exports.default = createElement;
 
 	var _index = __webpack_require__(2);
@@ -246,19 +247,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (componentRegistry[name]) {
 	    (0, _index3.warn)('Component ' + name + ' is already registered');
 	  }
-	  var component = isContainer ? new Container(options) : new Component(options);
-	  componentRegistry[name] = component;
-	  return component;
+	  options.$$isContainer = isContainer;
+
+	  componentRegistry[name] = options;
+	  return options;
 	}
 
 	function registerContainer(name, options) {
 	  return registerComponent(name, options, true);
 	}
 
+	function instantiateComponent(tag) {
+	  var options = void 0;
+	  if (tag && tag.hasOwnProperty('$$isContainer')) {
+	    options = tag;
+	  } else if ((0, _index3.isString)(tag) && isRegisteredComponent(tag)) {
+	    options = componentRegistry[tag];
+	  }
+	  if (options) {
+	    return options.$$isContainer ? new Container(options) : new Component(options);
+	  }
+	  return null;
+	}
+
 	function createElement(tag, attributes) {
-	  var elemTag = tag;
-	  if (isRegisteredComponent(tag)) {
-	    elemTag = componentRegistry[tag];
+	  var elemTag = instantiateComponent(tag);
+	  if (elemTag === null) {
+	    elemTag = tag;
 	  }
 
 	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
@@ -295,7 +310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createFunction(codeSnippet) {
 	  try {
 	    // eslint-disable-next-line no-new-func
-	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(this){return ' + codeSnippet + '};');
+	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(p){return ' + codeSnippet + '};');
 	  } catch (error) {
 	    (0, _index.warn)(error);
 	    return _index.noop;
@@ -1338,7 +1353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var hasParam = matches.length >= 3 && matches[2];
 	  var callCode = hasParam ? handlerCode : handlerCode + '($event)';
 
-	  return 'function($event){' + callCode + '}';
+	  return '(function($event){' + callCode + '}).bind(this)';
 	}
 
 /***/ },

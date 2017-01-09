@@ -97,19 +97,33 @@ export function registerComponent (name, options, isContainer) {
   if (componentRegistry[name]) {
     warn(`Component ${name} is already registered`)
   }
-  let component = isContainer ? new Container(options) : new Component(options)
-  componentRegistry[name] = component
-  return component
+  options.$$isContainer = isContainer
+
+  componentRegistry[name] = options
+  return options
 }
 
 export function registerContainer (name, options) {
   return registerComponent(name, options, true)
 }
 
+export function instantiateComponent (tag) {
+  let options
+  if (tag && tag.hasOwnProperty('$$isContainer')) {
+    options = tag
+  } else if (isString(tag) && isRegisteredComponent(tag)) {
+    options = componentRegistry[tag]
+  }
+  if (options) {
+    return options.$$isContainer ? new Container(options) : new Component(options)
+  }
+  return null
+}
+
 export default function createElement (tag, attributes, ...children) {
-  let elemTag = tag
-  if (isRegisteredComponent(tag)) {
-    elemTag = componentRegistry[tag]
+  let elemTag = instantiateComponent(tag)
+  if (elemTag === null) {
+    elemTag = tag
   }
   return create(elemTag, attributes, children)
 }

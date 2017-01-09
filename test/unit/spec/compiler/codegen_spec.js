@@ -17,13 +17,13 @@ describe('AST parser', () => {
   it('can generate code for the event handler', () => {
     let ast = parse('<span on-click="{handleClick}"></span>')
     var code = generate(ast)
-    expect(code).toBe('_h("span",{"onClick":function($event){handleClick($event)}},[])')
+    expect(code).toBe('_h("span",{"onClick":(function($event){handleClick($event)}).bind(this)},[])')
   })
 
   it('can generate code for the event handler with params', () => {
     let ast = parse('<span on-click="{handleClick(2)}"></span>')
     var code = generate(ast)
-    expect(code).toBe('_h("span",{"onClick":function($event){handleClick(2)}},[])')
+    expect(code).toBe('_h("span",{"onClick":(function($event){handleClick(2)}).bind(this)},[])')
   })
 
   it('can generate the code for element with children', () => {

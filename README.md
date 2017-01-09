@@ -28,8 +28,8 @@ Melt.app({
   },
   template:
   `<div>{model}
-  	<button on-click='{actions.increase()}'>+</button>
-    <button on-click='{actions.decrease()}'>-</button>
+  	<button on-click='{increase()}'>+</button>
+    <button on-click='{decrease()}'>-</button>
   </div>`
 })
 
@@ -40,15 +40,15 @@ Melt was created with the following three purposes:
 Melt supports two kinds of components: stateless function components and components with states
 
 ### Enforces one way data flow
-In Melt, data only flows in one way. In the view, if you want to change the model, actions have to be used to dispatch the data to the application's update method. After the model changes, Melt propagates the changes from the root component to the leaf ones. This is to help maintain a predicable application state and improve the performance
+In Melt, data only flows in one way. In the view, if you want to change the model, actions have to be used to dispatch the data to the application's update method. After the model is changed, Melt propagates the changes from the root component to the leaf ones. This is to help maintain a predicable application state and improve the performance
 
-### Provides two-way view rendering - JSX and templates
+### Provides two kinds of view rendering methods- JSX and templates
 On one hand, JSX allows you to describe the view using JavaScript, this makes it really flexible as you can utilize all the build-in JS language features, that's why a lot of developers like it. Melt uses virtual DOM to represent the DOM as well, and the `Melt.createElement` function used to create virtual elements is fully compatible with JSX.
 On the other hand, writing views using templates with some framework provided directives, e.g. `each`, `if`, `ref` etc, you will end up with very expressive and concise views. Consider the following example, with a glimpse, you can tell that it'll render into a list:
 
 ```html
 <ul>
-  <li each="{item in items}"></li>
+  <li each="{item in items}" if='item > 0'></li>
 </ul>
 ```
 All the templates in Melt will be compiled into virtual DOM so it'll be transparent to developers.

@@ -13,7 +13,7 @@ function createFunction (codeSnippet) {
   try {
     // eslint-disable-next-line no-new-func
     return new Function('',
-        `;var p = this, _h = p._h, _s = p._s; with(this){return ${codeSnippet}};`
+        `;var p = this, _h = p._h, _s = p._s; with(p){return ${codeSnippet}};`
     )
   } catch (error) {
     warn(error)

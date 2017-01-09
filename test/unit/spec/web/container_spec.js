@@ -1,4 +1,4 @@
-import {registerComponent, registerContainer, clearComponenetRegistry} from 'src/web/component'
+import {registerComponent, registerContainer, instantiateComponent, clearComponenetRegistry} from 'src/web/component'
 
 describe('Container', () => {
   beforeEach(() => {
@@ -19,7 +19,8 @@ describe('Container', () => {
     const app = registerContainer('app', {
       template: '<div><container1></container1><container2></container2></div>'
     })
-    var dom = app.patch({foo: 'foo', bar: 'bar'})
+    const component = instantiateComponent(app)
+    var dom = component.patch({foo: 'foo', bar: 'bar'})
     expect(dom.tagName).toBe('DIV')
     expect(dom.innerHTML).toBe('<span>foo</span><span>bar</span>')
   })
@@ -43,11 +44,12 @@ describe('Container', () => {
     const app = registerContainer('app', {
       template: '<div><container></container></div>'
     })
-    let dom = app.patch({foo: 'foo', bar: 'bar'})
+    const component = instantiateComponent(app)
+    let dom = component.patch({foo: 'foo', bar: 'bar'})
     expect(dom.tagName).toBe('DIV')
     expect(dom.innerHTML).toBe('<span>bar</span>')
 
-    dom = app.patch({bar: 'bar1'})
+    dom = component.patch({bar: 'bar1'})
     expect(dom.innerHTML).toBe('<span>bar1</span>')
   })
 })

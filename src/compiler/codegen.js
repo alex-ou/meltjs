@@ -104,5 +104,5 @@ function genEventHandler (handlerCode) {
   const hasParam = matches.length >= 3 && matches[2]
   let callCode = hasParam ? handlerCode : handlerCode + '($event)'
 
-  return `function($event){${callCode}}`
+  return `(function($event){${callCode}}).bind(this)`
 }

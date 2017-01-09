@@ -38,7 +38,6 @@ Melt.component('todo-list', {
       <todo each="item in todos" key="{item.id}" todo-id="{item.id}" completed="{item.completed}" text="{item.text}" on-click="{handleClick(item)}"></todo>
     </ul>`,
   handleClick: function (item) {
-    debugger
     console.log('alex:', item)
     this.onTodoClick(item.id)
   }
