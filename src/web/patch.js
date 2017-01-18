@@ -64,22 +64,23 @@ export function patchChildren (parentElem, oldNode, newNode, context) {
   function effect (type, prev, next, pos) {
     switch (type) {
       case CREATE: {
-        let newDomElem = createElement(next.item, context)
+        let newDomElem = createElement(next.vnode, context)
         nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
       case UPDATE: {
         let domElem = nodeOp.childNode(parentElem, prev.index)
-        patchNode(domElem, prev.item, next.item, context)
+        patchNode(domElem, prev.vnode, next.vnode, context)
         break
       }
       case MOVE: {
         let childDomElem = nodeOp.childNode(parentElem, prev.index)
-        patchNode(childDomElem, prev.item, next.item, context)
+        patchNode(childDomElem, prev.vnode, next.vnode, context)
         nodeOp.insertBefore(parentElem, childDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
       case REMOVE: {
+        unmountThunk(prev.vnode)
         nodeOp.removeChild(parentElem, domChildNodes[prev.index])
         break
       }
@@ -99,7 +100,9 @@ function updateThunk (domElem, oldNode, newNode, context) {
 function unmountThunk (vnode) {
   if (vnode.isThunk()) {
     // Call the lifecycle hook
-    if (vnode.component.beforeUnmount) {}
+    if (vnode.component.onUnmount) {
+      vnode.component.onUnmount()
+    }
     unmountThunk(vnode.thunkVnode)
   } else if (vnode.children) {
     each(vnode.children, child => unmountThunk(child))

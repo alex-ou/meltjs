@@ -1486,7 +1486,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function createThunk(vnode, context) {
 	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
-	  return createElement(vnode.thunkVnode, context);
+	  var domElem = createElement(vnode.thunkVnode, context);
+	  if (vnode.component.onMount) {
+	    vnode.component.onMount(domElem);
+	  }
+	  return domElem;
 	}
 
 	function createHtmlElement(vnode, context) {
@@ -1632,7 +1636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var key = (0, _index.isNull)(child) ? i : child.key || i;
 	    return {
 	      key: String(key),
-	      item: child,
+	      vnode: child,
 	      index: i
 	    };
 	  });
@@ -1940,25 +1944,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    switch (type) {
 	      case CREATE:
 	        {
-	          var newDomElem = (0, _create_element2.default)(next.item, context);
+	          var newDomElem = (0, _create_element2.default)(next.vnode, context);
 	          nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos));
 	          break;
 	        }
 	      case UPDATE:
 	        {
 	          var domElem = nodeOp.childNode(parentElem, prev.index);
-	          patchNode(domElem, prev.item, next.item, context);
+	          patchNode(domElem, prev.vnode, next.vnode, context);
 	          break;
 	        }
 	      case MOVE:
 	        {
 	          var childDomElem = nodeOp.childNode(parentElem, prev.index);
-	          patchNode(childDomElem, prev.item, next.item, context);
+	          patchNode(childDomElem, prev.vnode, next.vnode, context);
 	          nodeOp.insertBefore(parentElem, childDomElem, nodeOp.childNode(parentElem, pos));
 	          break;
 	        }
 	      case REMOVE:
 	        {
+	          unmountThunk(prev.vnode);
 	          nodeOp.removeChild(parentElem, domChildNodes[prev.index]);
 	          break;
 	        }
@@ -1978,7 +1983,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	function unmountThunk(vnode) {
 	  if (vnode.isThunk()) {
 	    // Call the lifecycle hook
-	    if (vnode.component.beforeUnmount) {}
+	    if (vnode.component.onUnmount) {
+	      vnode.component.onUnmount();
+	    }
 	    unmountThunk(vnode.thunkVnode);
 	  } else if (vnode.children) {
 	    (0, _index.each)(vnode.children, function (child) {

@@ -25,7 +25,11 @@ export default function createElement (vnode, context) {
 
 function createThunk (vnode, context) {
   vnode.thunkVnode = renderThunk(vnode, context)
-  return createElement(vnode.thunkVnode, context)
+  const domElem = createElement(vnode.thunkVnode, context)
+  if (vnode.component.onMount) {
+    vnode.component.onMount(domElem)
+  }
+  return domElem
 }
 
 function createHtmlElement (vnode, context) {

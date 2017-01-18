@@ -79,7 +79,7 @@ export function groupByKey (children) {
     let key = isNull(child) ? i : (child.key || i)
     return {
       key: String(key),
-      item: child,
+      vnode: child,
       index: i
     }
   })
