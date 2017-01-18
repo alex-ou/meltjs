@@ -19,7 +19,7 @@ export default class VNode {
      */
     extend(this, {
       children: [],
-      options: {}
+      component: {}
     }, settings)
 
     let attributes = settings.attributes || {}
@@ -59,14 +59,14 @@ export function renderThunk (vnode, context) {
     children: vnode.children
   }
   let renderedVnode
-  if (!vnode.options.render) {
+  if (!vnode.component.render) {
     // the stateless function will get props through function params
     // and it should not have access to the context
     renderedVnode = vnode.renderFn(data)
   } else {
     // the component will get props through this.props
-    extend(vnode.options, data)
-    renderedVnode = vnode.renderFn.call(vnode.options, context)
+    extend(vnode.component, data)
+    renderedVnode = vnode.renderFn.call(vnode.component, context)
   }
   return renderedVnode
 }

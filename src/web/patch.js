@@ -99,7 +99,7 @@ function updateThunk (domElem, oldNode, newNode, context) {
 function unmountThunk (vnode) {
   if (vnode.isThunk()) {
     // Call the lifecycle hook
-    if (vnode.options.beforeUnmount) {}
+    if (vnode.component.beforeUnmount) {}
     unmountThunk(vnode.thunkVnode)
   } else if (vnode.children) {
     each(vnode.children, child => unmountThunk(child))

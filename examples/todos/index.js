@@ -31,17 +31,21 @@ function setVisibilityFilter ({model}, visibilityFilter) {
 
 Melt.component('todo', {
   inputs: ['text', 'completed', 'onClick'],
-  template: '<li on-click="{onClick()}" class="{getClass()}">{text}</li>',
-  getClass: function () {
-    return this.completed ? 'done' : ''
-  }
+  template: `<li
+    on-click="{onClick()}"
+    class="{completed ? 'done' : ''}">{text}</li>`
 })
 
 Melt.component('todo-list', {
   inputs: ['todos', 'onTodoClick'],
   template:
     `<ul>
-      <todo each="item in todos" key="{item.id}" completed="{item.completed}" text="{item.text}" on-click="{onTodoClick(item.id)}"></todo>
+      <todo each="item in todos"
+        key="{item.id}"
+        completed="{item.completed}"
+        text="{item.text}"
+        on-click="{onTodoClick(item.id)}">
+      </todo>
     </ul>`
 })
 

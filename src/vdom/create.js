@@ -10,7 +10,7 @@ export default function create (tag, attributes, ...children) {
       renderFn: tag,
       attributes,
       children,
-      options: tag
+      component: tag
     })
   }
   // Object style component
@@ -20,7 +20,7 @@ export default function create (tag, attributes, ...children) {
       renderFn: tag.render,
       attributes,
       children,
-      options: tag
+      component: tag
     })
   }
   return new VNode({

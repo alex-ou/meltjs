@@ -110,7 +110,7 @@ describe('vnode creation', () => {
     let child = tree.children[0]
     expect(child.type).toBe(VNode.Thunk)
     expect(child.renderFn()).toEqual(Counter.render())
-    expect(child.options.test).toBe(1)
+    expect(child.component.test).toBe(1)
 
     child = tree.children[1]
     expect(child.type).toBe(VNode.Thunk)

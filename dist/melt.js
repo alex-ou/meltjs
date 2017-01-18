@@ -1561,7 +1561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    (0, _index.extend)(this, {
 	      children: [],
-	      options: {}
+	      component: {}
 	    }, settings);
 
 	    var attributes = settings.attributes || {};
@@ -1612,14 +1612,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    children: vnode.children
 	  };
 	  var renderedVnode = void 0;
-	  if (!vnode.options.render) {
+	  if (!vnode.component.render) {
 	    // the stateless function will get props through function params
 	    // and it should not have access to the context
 	    renderedVnode = vnode.renderFn(data);
 	  } else {
 	    // the component will get props through this.props
-	    (0, _index.extend)(vnode.options, data);
-	    renderedVnode = vnode.renderFn.call(vnode.options, context);
+	    (0, _index.extend)(vnode.component, data);
+	    renderedVnode = vnode.renderFn.call(vnode.component, context);
 	  }
 	  return renderedVnode;
 	}
@@ -1978,7 +1978,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function unmountThunk(vnode) {
 	  if (vnode.isThunk()) {
 	    // Call the lifecycle hook
-	    if (vnode.options.beforeUnmount) {}
+	    if (vnode.component.beforeUnmount) {}
 	    unmountThunk(vnode.thunkVnode);
 	  } else if (vnode.children) {
 	    (0, _index.each)(vnode.children, function (child) {
@@ -2204,7 +2204,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      renderFn: tag,
 	      attributes: attributes,
 	      children: children,
-	      options: tag
+	      component: tag
 	    });
 	  }
 	  // Object style component
@@ -2214,7 +2214,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      renderFn: tag.render,
 	      attributes: attributes,
 	      children: children,
-	      options: tag
+	      component: tag
 	    });
 	  }
 	  return new _vnode2.default({
