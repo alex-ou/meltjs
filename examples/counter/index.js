@@ -16,7 +16,7 @@ Melt.component('counter', {
 })
 
 Melt.container('app', {
-  template: '<counter count="{model}" on-increase="{increase}" on-decrease="{decrease}"></counter>',
+  template: '<counter count="{model}" on-increase="{increase}" on-decrease="{decrease}"></counter>'
 })
 
 Melt.app({

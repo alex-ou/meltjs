@@ -1976,6 +1976,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	function updateThunk(domElem, oldNode, newNode, context) {
 	  var oldThunkVnode = oldNode.thunkVnode;
 	  var newThunkVnode = (0, _vnode.renderThunk)(newNode, context);
+	  if (newNode.component.onUpdate) {
+	    newNode.component.onUpdate();
+	  }
 	  newNode.thunkVnode = newThunkVnode;
 	  return patchNode(domElem, oldThunkVnode, newThunkVnode, context);
 	}

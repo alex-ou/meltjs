@@ -116,4 +116,29 @@ describe('lifecycle', () => {
     patch(domElem, oldNode, newNode)
     expect(Parent.onUnmount).toHaveBeenCalled()
   })
+
+  it('onUpdate should be called when the node is re-rendered', () => {
+    const Parent = {
+      render: function () {
+        return h('div', {})
+      },
+      onUpdate: jasmine.createSpy('onUpdate')
+    }
+
+    let oldNode = h('div', {},
+      h('div', {}, [
+        h(Parent)
+      ])
+    )
+    let newNode = h('div', {},
+      h('div', {}, [
+        h(Parent)
+      ])
+    )
+    const domElem = createElement(oldNode)
+    expect(Parent.onUpdate).not.toHaveBeenCalled()
+
+    patch(domElem, oldNode, newNode)
+    expect(Parent.onUpdate).toHaveBeenCalled()
+  })
 })

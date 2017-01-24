@@ -105,7 +105,7 @@ Melt.component('footer', {
 Melt.container('add-todo', {
   template:
     `<form on-submit="{onSubmit}">
-      <input on-input="{onInput}">
+      <input on-input="{onInput}" ref="theInput">
       <button type="submit"> Add Todo </button>
     </form>`,
 
