@@ -4,7 +4,9 @@ import * as nodeOp from './node-op'
 import {setAttribute} from './set_attribute'
 
 export default function createElement (vnode, context) {
+  context = context || {}
   var domElem
+  vnode.parentComponent = context.component || window
   switch (vnode.type) {
     case VNode.Element:
       domElem = createHtmlElement(vnode, context)
@@ -20,15 +22,19 @@ export default function createElement (vnode, context) {
       break
   }
   vnode.elem = domElem
+  vnode.onMount()
   return domElem
 }
 
 function createThunk (vnode, context) {
   vnode.thunkVnode = renderThunk(vnode, context)
+  const currentComponent = context.component
+
+  context.component = vnode.component
   const domElem = createElement(vnode.thunkVnode, context)
-  if (vnode.component.onMount) {
-    vnode.component.onMount(domElem)
-  }
+
+  // recover the component context
+  context.component = currentComponent
   return domElem
 }
 

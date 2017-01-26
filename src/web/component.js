@@ -2,19 +2,21 @@ import compile from '../compiler/index'
 import createDomElement from './create_element'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {warn, isString, isArray, extend, each, range} from '../util/index'
+import {warn, isString, isArray, extend, each, range, has, isObject} from '../util/index'
+import ref from './ref'
 
 export class Component {
   constructor (options) {
     if (!options.render && !options.template) {
       throw new Error('Components need to have either a render function or a template to get rendered')
     }
-    this.options = extend({inputs: {}}, options || {})
-    this.renderFn = options.render
+    this.componentOptions = options
+    this._options = extend({inputs: {}}, options || {})
+    this._renderFn = options.render
 
     // do not override Component.render function
-    delete this.options.render
-    extend(this, this.options)
+    delete this._options.render
+    extend(this, this._options)
 
     // Convert inputs to map: ['foo', 'bar']
     this._inputsMap = {}
@@ -25,10 +27,12 @@ export class Component {
     } else {
       this._inputsMap = this.inputs
     }
+
+    this.refs = {}
   }
 
   render (context) {
-    if (this.options.template) {
+    if (this._options.template) {
       // If the props are specified in the inputs, then allows the template to access the props without using this.props
       each(this.props, (value, key) => {
         if (this._inputsMap[key]) {
@@ -36,10 +40,12 @@ export class Component {
         }
       })
     }
-    if (!this.renderFn) {
-      this.renderFn = compile(this.options.template)
+
+    if (!this._renderFn) {
+      this._renderFn = compile(this._options.template)
+      this.componentOptions.render = this._renderFn
     }
-    return this.renderFn()
+    return this._renderFn()
   }
 
   patch (context) {
@@ -97,8 +103,8 @@ export function registerComponent (name, options, isContainer) {
   if (componentRegistry[name]) {
     warn(`Component ${name} is already registered`)
   }
-  options.$$isContainer = isContainer
-
+  options.isContainer = isContainer
+  options.selector = name
   componentRegistry[name] = options
   return options
 }
@@ -109,13 +115,13 @@ export function registerContainer (name, options) {
 
 export function instantiateComponent (tag) {
   let options
-  if (tag && tag.hasOwnProperty('$$isContainer')) {
+  if (isObject(tag)) {
     options = tag
   } else if (isString(tag) && isRegisteredComponent(tag)) {
     options = componentRegistry[tag]
   }
   if (options) {
-    return options.$$isContainer ? new Container(options) : new Component(options)
+    return options.isContainer ? new Container(options) : new Component(options)
   }
   return null
 }
@@ -124,6 +130,14 @@ export default function createElement (tag, attributes, ...children) {
   let elemTag = instantiateComponent(tag)
   if (elemTag === null) {
     elemTag = tag
+  }
+  attributes = attributes || []
+  let directives = []
+  if (has(attributes, 'ref')) {
+    directives.push(ref)
+  }
+  if (directives.length > 0) {
+    attributes.directives = directives
   }
   return create(elemTag, attributes, children)
 }

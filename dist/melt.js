@@ -117,6 +117,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index3 = __webpack_require__(3);
 
+	var _ref = __webpack_require__(27);
+
+	var _ref2 = _interopRequireDefault(_ref);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -134,12 +138,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!options.render && !options.template) {
 	      throw new Error('Components need to have either a render function or a template to get rendered');
 	    }
-	    this.options = (0, _index3.extend)({ inputs: {} }, options || {});
-	    this.renderFn = options.render;
+	    this.componentOptions = options;
+	    this._options = (0, _index3.extend)({ inputs: {} }, options || {});
+	    this._renderFn = options.render;
 
 	    // do not override Component.render function
-	    delete this.options.render;
-	    (0, _index3.extend)(this, this.options);
+	    delete this._options.render;
+	    (0, _index3.extend)(this, this._options);
 
 	    // Convert inputs to map: ['foo', 'bar']
 	    this._inputsMap = {};
@@ -150,6 +155,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      this._inputsMap = this.inputs;
 	    }
+
+	    this.refs = {};
 	  }
 
 	  _createClass(Component, [{
@@ -157,7 +164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function render(context) {
 	      var _this2 = this;
 
-	      if (this.options.template) {
+	      if (this._options.template) {
 	        // If the props are specified in the inputs, then allows the template to access the props without using this.props
 	        (0, _index3.each)(this.props, function (value, key) {
 	          if (_this2._inputsMap[key]) {
@@ -165,10 +172,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	        });
 	      }
-	      if (!this.renderFn) {
-	        this.renderFn = (0, _index2.default)(this.options.template);
+
+	      if (!this._renderFn) {
+	        this._renderFn = (0, _index2.default)(this._options.template);
+	        this.componentOptions.render = this._renderFn;
 	      }
-	      return this.renderFn();
+	      return this._renderFn();
 	    }
 	  }, {
 	    key: 'patch',
@@ -247,8 +256,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (componentRegistry[name]) {
 	    (0, _index3.warn)('Component ' + name + ' is already registered');
 	  }
-	  options.$$isContainer = isContainer;
-
+	  options.isContainer = isContainer;
+	  options.selector = name;
 	  componentRegistry[name] = options;
 	  return options;
 	}
@@ -259,13 +268,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function instantiateComponent(tag) {
 	  var options = void 0;
-	  if (tag && tag.hasOwnProperty('$$isContainer')) {
+	  if ((0, _index3.isObject)(tag)) {
 	    options = tag;
 	  } else if ((0, _index3.isString)(tag) && isRegisteredComponent(tag)) {
 	    options = componentRegistry[tag];
 	  }
 	  if (options) {
-	    return options.$$isContainer ? new Container(options) : new Component(options);
+	    return options.isContainer ? new Container(options) : new Component(options);
 	  }
 	  return null;
 	}
@@ -274,6 +283,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var elemTag = instantiateComponent(tag);
 	  if (elemTag === null) {
 	    elemTag = tag;
+	  }
+	  attributes = attributes || [];
+	  var directives = [];
+	  if ((0, _index3.has)(attributes, 'ref')) {
+	    directives.push(_ref2.default);
+	  }
+	  if (directives.length > 0) {
+	    attributes.directives = directives;
 	  }
 
 	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
@@ -1465,7 +1482,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function createElement(vnode, context) {
+	  context = context || {};
 	  var domElem;
+	  vnode.parentComponent = context.component || window;
 	  switch (vnode.type) {
 	    case _vnode2.default.Element:
 	      domElem = createHtmlElement(vnode, context);
@@ -1481,15 +1500,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      break;
 	  }
 	  vnode.elem = domElem;
+	  vnode.onMount();
 	  return domElem;
 	}
 
 	function createThunk(vnode, context) {
 	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
+	  var currentComponent = context.component;
+
+	  context.component = vnode.component;
 	  var domElem = createElement(vnode.thunkVnode, context);
-	  if (vnode.component.onMount) {
-	    vnode.component.onMount(domElem);
-	  }
+
+	  // recover the component context
+	  context.component = currentComponent;
 	  return domElem;
 	}
 
@@ -1574,13 +1597,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    delete attributes.key;
 
+	    this.directives = attributes.directives;
+	    delete attributes.directives;
+
 	    this.attributes = attributes;
+	    this.props = attributes;
 	  }
 
 	  _createClass(VNode, [{
 	    key: 'isSameType',
 	    value: function isSameType(vnode) {
-	      return this.type === vnode.type;
+	      if (this.type === vnode.type && !vnode.isThunk()) {
+	        return true;
+	      }
+	      // check whether it's the same thunk or not
+	      // Stateless function component
+	      if ((0, _index.isFunction)(this.component)) {
+	        return this.renderFn === vnode.renderFn;
+	      }
+	      // Object style component
+	      if (!(0, _index.isUndefined)(vnode.component.selector)) {
+	        return this.component.selector === vnode.component.selector;
+	      }
+	      return this.component === vnode.component;
 	    }
 	  }, {
 	    key: 'isElement',
@@ -1596,6 +1635,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'isThunk',
 	    value: function isThunk() {
 	      return this.type === VNode.Thunk;
+	    }
+	  }, {
+	    key: '_callback',
+	    value: function _callback(callbackName) {
+	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        args[_key - 1] = arguments[_key];
+	      }
+
+	      var receivers = this.component ? [this.component] : [];
+	      if (this.directives) {
+	        receivers = receivers.concat(this.directives);
+	      }
+
+	      (0, _index.each)(receivers, function (receiver) {
+	        var callback = receiver[callbackName];
+	        if (callback) {
+	          callback.apply(receiver, args);
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'onMount',
+	    value: function onMount() {
+	      this._callback('onMount', this);
+	    }
+	  }, {
+	    key: 'onUnmount',
+	    value: function onUnmount() {
+	      this._callback('onUnmount', this);
+	    }
+	  }, {
+	    key: 'onUpdate',
+	    value: function onUpdate(oldVnode) {
+	      this._callback('onUpdate', oldVnode, this);
 	    }
 	  }]);
 
@@ -1616,7 +1689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    children: vnode.children
 	  };
 	  var renderedVnode = void 0;
-	  if (!vnode.component.render) {
+	  if ((0, _index.isFunction)(vnode.component)) {
 	    // the stateless function will get props through function params
 	    // and it should not have access to the context
 	    renderedVnode = vnode.renderFn(data);
@@ -1976,19 +2049,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	function updateThunk(domElem, oldNode, newNode, context) {
 	  var oldThunkVnode = oldNode.thunkVnode;
 	  var newThunkVnode = (0, _vnode.renderThunk)(newNode, context);
-	  if (newNode.component.onUpdate) {
-	    newNode.component.onUpdate();
-	  }
 	  newNode.thunkVnode = newThunkVnode;
+	  newNode.onUpdate(oldNode);
 	  return patchNode(domElem, oldThunkVnode, newThunkVnode, context);
 	}
 
 	function unmountThunk(vnode) {
+	  // Call the lifecycle hook
+	  vnode.onUnmount();
+
 	  if (vnode.isThunk()) {
-	    // Call the lifecycle hook
-	    if (vnode.component.onUnmount) {
-	      vnode.component.onUnmount();
-	    }
 	    unmountThunk(vnode.thunkVnode);
 	  } else if (vnode.children) {
 	    (0, _index.each)(vnode.children, function (child) {
@@ -2345,7 +2415,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function getAppContext() {
 	    return (0, _index.extend)({
 	      model: store.getModel(),
-	      dispatch: dispatch
+	      dispatch: dispatch,
+	      component: component
 	    }, actions);
 	  }
 
@@ -2549,6 +2620,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return newModel;
 	  };
+	}
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _index = __webpack_require__(3);
+
+	function onMount(vnode) {
+	  addRef(vnode, vnode);
+	}
+
+	function onUpdate(oldVnode, newVnode) {
+	  removeRef(oldVnode);
+	  addRef(newVnode);
+	}
+
+	function onUnmount(vnode) {
+	  removeRef(vnode);
+	}
+
+	exports.default = {
+	  onMount: onMount,
+	  onUpdate: onUpdate,
+	  onUnmount: onUnmount
+	};
+
+
+	function addRef(vnode) {
+	  var name = vnode.props.ref;
+	  if (!name) {
+	    return;
+	  }
+	  var ref = vnode.component || vnode.elem;
+	  var refs = vnode.parentComponent.refs;
+	  var existingRef = refs[name];
+	  if (!existingRef) {
+	    refs[name] = ref;
+	  } else if ((0, _index.isArray)(existingRef)) {
+	    refs[name].push(ref);
+	  } else {
+	    refs[name] = [existingRef, ref];
+	  }
+	}
+
+	function removeRef(name, vnode) {
+	  if (!name) {
+	    return;
+	  }
+	  var ref = vnode.component || vnode.elem;
+	  var refs = vnode.parentComponent.refs;
+	  if ((0, _index.isArray)(refs)) {
+	    refs[name] = refs.filter(function (item) {
+	      return item !== ref;
+	    });
+	  } else {
+	    delete refs[name];
+	  }
 	}
 
 /***/ }

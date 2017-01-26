@@ -55,7 +55,8 @@ export default function createApp (options) {
   function getAppContext () {
     return extend({
       model: store.getModel(),
-      dispatch
+      dispatch,
+      component
     }, actions)
   }
 

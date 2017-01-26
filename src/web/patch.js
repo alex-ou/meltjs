@@ -93,19 +93,16 @@ export function patchChildren (parentElem, oldNode, newNode, context) {
 function updateThunk (domElem, oldNode, newNode, context) {
   let oldThunkVnode = oldNode.thunkVnode
   let newThunkVnode = renderThunk(newNode, context)
-  if (newNode.component.onUpdate) {
-    newNode.component.onUpdate()
-  }
   newNode.thunkVnode = newThunkVnode
+  newNode.onUpdate(oldNode)
   return patchNode(domElem, oldThunkVnode, newThunkVnode, context)
 }
 
 function unmountThunk (vnode) {
+  // Call the lifecycle hook
+  vnode.onUnmount()
+
   if (vnode.isThunk()) {
-    // Call the lifecycle hook
-    if (vnode.component.onUnmount) {
-      vnode.component.onUnmount()
-    }
     unmountThunk(vnode.thunkVnode)
   } else if (vnode.children) {
     each(vnode.children, child => unmountThunk(child))

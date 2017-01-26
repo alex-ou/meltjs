@@ -141,4 +141,49 @@ describe('lifecycle', () => {
     patch(domElem, oldNode, newNode)
     expect(Parent.onUpdate).toHaveBeenCalled()
   })
+
+  it('lifecycle hooks should be called when the component is replaced', () => {
+    const ComponentA = {
+      render: function () {
+        return h('div', {})
+      },
+      onMount: jasmine.createSpy('ComponentA_onMount'),
+      onUnmount: jasmine.createSpy('ComponentA_onUnmount')
+    }
+    const ComponentB = {
+      render: function () {
+        return h('div', {})
+      },
+      onMount: jasmine.createSpy('ComponentB_onMount'),
+      onUpdate: jasmine.createSpy('ComponentB_onUpdate'),
+      onUnmount: jasmine.createSpy('ComponentB_onUnmount')
+    }
+
+    let oldNode = h('div', {},
+      h('div', {}, [
+        h(ComponentA)
+      ])
+    )
+    let newNode = h('div', {},
+      h('div', {}, [
+        h(ComponentB)
+      ])
+    )
+    let domElem = createElement(oldNode)
+    expect(ComponentA.onMount).toHaveBeenCalled()
+
+    domElem = patch(domElem, oldNode, newNode)
+    expect(ComponentA.onUnmount).toHaveBeenCalled()
+    expect(ComponentB.onMount).toHaveBeenCalled()
+    expect(ComponentB.onUpdate).not.toHaveBeenCalled()
+
+    let anotherNewNode = h('div', {},
+      h('div', {}, [
+        h(ComponentB, {a: 1}),
+        h('span', {}, 'test')
+      ])
+    )
+    patch(domElem, newNode, anotherNewNode)
+    expect(ComponentB.onUpdate).toHaveBeenCalled()
+  })
 })

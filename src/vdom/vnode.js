@@ -1,4 +1,4 @@
-import {isNull, isString, isNumber, extend} from '../util/index'
+import {isNull, isString, isNumber, extend, isFunction, isUndefined, each} from '../util/index'
 /**
  * This function lets us create virtual nodes using a simple syntax.
  *
@@ -28,11 +28,27 @@ export default class VNode {
     }
     delete attributes.key
 
+    this.directives = attributes.directives
+    delete attributes.directives
+
     this.attributes = attributes
+    this.props = attributes
   }
 
   isSameType (vnode) {
-    return this.type === vnode.type
+    if (this.type === vnode.type && !vnode.isThunk()) {
+      return true
+    }
+    // check whether it's the same thunk or not
+    // Stateless function component
+    if (isFunction(this.component)) {
+      return this.renderFn === vnode.renderFn
+    }
+    // Object style component
+    if (!isUndefined(vnode.component.selector)) {
+      return this.component.selector === vnode.component.selector
+    }
+    return this.component === vnode.component
   }
 
   isElement () {
@@ -45,6 +61,32 @@ export default class VNode {
 
   isThunk () {
     return this.type === VNode.Thunk
+  }
+
+  _callback (callbackName, ...args) {
+    let receivers = this.component ? [this.component] : []
+    if (this.directives) {
+      receivers = receivers.concat(this.directives)
+    }
+
+    each(receivers, receiver => {
+      let callback = receiver[callbackName]
+      if (callback) {
+        callback.apply(receiver, args)
+      }
+    })
+  }
+
+  onMount () {
+    this._callback('onMount', this)
+  }
+
+  onUnmount () {
+    this._callback('onUnmount', this)
+  }
+
+  onUpdate (oldVnode) {
+    this._callback('onUpdate', oldVnode, this)
   }
 }
 
@@ -59,7 +101,7 @@ export function renderThunk (vnode, context) {
     children: vnode.children
   }
   let renderedVnode
-  if (!vnode.component.render) {
+  if (isFunction(vnode.component)) {
     // the stateless function will get props through function params
     // and it should not have access to the context
     renderedVnode = vnode.renderFn(data)
