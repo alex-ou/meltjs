@@ -1484,7 +1484,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createElement(vnode, context) {
 	  context = context || {};
 	  var domElem;
-	  vnode.parentComponent = context.component || window;
+	  vnode.parentComponent = context.component;
 	  switch (vnode.type) {
 	    case _vnode2.default.Element:
 	      domElem = createHtmlElement(vnode, context);
@@ -1587,8 +1587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     children
 	     */
 	    (0, _index.extend)(this, {
-	      children: [],
-	      component: {}
+	      children: []
 	    }, settings);
 
 	    var attributes = settings.attributes || {};
@@ -1607,7 +1606,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(VNode, [{
 	    key: 'isSameType',
 	    value: function isSameType(vnode) {
-	      if (this.type === vnode.type && !vnode.isThunk()) {
+	      if (this.type !== vnode.type) {
+	        return false;
+	      }
+	      if (!this.isThunk()) {
 	        return true;
 	      }
 	      // check whether it's the same thunk or not
@@ -1956,6 +1958,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	function patchNode(domElem, oldVnode, newVnode, context) {
+	  context = context || {};
+	  newVnode.parentComponent = context.component;
 	  // Skip updating this whole sub-tree
 	  if (oldVnode === newVnode) {
 	    return domElem;
@@ -1983,8 +1987,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // Replace the whole DOM element
 	      newDomElem = replaceNode(domElem, oldVnode, newVnode, context);
 	    } else {
+	      // Has the same DOM elem
+	      newVnode.elem = domElem;
 	      // Same tagName, update the attributes
 	      updateAttributes(domElem, oldVnode, newVnode);
+	      newVnode.onUpdate(oldVnode);
 	      patchChildren(domElem, oldVnode, newVnode, context);
 	    }
 	  } else if (newVnode.isText()) {
@@ -2050,8 +2057,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var oldThunkVnode = oldNode.thunkVnode;
 	  var newThunkVnode = (0, _vnode.renderThunk)(newNode, context);
 	  newNode.thunkVnode = newThunkVnode;
+
+	  var currentComponent = context.component;
+	  context.component = newNode.component;
+	  var newDomElem = patchNode(domElem, oldThunkVnode, newThunkVnode, context);
+	  context.component = currentComponent;
+
+	  newNode.elem = newDomElem;
 	  newNode.onUpdate(oldNode);
-	  return patchNode(domElem, oldThunkVnode, newThunkVnode, context);
+
+	  return newDomElem;
 	}
 
 	function unmountThunk(vnode) {
@@ -2624,27 +2639,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 27 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-
-	var _index = __webpack_require__(3);
-
 	function onMount(vnode) {
-	  addRef(vnode, vnode);
+	  updateRef(vnode);
 	}
 
 	function onUpdate(oldVnode, newVnode) {
-	  removeRef(oldVnode);
-	  addRef(newVnode);
+	  updateRef(oldVnode, true);
+	  updateRef(newVnode);
 	}
 
 	function onUnmount(vnode) {
-	  removeRef(vnode);
+	  updateRef(vnode, true);
 	}
 
 	exports.default = {
@@ -2654,35 +2666,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 
-	function addRef(vnode) {
+	function updateRef(vnode, isRemoving) {
 	  var name = vnode.props.ref;
 	  if (!name) {
 	    return;
 	  }
 	  var ref = vnode.component || vnode.elem;
 	  var refs = vnode.parentComponent.refs;
-	  var existingRef = refs[name];
-	  if (!existingRef) {
-	    refs[name] = ref;
-	  } else if ((0, _index.isArray)(existingRef)) {
-	    refs[name].push(ref);
-	  } else {
-	    refs[name] = [existingRef, ref];
-	  }
-	}
-
-	function removeRef(name, vnode) {
-	  if (!name) {
-	    return;
-	  }
-	  var ref = vnode.component || vnode.elem;
-	  var refs = vnode.parentComponent.refs;
-	  if ((0, _index.isArray)(refs)) {
-	    refs[name] = refs.filter(function (item) {
-	      return item !== ref;
-	    });
-	  } else {
+	  if (isRemoving) {
 	    delete refs[name];
+	  } else {
+	    refs[name] = ref;
 	  }
 	}
 

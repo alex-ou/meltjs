@@ -6,7 +6,7 @@ import {setAttribute} from './set_attribute'
 export default function createElement (vnode, context) {
   context = context || {}
   var domElem
-  vnode.parentComponent = context.component || window
+  vnode.parentComponent = context.component
   switch (vnode.type) {
     case VNode.Element:
       domElem = createHtmlElement(vnode, context)

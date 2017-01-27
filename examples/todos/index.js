@@ -105,20 +105,20 @@ Melt.component('footer', {
 Melt.container('add-todo', {
   template:
     `<form on-submit="{onSubmit}">
-      <input on-input="{onInput}" ref="theInput">
+      <input key="111" ref="input">
       <button type="submit"> Add Todo </button>
     </form>`,
 
-  onInput: function (e) {
-    this.inputText = e.target.value
-  },
-
   onSubmit: function (e) {
     e.preventDefault()
-    if (!this.inputText.trim()) {
+    const input = this.refs.input
+    var text = input.value
+    if (!text.trim()) {
       return
     }
-    this.addTodo(this.inputText)
+    input.value = ''
+
+    this.addTodo(text)
   }
 })
 

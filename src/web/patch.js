@@ -10,6 +10,8 @@ import * as nodeOp from './node-op'
  */
 
 export default function patchNode (domElem, oldVnode, newVnode, context) {
+  context = context || {}
+  newVnode.parentComponent = context.component
   // Skip updating this whole sub-tree
   if (oldVnode === newVnode) {
     return domElem
@@ -37,8 +39,11 @@ export default function patchNode (domElem, oldVnode, newVnode, context) {
       // Replace the whole DOM element
       newDomElem = replaceNode(domElem, oldVnode, newVnode, context)
     } else {
+      // Has the same DOM elem
+      newVnode.elem = domElem
       // Same tagName, update the attributes
       updateAttributes(domElem, oldVnode, newVnode)
+      newVnode.onUpdate(oldVnode)
       patchChildren(domElem, oldVnode, newVnode, context)
     }
   } else if (newVnode.isText()) {
@@ -94,8 +99,16 @@ function updateThunk (domElem, oldNode, newNode, context) {
   let oldThunkVnode = oldNode.thunkVnode
   let newThunkVnode = renderThunk(newNode, context)
   newNode.thunkVnode = newThunkVnode
+
+  const currentComponent = context.component
+  context.component = newNode.component
+  const newDomElem = patchNode(domElem, oldThunkVnode, newThunkVnode, context)
+  context.component = currentComponent
+
+  newNode.elem = newDomElem
   newNode.onUpdate(oldNode)
-  return patchNode(domElem, oldThunkVnode, newThunkVnode, context)
+
+  return newDomElem
 }
 
 function unmountThunk (vnode) {

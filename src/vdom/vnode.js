@@ -18,8 +18,7 @@ export default class VNode {
      children
      */
     extend(this, {
-      children: [],
-      component: {}
+      children: []
     }, settings)
 
     let attributes = settings.attributes || {}
@@ -36,7 +35,10 @@ export default class VNode {
   }
 
   isSameType (vnode) {
-    if (this.type === vnode.type && !vnode.isThunk()) {
+    if (this.type !== vnode.type) {
+      return false
+    }
+    if (!this.isThunk()) {
       return true
     }
     // check whether it's the same thunk or not

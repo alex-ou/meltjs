@@ -1,16 +1,14 @@
-import {isArray} from '../util/index'
-
 function onMount (vnode) {
-  addRef(vnode, vnode)
+  updateRef(vnode)
 }
 
 function onUpdate (oldVnode, newVnode) {
-  removeRef(oldVnode)
-  addRef(newVnode)
+  updateRef(oldVnode, true)
+  updateRef(newVnode)
 }
 
 function onUnmount (vnode) {
-  removeRef(vnode)
+  updateRef(vnode, true)
 }
 
 export default {
@@ -19,32 +17,16 @@ export default {
   onUnmount
 }
 
-function addRef (vnode) {
+function updateRef (vnode, isRemoving) {
   const name = vnode.props.ref
   if (!name) {
     return
   }
   const ref = vnode.component || vnode.elem
   let refs = vnode.parentComponent.refs
-  const existingRef = refs[name]
-  if (!existingRef) {
-    refs[name] = ref
-  } else if (isArray(existingRef)) {
-    refs[name].push(ref)
-  } else {
-    refs[name] = [existingRef, ref]
-  }
-}
-
-function removeRef (name, vnode) {
-  if (!name) {
-    return
-  }
-  const ref = vnode.component || vnode.elem
-  let refs = vnode.parentComponent.refs
-  if (isArray(refs)) {
-    refs[name] = refs.filter(item => item !== ref)
-  } else {
+  if (isRemoving) {
     delete refs[name]
+  } else {
+    refs[name] = ref
   }
 }
