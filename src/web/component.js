@@ -49,6 +49,7 @@ export class Component {
   }
 
   patch (context) {
+    context = context || {component: this}
     let oldVnode = this._vnode
     let vnode = this.render(context)
     let elem = this._elem

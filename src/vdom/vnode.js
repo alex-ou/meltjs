@@ -79,7 +79,8 @@ export default class VNode {
     })
   }
 
-  onMount () {
+  onMount (domElem) {
+    this.elem = domElem
     this._callback('onMount', this)
   }
 
@@ -87,7 +88,8 @@ export default class VNode {
     this._callback('onUnmount', this)
   }
 
-  onUpdate (oldVnode) {
+  onUpdate (domElem, oldVnode) {
+    this.elem = domElem
     this._callback('onUpdate', oldVnode, this)
   }
 }

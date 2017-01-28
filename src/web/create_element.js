@@ -21,8 +21,7 @@ export default function createElement (vnode, context) {
       domElem = createThunk(vnode, context)
       break
   }
-  vnode.elem = domElem
-  vnode.onMount()
+  vnode.onMount(domElem)
   return domElem
 }
 

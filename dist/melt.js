@@ -182,6 +182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'patch',
 	    value: function patch(context) {
+	      context = context || { component: this };
 	      var oldVnode = this._vnode;
 	      var vnode = this.render(context);
 	      var elem = this._elem;
@@ -1499,8 +1500,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      domElem = createThunk(vnode, context);
 	      break;
 	  }
-	  vnode.elem = domElem;
-	  vnode.onMount();
+	  vnode.onMount(domElem);
 	  return domElem;
 	}
 
@@ -1659,7 +1659,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'onMount',
-	    value: function onMount() {
+	    value: function onMount(domElem) {
+	      this.elem = domElem;
 	      this._callback('onMount', this);
 	    }
 	  }, {
@@ -1669,7 +1670,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'onUpdate',
-	    value: function onUpdate(oldVnode) {
+	    value: function onUpdate(domElem, oldVnode) {
+	      this.elem = domElem;
 	      this._callback('onUpdate', oldVnode, this);
 	    }
 	  }]);
@@ -1987,11 +1989,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // Replace the whole DOM element
 	      newDomElem = replaceNode(domElem, oldVnode, newVnode, context);
 	    } else {
-	      // Has the same DOM elem
-	      newVnode.elem = domElem;
 	      // Same tagName, update the attributes
 	      updateAttributes(domElem, oldVnode, newVnode);
-	      newVnode.onUpdate(oldVnode);
+	      newVnode.onUpdate(domElem, oldVnode);
 	      patchChildren(domElem, oldVnode, newVnode, context);
 	    }
 	  } else if (newVnode.isText()) {
@@ -2063,8 +2063,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var newDomElem = patchNode(domElem, oldThunkVnode, newThunkVnode, context);
 	  context.component = currentComponent;
 
-	  newNode.elem = newDomElem;
-	  newNode.onUpdate(oldNode);
+	  newNode.onUpdate(newDomElem, oldNode);
 
 	  return newDomElem;
 	}
