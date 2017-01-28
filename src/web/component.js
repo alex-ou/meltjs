@@ -2,8 +2,8 @@ import compile from '../compiler/index'
 import createDomElement from './create_element'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {warn, isString, isArray, extend, each, range, has, isObject} from '../util/index'
-import ref from './ref'
+import {warn, isString, isArray, extend, each, range, getKeys, isObject} from '../util/index'
+import buildInDirectives from './directives'
 
 export class Component {
   constructor (options) {
@@ -52,18 +52,18 @@ export class Component {
     context = context || {component: this}
     let oldVnode = this._vnode
     let vnode = this.render(context)
-    let elem = this._elem
-    if (!elem) {
+    let domElem = this.elem
+    if (!domElem) {
       // First time rendering
-      elem = createDomElement(vnode, context)
+      domElem = createDomElement(vnode, context)
     } else {
       // Patch the DOM
-      elem = patchDomElement(elem, oldVnode, vnode, context)
+      domElem = patchDomElement(domElem, oldVnode, vnode, context)
     }
-    this._elem = elem
+    this.elem = vnode.elem
     this._vnode = vnode
 
-    return elem
+    return domElem
   }
 }
 
@@ -132,13 +132,20 @@ export default function createElement (tag, attributes, ...children) {
   if (elemTag === null) {
     elemTag = tag
   }
-  attributes = attributes || []
-  let directives = []
-  if (has(attributes, 'ref')) {
-    directives.push(ref)
+
+  if (attributes) {
+    let directives = []
+    each(getKeys(attributes), name => {
+      const DirConstructor = buildInDirectives[name]
+      if (DirConstructor) {
+        directives.push(new DirConstructor())
+      }
+    })
+
+    if (directives.length > 0) {
+      attributes.directives = directives
+    }
   }
-  if (directives.length > 0) {
-    attributes.directives = directives
-  }
+
   return create(elemTag, attributes, children)
 }

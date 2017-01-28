@@ -1,22 +1,3 @@
-function onMount (vnode) {
-  updateRef(vnode)
-}
-
-function onUpdate (oldVnode, newVnode) {
-  updateRef(oldVnode, true)
-  updateRef(newVnode)
-}
-
-function onUnmount (vnode) {
-  updateRef(vnode, true)
-}
-
-export default {
-  onMount,
-  onUpdate,
-  onUnmount
-}
-
 function updateRef (vnode, isRemoving) {
   const name = vnode.props.ref
   if (!name) {
@@ -28,5 +9,20 @@ function updateRef (vnode, isRemoving) {
     delete refs[name]
   } else {
     refs[name] = ref
+  }
+}
+
+export default class RefDirective {
+  onMount (vnode) {
+    updateRef(vnode)
+  }
+
+  onUpdate (newVnode, oldVnode) {
+    updateRef(oldVnode, true)
+    updateRef(newVnode)
+  }
+
+  onUnmount (vnode) {
+    updateRef(vnode, true)
   }
 }

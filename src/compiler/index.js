@@ -16,7 +16,7 @@ function createFunction (codeSnippet) {
         `;var p = this, _h = p._h, _s = p._s; with(p){return ${codeSnippet}};`
     )
   } catch (error) {
-    warn(error)
+    warn('Syntax error:' + codeSnippet)
     return noop
   }
 }

@@ -90,7 +90,7 @@ export default class VNode {
 
   onUpdate (domElem, oldVnode) {
     this.elem = domElem
-    this._callback('onUpdate', oldVnode, this)
+    this._callback('onUpdate', this, oldVnode)
   }
 }
 

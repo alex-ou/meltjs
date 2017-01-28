@@ -1,7 +1,7 @@
 import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
 import {each, has, warn, error, camelize} from '../util/index'
-import {parseText} from './text_parser'
+import parseText from './text_parser'
 import {AstElementType, AstDirective} from './ast_type'
 
 const eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/

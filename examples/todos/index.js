@@ -33,7 +33,7 @@ Melt.component('todo', {
   inputs: ['text', 'completed', 'onClick'],
   template: `<li
     on-click="{onClick()}"
-    class="{completed ? 'done' : ''}">{text}</li>`
+    style="{{'text-decoration': completed ? 'line-through' : 'none'}}">{text}</li>`
 })
 
 Melt.component('todo-list', {

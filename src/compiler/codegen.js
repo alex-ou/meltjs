@@ -1,5 +1,5 @@
 import {AstElementType, AstTokenType} from './ast_type'
-import {each, uniqueId, warn, capitalize} from '../util/index'
+import {each, warn, capitalize} from '../util/index'
 import events from '../web/util/events'
 
 const eventNameMap = {}

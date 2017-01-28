@@ -117,9 +117,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index3 = __webpack_require__(3);
 
-	var _ref = __webpack_require__(27);
+	var _directives = __webpack_require__(29);
 
-	var _ref2 = _interopRequireDefault(_ref);
+	var _directives2 = _interopRequireDefault(_directives);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -185,18 +185,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      context = context || { component: this };
 	      var oldVnode = this._vnode;
 	      var vnode = this.render(context);
-	      var elem = this._elem;
-	      if (!elem) {
+	      var domElem = this.elem;
+	      if (!domElem) {
 	        // First time rendering
-	        elem = (0, _create_element2.default)(vnode, context);
+	        domElem = (0, _create_element2.default)(vnode, context);
 	      } else {
 	        // Patch the DOM
-	        elem = (0, _patch2.default)(elem, oldVnode, vnode, context);
+	        domElem = (0, _patch2.default)(domElem, oldVnode, vnode, context);
 	      }
-	      this._elem = elem;
+	      this.elem = vnode.elem;
 	      this._vnode = vnode;
 
-	      return elem;
+	      return domElem;
 	    }
 	  }]);
 
@@ -285,13 +285,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (elemTag === null) {
 	    elemTag = tag;
 	  }
-	  attributes = attributes || [];
-	  var directives = [];
-	  if ((0, _index3.has)(attributes, 'ref')) {
-	    directives.push(_ref2.default);
-	  }
-	  if (directives.length > 0) {
-	    attributes.directives = directives;
+
+	  if (attributes) {
+	    (function () {
+	      var directives = [];
+	      (0, _index3.each)((0, _index3.getKeys)(attributes), function (name) {
+	        var DirConstructor = _directives2.default[name];
+	        if (DirConstructor) {
+	          directives.push(new DirConstructor());
+	        }
+	      });
+
+	      if (directives.length > 0) {
+	        attributes.directives = directives;
+	      }
+	    })();
 	  }
 
 	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
@@ -330,7 +338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // eslint-disable-next-line no-new-func
 	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(p){return ' + codeSnippet + '};');
 	  } catch (error) {
-	    (0, _index.warn)(error);
+	    (0, _index.warn)('Syntax error:' + codeSnippet);
 	    return _index.noop;
 	  }
 	}
@@ -716,7 +724,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _text_parser = __webpack_require__(12);
 
+	var _text_parser2 = _interopRequireDefault(_text_parser);
+
 	var _ast_type = __webpack_require__(13);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/;
 
@@ -785,7 +797,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      ensureSingleRoot(root, currentParent);
 
-	      var tokens = (0, _text_parser.parseText)(text);
+	      var tokens = (0, _text_parser2.default)(text);
 	      var textElement = {
 	        type: _ast_type.AstElementType.Text,
 	        rawValue: text,
@@ -826,7 +838,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var attrInfo = {
 	      rawName: attr.name,
 	      rawValue: attr.value,
-	      tokens: (0, _text_parser.parseText)(attr.value.trim())
+	      tokens: (0, _text_parser2.default)(attr.value.trim())
 	    };
 
 	    map[attrName] = attrInfo;
@@ -1176,54 +1188,99 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.parseText = parseText;
+	exports.default = parseText;
 
 	var _ast_type = __webpack_require__(13);
 
-	var defaultTagRE = /\{((?:.|\n)+?)}/g;
+	var startSymbol = '{';
+	var endSymbol = '}';
+	var startSymbolLength = startSymbol.length;
+	var endSymbolLength = endSymbol.length;
+
+	var escapedStartRegexp = new RegExp(startSymbol.replace(/./g, escape), 'g');
+	var escapedEndRegexp = new RegExp(endSymbol.replace(/./g, escape), 'g');
+
+	function escape(ch) {
+	  return '\\\\\\' + ch;
+	}
+
+	function unescapeText(text) {
+	  return text.replace(escapedStartRegexp, startSymbol).replace(escapedEndRegexp, endSymbol);
+	}
 
 	/* Parse the text into tokens, e.g. 'This is {token}' will be parsed to:
-	[
-	  {text: 'This is ', type: 0}, 0 - text literal
-	  {text: 'token', type: 1}, 1 - expression
-	]
-	* */
+	 [
+	 {text: 'This is ', type: 0}, 0 - text literal
+	 {text: 'token', type: 1}, 1 - expression
+	 ]
+	 * */
 	function parseText(text) {
-	  var tagRE = defaultTagRE;
-	  if (!tagRE.test(text)) {
+	  if (!text.length || text.indexOf(startSymbol) === -1) {
 	    return [{
-	      token: text,
+	      token: unescapeText(text),
 	      type: _ast_type.AstTokenType.Literal
 	    }];
 	  }
+
+	  var textLen = text.length;
 	  var tokens = [];
-	  var lastIndex = tagRE.lastIndex = 0;
-	  var match = void 0,
-	      index = void 0;
-	  while (match = tagRE.exec(text)) {
-	    index = match.index;
-	    // push text token
-	    if (index > lastIndex) {
+	  var index = 0;
+
+	  while (index < textLen) {
+	    var startIndex = void 0,
+	        endIndex = void 0;
+	    var str = void 0,
+	        exp = void 0;
+	    if ((startIndex = text.indexOf(startSymbol, index)) !== -1 && (endIndex = text.indexOf(endSymbol, startIndex + startSymbolLength)) !== -1) {
+	      if (index !== startIndex) {
+	        str = unescapeText(text.substring(index, startIndex));
+	        tokens.push({
+	          token: str,
+	          type: _ast_type.AstTokenType.Literal
+	        });
+	      }
+	      var iRight = indexOfRightMostEndSymbol(text, endIndex);
+	      if (iRight !== -1) {
+	        endIndex = iRight;
+	      }
+	      exp = text.substring(startIndex + startSymbolLength, endIndex);
 	      tokens.push({
-	        token: text.slice(lastIndex, index),
-	        type: _ast_type.AstTokenType.Literal
+	        token: exp,
+	        type: _ast_type.AstTokenType.Expr
 	      });
+	      index = endIndex + endSymbolLength;
+	    } else {
+	      // did not find an interpolation, so we have to add the remainder to the separators array
+	      if (index !== text.length) {
+	        str = unescapeText(text.substring(index));
+	        tokens.push({
+	          token: str,
+	          type: _ast_type.AstTokenType.Literal
+	        });
+	      }
+	      break;
 	    }
-	    // tag token
-	    var exp = match[1].trim();
-	    tokens.push({
-	      token: exp,
-	      type: _ast_type.AstTokenType.Expr
-	    });
-	    lastIndex = index + match[0].length;
-	  }
-	  if (lastIndex < text.length) {
-	    tokens.push({
-	      token: text.slice(lastIndex),
-	      type: _ast_type.AstTokenType.Literal
-	    });
 	  }
 	  return tokens;
+	}
+
+	// find the index of the right most endSymbol in order to parse the object literal {{foo:1}} without escaping
+	function indexOfRightMostEndSymbol(text, startIndex) {
+	  var endSymbolIndex = -1;
+	  var i = startIndex;
+	  while (i < text.length) {
+	    if (text[i] === startSymbol) {
+	      break;
+	    }
+
+	    if (text[i] === endSymbol) {
+	      endSymbolIndex = i;
+	      i += endSymbolLength;
+	    } else {
+	      i++;
+	    }
+	  }
+	  return endSymbolIndex;
 	}
 
 /***/ },
@@ -1672,7 +1729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'onUpdate',
 	    value: function onUpdate(domElem, oldVnode) {
 	      this.elem = domElem;
-	      this._callback('onUpdate', oldVnode, this);
+	      this._callback('onUpdate', this, oldVnode);
 	    }
 	  }]);
 
@@ -2637,7 +2694,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 27 */
+/* 27 */,
+/* 28 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2645,25 +2703,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	function onMount(vnode) {
-	  updateRef(vnode);
-	}
 
-	function onUpdate(oldVnode, newVnode) {
-	  updateRef(oldVnode, true);
-	  updateRef(newVnode);
-	}
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	function onUnmount(vnode) {
-	  updateRef(vnode, true);
-	}
-
-	exports.default = {
-	  onMount: onMount,
-	  onUpdate: onUpdate,
-	  onUnmount: onUnmount
-	};
-
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	function updateRef(vnode, isRemoving) {
 	  var name = vnode.props.ref;
@@ -2678,6 +2721,108 @@ return /******/ (function(modules) { // webpackBootstrap
 	    refs[name] = ref;
 	  }
 	}
+
+	var RefDirective = function () {
+	  function RefDirective() {
+	    _classCallCheck(this, RefDirective);
+	  }
+
+	  _createClass(RefDirective, [{
+	    key: "onMount",
+	    value: function onMount(vnode) {
+	      updateRef(vnode);
+	    }
+	  }, {
+	    key: "onUpdate",
+	    value: function onUpdate(newVnode, oldVnode) {
+	      updateRef(oldVnode, true);
+	      updateRef(newVnode);
+	    }
+	  }, {
+	    key: "onUnmount",
+	    value: function onUnmount(vnode) {
+	      updateRef(vnode, true);
+	    }
+	  }]);
+
+	  return RefDirective;
+	}();
+
+	exports.default = RefDirective;
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _ref = __webpack_require__(28);
+
+	var _ref2 = _interopRequireDefault(_ref);
+
+	var _style = __webpack_require__(30);
+
+	var _style2 = _interopRequireDefault(_style);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	  ref: _ref2.default,
+	  style: _style2.default
+	};
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _index = __webpack_require__(3);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function updateStyle(vnode) {
+	  var domElem = vnode.elem;
+	  var style = vnode.props.style;
+	  if (!style) {
+	    return;
+	  }
+	  (0, _index.each)(style, function (value, key) {
+	    domElem.style[key] = value;
+	  });
+	}
+
+	var StyleDirective = function () {
+	  function StyleDirective() {
+	    _classCallCheck(this, StyleDirective);
+	  }
+
+	  _createClass(StyleDirective, [{
+	    key: 'onMount',
+	    value: function onMount(vnode) {
+	      updateStyle(vnode);
+	    }
+	  }, {
+	    key: 'onUpdate',
+	    value: function onUpdate(newVnode) {
+	      updateStyle(newVnode);
+	    }
+	  }]);
+
+	  return StyleDirective;
+	}();
+
+	exports.default = StyleDirective;
 
 /***/ }
 /******/ ])
