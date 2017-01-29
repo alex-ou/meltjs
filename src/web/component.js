@@ -3,6 +3,7 @@ import createDomElement from './create_element'
 import patchDomElement from './patch'
 import create from '../vdom/create'
 import {warn, isString, isArray, extend, each, range, getKeys, isObject} from '../util/index'
+import {renderCollection} from './util/index'
 import buildInDirectives from './directives'
 
 export class Component {
@@ -45,7 +46,11 @@ export class Component {
       this._renderFn = compile(this._options.template)
       this.componentOptions.render = this._renderFn
     }
-    return this._renderFn()
+    return this._renderFn({
+      createElement,
+      renderCollection,
+      range
+    })
   }
 
   patch (context) {
@@ -65,18 +70,6 @@ export class Component {
 
     return domElem
   }
-}
-
-Component.prototype.range = range
-Component.prototype.createElement = createElement
-Component.prototype._h = createElement
-// Render the collection
-Component.prototype._c = function renderCollection (items, itemRenderer) {
-  let results = []
-  each(items, (v, k) => {
-    results.push(itemRenderer(v, k))
-  })
-  return results
 }
 
 export class Container extends Component {

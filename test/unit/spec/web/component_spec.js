@@ -8,13 +8,12 @@ describe('Component', () => {
 
   it('should provide utility functions in the render function', () => {
     registerComponent('counter', {
-      render: function () {
-        expect(this.createElement).toBeDefined()
-        expect(this._h).toBeDefined()
-        expect(this._c).toBeDefined()
-        expect(this.range).toBeDefined()
+      render: function (context) {
+        expect(context.createElement).toBeDefined()
+        expect(context.renderCollection).toBeDefined()
+        expect(context.range).toBeDefined()
 
-        const h = this.createElement
+        const h = context.createElement
         return h('span')
       }
     })

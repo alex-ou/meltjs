@@ -117,6 +117,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index3 = __webpack_require__(3);
 
+	var _index4 = __webpack_require__(10);
+
 	var _directives = __webpack_require__(29);
 
 	var _directives2 = _interopRequireDefault(_directives);
@@ -177,7 +179,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._renderFn = (0, _index2.default)(this._options.template);
 	        this.componentOptions.render = this._renderFn;
 	      }
-	      return this._renderFn();
+	      return this._renderFn({
+	        createElement: createElement,
+	        renderCollection: _index4.renderCollection,
+	        range: _index3.range
+	      });
 	    }
 	  }, {
 	    key: 'patch',
@@ -202,18 +208,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  return Component;
 	}();
-
-	Component.prototype.range = _index3.range;
-	Component.prototype.createElement = createElement;
-	Component.prototype._h = createElement;
-	// Render the collection
-	Component.prototype._c = function renderCollection(items, itemRenderer) {
-	  var results = [];
-	  (0, _index3.each)(items, function (v, k) {
-	    results.push(itemRenderer(v, k));
-	  });
-	  return results;
-	};
 
 	var Container = exports.Container = function (_Component) {
 	  _inherits(Container, _Component);
@@ -336,7 +330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createFunction(codeSnippet) {
 	  try {
 	    // eslint-disable-next-line no-new-func
-	    return new Function('', ';var p = this, _h = p._h, _s = p._s; with(p){return ' + codeSnippet + '};');
+	    return new Function('$ctx', ';var _h = $ctx.createElement, _c = $ctx.renderCollection, range = $ctx.range;\n        with(this){return ' + codeSnippet + '};');
 	  } catch (error) {
 	    (0, _index.warn)('Syntax error:' + codeSnippet);
 	    return _index.noop;
@@ -1104,9 +1098,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  });
 	});
-	exports._toString = _toString;
-	function _toString(v) {
-	  return v == null ? '' : JSON.stringify(v);
+	exports.renderCollection = renderCollection;
+
+	var _index = __webpack_require__(3);
+
+	function renderCollection(items, itemRenderer) {
+	  var results = [];
+	  (0, _index.each)(items, function (v, k) {
+	    results.push(itemRenderer(v, k));
+	  });
+	  return results;
 	}
 
 /***/ },

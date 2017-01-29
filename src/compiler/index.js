@@ -12,8 +12,9 @@ export default function compile (template) {
 function createFunction (codeSnippet) {
   try {
     // eslint-disable-next-line no-new-func
-    return new Function('',
-        `;var p = this, _h = p._h, _s = p._s; with(p){return ${codeSnippet}};`
+    return new Function('$ctx',
+        `;var _h = $ctx.createElement, _c = $ctx.renderCollection, range = $ctx.range;
+        with(this){return ${codeSnippet}};`
     )
   } catch (error) {
     warn('Syntax error:' + codeSnippet)
