@@ -1,8 +1,8 @@
-import {registerComponent, registerContainer, instantiateComponent, clearComponenetRegistry} from 'src/web/component'
+import {registerComponent, registerContainer, clearRegistry, createComponent} from 'src/web/component'
 
 describe('Container', () => {
   beforeEach(() => {
-    clearComponenetRegistry()
+    clearRegistry()
   })
 
   it('should have access to the context data', () => {
@@ -19,7 +19,7 @@ describe('Container', () => {
     const app = registerContainer('app', {
       template: '<div><container1></container1><container2></container2></div>'
     })
-    const component = instantiateComponent(app)
+    const component = createComponent(app)
     var dom = component.patch({foo: 'foo', bar: 'bar'})
     expect(dom.tagName).toBe('DIV')
     expect(dom.innerHTML).toBe('<span>foo</span><span>bar</span>')
@@ -44,7 +44,7 @@ describe('Container', () => {
     const app = registerContainer('app', {
       template: '<div><container></container></div>'
     })
-    const component = instantiateComponent(app)
+    const component = createComponent(app)
     let dom = component.patch({foo: 'foo', bar: 'bar'})
     expect(dom.tagName).toBe('DIV')
     expect(dom.innerHTML).toBe('<span>bar</span>')

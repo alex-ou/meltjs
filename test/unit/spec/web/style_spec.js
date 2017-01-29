@@ -1,14 +1,9 @@
-import Melt from 'src/index'
-import {Component, clearComponenetRegistry} from 'src/web/component'
+import {createComponent} from 'src/web/component'
 
 describe('style', () => {
-  beforeEach(() => {
-    clearComponenetRegistry()
-  })
-
   it('should set styles of the dom element', () => {
     let _style = {color: 'red', height: '40px'}
-    const component = new Component({
+    const component = createComponent({
       template: `
           <div>
             <span style="{getStyle()}">test</span>

@@ -14,7 +14,7 @@ function createFunction (codeSnippet) {
     // eslint-disable-next-line no-new-func
     return new Function('$ctx',
         `;var _h = $ctx.createElement, _c = $ctx.renderCollection, range = $ctx.range;
-        with(this){return ${codeSnippet}};`
+        with($ctx.component){return ${codeSnippet}};`
     )
   } catch (error) {
     warn('Syntax error:' + codeSnippet)

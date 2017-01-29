@@ -1,10 +1,10 @@
-import {Component} from 'src/web/component'
+import {createComponent} from 'src/web/component'
 
 describe('Directive', () => {
   describe('If', () => {
     it('should render elements based on the condition', () => {
       let _isVisible = true
-      const component = new Component({
+      const component = createComponent({
         template: `
           <div>
             <span if="isVisible()"></span>
@@ -29,7 +29,7 @@ describe('Directive', () => {
 
   describe('Each', () => {
     it('should render elements when providing array', () => {
-      const component = new Component({
+      const component = createComponent({
         template: `
           <div>
             <span each="item in items">{'item' + item}</span>
@@ -56,7 +56,7 @@ describe('Directive', () => {
     })
 
     it('should render elements when providing array', () => {
-      const component = new Component({
+      const component = createComponent({
         template: `
           <div>
             <span each="(item, index) in items">{item + index}</span>
@@ -72,7 +72,7 @@ describe('Directive', () => {
     })
 
     it('should render elements with the value when providing object', () => {
-      const component = new Component({
+      const component = createComponent({
         template: `
           <div>
             <span each="value in items">{value}</span>
@@ -91,7 +91,7 @@ describe('Directive', () => {
     })
 
     it('should render elements with the key and the value when providing object', () => {
-      const component = new Component({
+      const component = createComponent({
         template: `
           <div>
             <span each="(value, key) in items">{value + key}</span>
@@ -111,7 +111,7 @@ describe('Directive', () => {
   })
 
   it('should render elements correctly when using both each and if', () => {
-    const component = new Component({
+    const component = createComponent({
       template: `
           <div>
             <span if="{isVisible}" each="(value, key) in items">{value + key}</span>

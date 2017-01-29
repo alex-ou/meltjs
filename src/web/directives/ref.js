@@ -4,7 +4,11 @@ function updateRef (vnode, isRemoving) {
     return
   }
   const ref = vnode.component || vnode.elem
+
   let refs = vnode.parentComponent.refs
+  if (!refs) {
+    refs = vnode.parentComponent.refs = {}
+  }
   if (isRemoving) {
     delete refs[name]
   } else {

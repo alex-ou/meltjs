@@ -2,16 +2,18 @@ import compile from '../compiler/index'
 import createDomElement from './create_element'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {warn, isString, isArray, extend, each, range, getKeys, isObject} from '../util/index'
+import {warn, isString, isArray, extend, each, range, getKeys, isObject, noop} from '../util/index'
 import {renderCollection} from './util/index'
 import buildInDirectives from './directives'
 
-export class Component {
-  constructor (options) {
-    if (!options.render && !options.template) {
-      throw new Error('Components need to have either a render function or a template to get rendered')
-    }
-    this.componentOptions = options
+export function createComponent (options) {
+  if (!options.render && !options.template) {
+    throw new Error('Components need to have either a render function or a template to get rendered')
+  }
+
+  const ComponentClass = options.class || noop
+
+  function Component (options) {
     this._options = extend({inputs: {}}, options || {})
     this._renderFn = options.render
 
@@ -19,20 +21,32 @@ export class Component {
     delete this._options.render
     extend(this, this._options)
 
-    // Convert inputs to map: ['foo', 'bar']
+    const propsSpec = options.inputs || {}
+    // Convert props spec to map if is array: ['foo', 'bar']
     this._inputsMap = {}
-    if (isArray(this.inputs)) {
-      each(this.inputs, inputName => {
-        this._inputsMap[inputName] = true
+    if (isArray(propsSpec)) {
+      each(propsSpec, name => {
+        this._inputsMap[name] = true
       })
     } else {
-      this._inputsMap = this.inputs
+      this._inputsMap = propsSpec
     }
 
-    this.refs = {}
+    ComponentClass.call(this)
   }
 
-  render (context) {
+  Component.prototype = Object.create(ComponentClass.prototype, {
+    constructor: Component
+  })
+
+  Component.prototype.render = function render (context) {
+    // For container, injects the data in context to 'this' to allow the render function to access them
+    if (this._options.isContainer) {
+      each(context, (value, key) => {
+        this[key] = value
+      })
+    }
+
     if (this._options.template) {
       // If the props are specified in the inputs, then allows the template to access the props without using this.props
       each(this.props, (value, key) => {
@@ -44,16 +58,17 @@ export class Component {
 
     if (!this._renderFn) {
       this._renderFn = compile(this._options.template)
-      this.componentOptions.render = this._renderFn
+      options.render = this._renderFn
     }
     return this._renderFn({
       createElement,
       renderCollection,
-      range
+      range,
+      component: this
     })
   }
 
-  patch (context) {
+  Component.prototype.patch = function patch (context) {
     context = context || {component: this}
     let oldVnode = this._vnode
     let vnode = this.render(context)
@@ -70,16 +85,8 @@ export class Component {
 
     return domElem
   }
-}
 
-export class Container extends Component {
-  render (context) {
-    // For container, injects the data in context to 'this' to allow the render function to access them
-    each(context, (value, key) => {
-      this[key] = value
-    })
-    return super.render(context)
-  }
+  return new Component(options)
 }
 
 // Component Management
@@ -89,7 +96,7 @@ export function isRegisteredComponent (tag) {
   return isString(tag) && componentRegistry[tag]
 }
 
-export function clearComponenetRegistry () {
+export function clearRegistry () {
   componentRegistry = {}
 }
 
@@ -107,25 +114,13 @@ export function registerContainer (name, options) {
   return registerComponent(name, options, true)
 }
 
-export function instantiateComponent (tag) {
-  let options
-  if (isObject(tag)) {
-    options = tag
-  } else if (isString(tag) && isRegisteredComponent(tag)) {
-    options = componentRegistry[tag]
-  }
-  if (options) {
-    return options.isContainer ? new Container(options) : new Component(options)
-  }
-  return null
-}
-
 export default function createElement (tag, attributes, ...children) {
   let elemTag = instantiateComponent(tag)
   if (elemTag === null) {
     elemTag = tag
   }
 
+  // process the attribute directives
   if (attributes) {
     let directives = []
     each(getKeys(attributes), name => {
@@ -141,4 +136,14 @@ export default function createElement (tag, attributes, ...children) {
   }
 
   return create(elemTag, attributes, children)
+}
+
+function instantiateComponent (tag) {
+  let options
+  if (isObject(tag)) {
+    options = tag
+  } else if (isString(tag) && isRegisteredComponent(tag)) {
+    options = componentRegistry[tag]
+  }
+  return options ? createComponent(options) : null
 }

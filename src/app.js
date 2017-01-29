@@ -2,7 +2,7 @@ import {isFunction, getKeys, each, extend} from './util/index'
 import {emptyElement, query, appendChild} from './web/node-op'
 import createStore from './store/index'
 import {bindActionCreators, createActionCreators} from './store/action'
-import {Container} from './web/component'
+import {createComponent} from './web/component'
 
 export default function createApp (options) {
   let store, component, actions, rootEl
@@ -13,8 +13,9 @@ export default function createApp (options) {
   rootEl = options.el && query(options.el)
   emptyElement(rootEl)
 
-  // the root component
-  component = new Container(options)
+  // the root component which needs to access the model and actions, make it a container
+  options.isContainer = true
+  component = createComponent(options)
 
   // Generate the action creators
   actions = {}

@@ -1,13 +1,13 @@
-import {Component, registerComponent, clearComponenetRegistry} from 'src/web/component'
+import {createComponent, registerComponent, clearRegistry} from 'src/web/component'
 
 describe('ref', () => {
   beforeEach(() => {
-    clearComponenetRegistry()
+    clearRegistry()
   })
 
   it('should set ref to the dom element', () => {
     let _isVisible = true
-    const component = new Component({
+    const component = createComponent({
       template: `
           <div>
             <span class="11" if="isVisible()" ref="myspan">test</span>
@@ -33,7 +33,7 @@ describe('ref', () => {
 
     let _isVisible = true
 
-    const component = new Component({
+    const component = createComponent({
       template: `
           <div>
             <child-comp if="isVisible()" ref="mycomp">test</child-comp>
@@ -52,7 +52,7 @@ describe('ref', () => {
 
   it('should set refs correctly when using for', () => {
     let count = 10
-    const component = new Component({
+    const component = createComponent({
       template: `
           <div>
             <span each="index in range(count())" ref="{'myspan' + index}">{'span' + index}</span>

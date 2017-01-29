@@ -1,9 +1,9 @@
 import createElement from 'src/web/create_element'
-import h, {registerComponent, registerContainer, instantiateComponent, clearComponenetRegistry} from 'src/web/component'
+import h, {registerComponent, registerContainer, clearRegistry, createComponent} from 'src/web/component'
 
 describe('Component', () => {
   beforeEach(() => {
-    clearComponenetRegistry()
+    clearRegistry()
   })
 
   it('should provide utility functions in the render function', () => {
@@ -104,7 +104,7 @@ describe('Component', () => {
     const app = registerComponent('app', {
       template: '<my-link><span>my link</span></my-link>'
     })
-    var node = instantiateComponent(app).patch()
+    var node = createComponent(app).patch()
     expect(node.tagName).toBe('A')
     expect(node.children.length).toBe(1)
     let child = node.children[0]
@@ -121,7 +121,7 @@ describe('Component', () => {
     const app = registerComponent('app', {
       template: '<my-link first="first" second-word="second" yet-another-word="yet"></my-link>'
     })
-    var node = instantiateComponent(app).patch()
+    var node = createComponent(app).patch()
     expect(node.textContent).toBe('first second yet')
   })
 
@@ -134,6 +134,6 @@ describe('Component', () => {
     const app = registerContainer('app', {
       template: '<child></child>'
     })
-    expect(() => instantiateComponent(app).patch({data: 1})).toThrow()
+    expect(() => createComponent(app).patch({data: 1})).toThrow()
   })
 })

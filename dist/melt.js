@@ -86,17 +86,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Container = exports.Component = undefined;
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
+	exports.createComponent = createComponent;
 	exports.isRegisteredComponent = isRegisteredComponent;
-	exports.clearComponenetRegistry = clearComponenetRegistry;
+	exports.clearRegistry = clearRegistry;
 	exports.registerComponent = registerComponent;
 	exports.registerContainer = registerContainer;
-	exports.instantiateComponent = instantiateComponent;
 	exports.default = createElement;
 
 	var _index = __webpack_require__(2);
@@ -125,22 +119,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function createComponent(options) {
+	  if (!options.render && !options.template) {
+	    throw new Error('Components need to have either a render function or a template to get rendered');
+	  }
 
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	  var ComponentClass = options.class || _index3.noop;
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Component = exports.Component = function () {
 	  function Component(options) {
 	    var _this = this;
 
-	    _classCallCheck(this, Component);
-
-	    if (!options.render && !options.template) {
-	      throw new Error('Components need to have either a render function or a template to get rendered');
-	    }
-	    this.componentOptions = options;
 	    this._options = (0, _index3.extend)({ inputs: {} }, options || {});
 	    this._renderFn = options.render;
 
@@ -148,102 +136,84 @@ return /******/ (function(modules) { // webpackBootstrap
 	    delete this._options.render;
 	    (0, _index3.extend)(this, this._options);
 
-	    // Convert inputs to map: ['foo', 'bar']
+	    var propsSpec = options.inputs || {};
+	    // Convert props spec to map if is array: ['foo', 'bar']
 	    this._inputsMap = {};
-	    if ((0, _index3.isArray)(this.inputs)) {
-	      (0, _index3.each)(this.inputs, function (inputName) {
-	        _this._inputsMap[inputName] = true;
+	    if ((0, _index3.isArray)(propsSpec)) {
+	      (0, _index3.each)(propsSpec, function (name) {
+	        _this._inputsMap[name] = true;
 	      });
 	    } else {
-	      this._inputsMap = this.inputs;
+	      this._inputsMap = propsSpec;
 	    }
 
-	    this.refs = {};
+	    ComponentClass.call(this);
 	  }
 
-	  _createClass(Component, [{
-	    key: 'render',
-	    value: function render(context) {
-	      var _this2 = this;
+	  Component.prototype = Object.create(ComponentClass.prototype, {
+	    constructor: Component
+	  });
 
-	      if (this._options.template) {
-	        // If the props are specified in the inputs, then allows the template to access the props without using this.props
-	        (0, _index3.each)(this.props, function (value, key) {
-	          if (_this2._inputsMap[key]) {
-	            _this2[key] = value;
-	          }
-	        });
-	      }
+	  Component.prototype.render = function render(context) {
+	    var _this2 = this;
 
-	      if (!this._renderFn) {
-	        this._renderFn = (0, _index2.default)(this._options.template);
-	        this.componentOptions.render = this._renderFn;
-	      }
-	      return this._renderFn({
-	        createElement: createElement,
-	        renderCollection: _index4.renderCollection,
-	        range: _index3.range
-	      });
-	    }
-	  }, {
-	    key: 'patch',
-	    value: function patch(context) {
-	      context = context || { component: this };
-	      var oldVnode = this._vnode;
-	      var vnode = this.render(context);
-	      var domElem = this.elem;
-	      if (!domElem) {
-	        // First time rendering
-	        domElem = (0, _create_element2.default)(vnode, context);
-	      } else {
-	        // Patch the DOM
-	        domElem = (0, _patch2.default)(domElem, oldVnode, vnode, context);
-	      }
-	      this.elem = vnode.elem;
-	      this._vnode = vnode;
-
-	      return domElem;
-	    }
-	  }]);
-
-	  return Component;
-	}();
-
-	var Container = exports.Container = function (_Component) {
-	  _inherits(Container, _Component);
-
-	  function Container() {
-	    _classCallCheck(this, Container);
-
-	    return _possibleConstructorReturn(this, (Container.__proto__ || Object.getPrototypeOf(Container)).apply(this, arguments));
-	  }
-
-	  _createClass(Container, [{
-	    key: 'render',
-	    value: function render(context) {
-	      var _this4 = this;
-
-	      // For container, injects the data in context to 'this' to allow the render function to access them
+	    // For container, injects the data in context to 'this' to allow the render function to access them
+	    if (this._options.isContainer) {
 	      (0, _index3.each)(context, function (value, key) {
-	        _this4[key] = value;
+	        _this2[key] = value;
 	      });
-	      return _get(Container.prototype.__proto__ || Object.getPrototypeOf(Container.prototype), 'render', this).call(this, context);
 	    }
-	  }]);
 
-	  return Container;
-	}(Component);
+	    if (this._options.template) {
+	      // If the props are specified in the inputs, then allows the template to access the props without using this.props
+	      (0, _index3.each)(this.props, function (value, key) {
+	        if (_this2._inputsMap[key]) {
+	          _this2[key] = value;
+	        }
+	      });
+	    }
+
+	    if (!this._renderFn) {
+	      this._renderFn = (0, _index2.default)(this._options.template);
+	      options.render = this._renderFn;
+	    }
+	    return this._renderFn({
+	      createElement: createElement,
+	      renderCollection: _index4.renderCollection,
+	      range: _index3.range,
+	      component: this
+	    });
+	  };
+
+	  Component.prototype.patch = function patch(context) {
+	    context = context || { component: this };
+	    var oldVnode = this._vnode;
+	    var vnode = this.render(context);
+	    var domElem = this.elem;
+	    if (!domElem) {
+	      // First time rendering
+	      domElem = (0, _create_element2.default)(vnode, context);
+	    } else {
+	      // Patch the DOM
+	      domElem = (0, _patch2.default)(domElem, oldVnode, vnode, context);
+	    }
+	    this.elem = vnode.elem;
+	    this._vnode = vnode;
+
+	    return domElem;
+	  };
+
+	  return new Component(options);
+	}
 
 	// Component Management
-
-
 	var componentRegistry = {};
 
 	function isRegisteredComponent(tag) {
 	  return (0, _index3.isString)(tag) && componentRegistry[tag];
 	}
 
-	function clearComponenetRegistry() {
+	function clearRegistry() {
 	  componentRegistry = {};
 	}
 
@@ -261,25 +231,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return registerComponent(name, options, true);
 	}
 
-	function instantiateComponent(tag) {
-	  var options = void 0;
-	  if ((0, _index3.isObject)(tag)) {
-	    options = tag;
-	  } else if ((0, _index3.isString)(tag) && isRegisteredComponent(tag)) {
-	    options = componentRegistry[tag];
-	  }
-	  if (options) {
-	    return options.isContainer ? new Container(options) : new Component(options);
-	  }
-	  return null;
-	}
-
 	function createElement(tag, attributes) {
 	  var elemTag = instantiateComponent(tag);
 	  if (elemTag === null) {
 	    elemTag = tag;
 	  }
 
+	  // process the attribute directives
 	  if (attributes) {
 	    (function () {
 	      var directives = [];
@@ -301,6 +259,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  return (0, _create2.default)(elemTag, attributes, children);
+	}
+
+	function instantiateComponent(tag) {
+	  var options = void 0;
+	  if ((0, _index3.isObject)(tag)) {
+	    options = tag;
+	  } else if ((0, _index3.isString)(tag) && isRegisteredComponent(tag)) {
+	    options = componentRegistry[tag];
+	  }
+	  return options ? createComponent(options) : null;
 	}
 
 /***/ },
@@ -330,7 +298,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createFunction(codeSnippet) {
 	  try {
 	    // eslint-disable-next-line no-new-func
-	    return new Function('$ctx', ';var _h = $ctx.createElement, _c = $ctx.renderCollection, range = $ctx.range;\n        with(this){return ' + codeSnippet + '};');
+	    return new Function('$ctx', ';var _h = $ctx.createElement, _c = $ctx.renderCollection, range = $ctx.range;\n        with($ctx.component){return ' + codeSnippet + '};');
 	  } catch (error) {
 	    (0, _index.warn)('Syntax error:' + codeSnippet);
 	    return _index.noop;
@@ -2441,8 +2409,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  rootEl = options.el && (0, _nodeOp.query)(options.el);
 	  (0, _nodeOp.emptyElement)(rootEl);
 
-	  // the root component
-	  component = new _component.Container(options);
+	  // the root component which needs to access the model and actions, make it a container
+	  options.isContainer = true;
+	  component = (0, _component.createComponent)(options);
 
 	  // Generate the action creators
 	  actions = {};
@@ -2715,7 +2684,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return;
 	  }
 	  var ref = vnode.component || vnode.elem;
+
 	  var refs = vnode.parentComponent.refs;
+	  if (!refs) {
+	    refs = vnode.parentComponent.refs = {};
+	  }
 	  if (isRemoving) {
 	    delete refs[name];
 	  } else {
