@@ -6,32 +6,39 @@ describe('ref', () => {
   })
 
   it('should set ref to the dom element', () => {
-    let _isVisible = true
     const component = createComponent({
       template: `
           <div>
             <span class="11" if="isVisible()" ref="myspan">test</span>
           </div>
         `,
-      isVisible: () => _isVisible
+      class: class {
+        isVisible () {
+          return this._isVisible
+        }
+        setVisible (yes) {
+          this._isVisible = yes
+        }
+      }
     })
+    component.setVisible(true)
     component.patch()
     expect(component.refs.myspan).toBeDefined()
     expect(component.refs.myspan.innerHTML).toBe('test')
     expect(component.refs.myspan.getAttribute('class')).toBe('11')
 
-    _isVisible = false
+    component.setVisible(false)
     component.patch()
     expect(component.refs.myspan).toBeUndefined()
   })
 
   it('should set ref to the component itself', () => {
-    const childTpl = '<span>child</span>'
     registerComponent('child-comp', {
-      template: childTpl
+      template: '<span>child</span>',
+      class: function () {
+        this.uniqueId = 10
+      }
     })
-
-    let _isVisible = true
 
     const component = createComponent({
       template: `
@@ -39,13 +46,21 @@ describe('ref', () => {
             <child-comp if="isVisible()" ref="mycomp">test</child-comp>
           </div>
         `,
-      isVisible: () => _isVisible
+      class: class {
+        isVisible () {
+          return this._isVisible
+        }
+        setVisible (yes) {
+          this._isVisible = yes
+        }
+      }
     })
+    component.setVisible(true)
     component.patch()
     expect(component.refs.mycomp).toBeDefined()
-    expect(component.refs.mycomp.template).toEqual(childTpl)
+    expect(component.refs.mycomp.uniqueId).toBe(10)
 
-    _isVisible = false
+    component.setVisible(false)
     component.patch()
     expect(component.refs.mycomp).toBeUndefined()
   })
@@ -58,7 +73,11 @@ describe('ref', () => {
             <span each="index in range(count())" ref="{'myspan' + index}">{'span' + index}</span>
           </div>
         `,
-      count: () => count
+      class: function () {
+        this.count = function () {
+          return count
+        }
+      }
     })
     component.patch()
     for (let i = 0; i < count; i++) {

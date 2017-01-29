@@ -3,24 +3,31 @@ import {createComponent} from 'src/web/component'
 describe('Directive', () => {
   describe('If', () => {
     it('should render elements based on the condition', () => {
-      let _isVisible = true
       const component = createComponent({
         template: `
           <div>
             <span if="isVisible()"></span>
           </div>
         `,
-        isVisible: () => _isVisible
+        class: class {
+          isVisible () {
+            return this._isVisible
+          }
+          setVisible (yes) {
+            this._isVisible = yes
+          }
+        }
       })
+      component.setVisible(true)
       let elem = component.patch()
       expect(elem.children.length).toBe(1)
       expect(elem.children[0].tagName).toBe('SPAN')
 
-      _isVisible = false
+      component.setVisible(false)
       elem = component.patch()
       expect(elem.children[0].tagName).toBe('NOSCRIPT')
 
-      _isVisible = true
+      component.setVisible(true)
       elem = component.patch()
       expect(elem.children.length).toBe(1)
       expect(elem.children[0].tagName).toBe('SPAN')
@@ -35,7 +42,9 @@ describe('Directive', () => {
             <span each="item in items">{'item' + item}</span>
           </div>
         `,
-        items: [1, 2]
+        class: function () {
+          this.items = [1, 2]
+        }
       })
       let elem = component.patch()
       expect(elem.children.length).toBe(2)
@@ -62,7 +71,9 @@ describe('Directive', () => {
             <span each="(item, index) in items">{item + index}</span>
           </div>
         `,
-        items: ['foo', 'bar']
+        class: function () {
+          this.items = ['foo', 'bar']
+        }
       })
       let elem = component.patch()
       expect(elem.children.length).toBe(2)
@@ -78,9 +89,11 @@ describe('Directive', () => {
             <span each="value in items">{value}</span>
           </div>
         `,
-        items: {
-          foo: '11',
-          bar: '22'
+        class: function () {
+          this.items = {
+            foo: '11',
+            bar: '22'
+          }
         }
       })
       let elem = component.patch()
@@ -97,9 +110,11 @@ describe('Directive', () => {
             <span each="(value, key) in items">{value + key}</span>
           </div>
         `,
-        items: {
-          foo: '11',
-          bar: '22'
+        class: function () {
+          this.items = {
+            foo: '11',
+            bar: '22'
+          }
         }
       })
       let elem = component.patch()
@@ -117,11 +132,13 @@ describe('Directive', () => {
             <span if="{isVisible}" each="(value, key) in items">{value + key}</span>
           </div>
         `,
-      items: {
-        foo: '11',
-        bar: '22'
-      },
-      isVisible: true
+      class: function () {
+        this.items = {
+          foo: '11',
+          bar: '22'
+        }
+        this.isVisible = true
+      }
     })
     let elem = component.patch()
     expect(elem.children.length).toBe(2)

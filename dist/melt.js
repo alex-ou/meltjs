@@ -129,22 +129,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Component(options) {
 	    var _this = this;
 
-	    this._options = (0, _index3.extend)({ inputs: {} }, options || {});
+	    this._options = options;
 	    this._renderFn = options.render;
 
-	    // do not override Component.render function
-	    delete this._options.render;
-	    (0, _index3.extend)(this, this._options);
-
-	    var propsSpec = options.inputs || {};
+	    var propsSpec = options.props || {};
 	    // Convert props spec to map if is array: ['foo', 'bar']
-	    this._inputsMap = {};
+	    this._propsSpec = {};
 	    if ((0, _index3.isArray)(propsSpec)) {
 	      (0, _index3.each)(propsSpec, function (name) {
-	        _this._inputsMap[name] = true;
+	        _this._propsSpec[name] = true;
 	      });
 	    } else {
-	      this._inputsMap = propsSpec;
+	      this._propsSpec = propsSpec;
 	    }
 
 	    ComponentClass.call(this);
@@ -165,9 +161,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    if (this._options.template) {
-	      // If the props are specified in the inputs, then allows the template to access the props without using this.props
+	      // If the props are specified, then allows the template to access the props without using this.props
 	      (0, _index3.each)(this.props, function (value, key) {
-	        if (_this2._inputsMap[key]) {
+	        if (_this2._propsSpec[key]) {
 	          _this2[key] = value;
 	        }
 	      });

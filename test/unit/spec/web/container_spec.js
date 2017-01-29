@@ -7,12 +7,10 @@ describe('Container', () => {
 
   it('should have access to the context data', () => {
     registerContainer('container1', {
-      inputs: [],
       template: '<span>{foo}</span>'
     })
 
     registerContainer('container2', {
-      inputs: [],
       template: '<span>{bar}</span>'
     })
 
@@ -27,17 +25,14 @@ describe('Container', () => {
 
   it('should have access to the context data as child component', () => {
     registerContainer('container', {
-      inputs: [],
       template: '<sub-component></sub-component>'
     })
 
     registerComponent('sub-component', {
-      inputs: [],
       template: '<sub-container></sub-container>'
     })
 
     registerContainer('sub-container', {
-      inputs: [],
       template: '<span>{bar}</span>'
     })
 

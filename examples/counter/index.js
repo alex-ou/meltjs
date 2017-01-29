@@ -7,7 +7,7 @@ var decrease = function ({model}, step) {
 }
 
 Melt.component('counter', {
-  inputs: ['count', 'onIncrease', 'onDecrease'],
+  props: ['count', 'onIncrease', 'onDecrease'],
   template: `<div>
                 {count}
                 <button on-click="{onIncrease(2)}">+</button>

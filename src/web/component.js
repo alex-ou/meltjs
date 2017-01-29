@@ -14,22 +14,18 @@ export function createComponent (options) {
   const ComponentClass = options.class || noop
 
   function Component (options) {
-    this._options = extend({inputs: {}}, options || {})
+    this._options = options
     this._renderFn = options.render
 
-    // do not override Component.render function
-    delete this._options.render
-    extend(this, this._options)
-
-    const propsSpec = options.inputs || {}
+    const propsSpec = options.props || {}
     // Convert props spec to map if is array: ['foo', 'bar']
-    this._inputsMap = {}
+    this._propsSpec = {}
     if (isArray(propsSpec)) {
       each(propsSpec, name => {
-        this._inputsMap[name] = true
+        this._propsSpec[name] = true
       })
     } else {
-      this._inputsMap = propsSpec
+      this._propsSpec = propsSpec
     }
 
     ComponentClass.call(this)
@@ -48,9 +44,9 @@ export function createComponent (options) {
     }
 
     if (this._options.template) {
-      // If the props are specified in the inputs, then allows the template to access the props without using this.props
+      // If the props are specified, then allows the template to access the props without using this.props
       each(this.props, (value, key) => {
-        if (this._inputsMap[key]) {
+        if (this._propsSpec[key]) {
           this[key] = value
         }
       })

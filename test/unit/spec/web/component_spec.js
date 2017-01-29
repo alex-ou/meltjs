@@ -54,7 +54,7 @@ describe('Component', () => {
     expect(child.textContent).toBe('span2')
   })
 
-  it('should provide the props to the render function', () => {
+  it('should provide props to the render function', () => {
     registerComponent('counter', {
       render: function () {
         var {foo, bar} = this.props
@@ -78,7 +78,7 @@ describe('Component', () => {
 
   it('should provide the props to the template', () => {
     registerComponent('counter', {
-      inputs: ['foo', 'bar'],
+      props: ['foo', 'bar'],
       template: '<span class="{foo}">{bar}</span>'
     })
 
@@ -114,7 +114,7 @@ describe('Component', () => {
 
   it('should convert the property names to camel case', () => {
     registerComponent('my-link', {
-      inputs: ['first', 'secondWord', 'yetAnotherWord'],
+      props: ['first', 'secondWord', 'yetAnotherWord'],
       template: '<span>{first} {secondWord} {yetAnotherWord}</span>'
     })
 
@@ -127,7 +127,6 @@ describe('Component', () => {
 
   it('should not have access to the context data', () => {
     registerComponent('child', {
-      inputs: [],
       template: '<span>{data}</span>'
     })
 
@@ -135,5 +134,16 @@ describe('Component', () => {
       template: '<child></child>'
     })
     expect(() => createComponent(app).patch({data: 1})).toThrow()
+  })
+
+  it('can access to the functions defined in the component class', () => {
+    const app = registerComponent('app', {
+      template: '<span>{data}</span>',
+      class: function () {
+        this.data = 'foo'
+      }
+    })
+    const node = createComponent(app).patch()
+    expect(node.textContent).toBe('foo')
   })
 })

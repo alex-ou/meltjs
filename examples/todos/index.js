@@ -30,14 +30,14 @@ function setVisibilityFilter ({model}, visibilityFilter) {
 }
 
 Melt.component('todo', {
-  inputs: ['text', 'completed', 'onClick'],
+  props: ['text', 'completed', 'onClick'],
   template: `<li
     on-click="{onClick()}"
     style="{{'text-decoration': completed ? 'line-through' : 'none'}}">{text}</li>`
 })
 
 Melt.component('todo-list', {
-  inputs: ['todos', 'onTodoClick'],
+  props: ['todos', 'onTodoClick'],
   template:
     `<ul>
       <todo each="item in todos"
@@ -51,35 +51,39 @@ Melt.component('todo-list', {
 
 Melt.container('visible-todo-list', {
   template: '<todo-list todos="{getVisibleTodos()}" on-todo-click="{toggleTodo}"></todo-list>',
-  getVisibleTodos: function () {
-    const {visibilityFilter, todos} = this.model
-    switch (visibilityFilter) {
-      case 'SHOW_ALL':
-        return todos
-      case 'SHOW_ACTIVE':
-        return todos.filter(todo => !todo.completed)
-      case 'SHOW_COMPLETED':
-        return todos.filter(todo => todo.completed)
-      default:
-        throw new Error('unsupported filter:' + visibilityFilter)
+  class: class VisibleTodoListComponent {
+    getVisibleTodos () {
+      const {visibilityFilter, todos} = this.model
+      switch (visibilityFilter) {
+        case 'SHOW_ALL':
+          return todos
+        case 'SHOW_ACTIVE':
+          return todos.filter(todo => !todo.completed)
+        case 'SHOW_COMPLETED':
+          return todos.filter(todo => todo.completed)
+        default:
+          throw new Error('unsupported filter:' + visibilityFilter)
+      }
     }
   }
 })
 
 Melt.component('todo-link', {
-  inputs: ['active', 'onClick'],
+  props: ['active', 'onClick'],
   template: `<span>
       <span if="{active}">{children}</span>
       <a if="{!active}" href="#" on-click="handleClick">{children}</a>'
     </span>`,
-  handleClick: function (e) {
-    e.preventDefault()
-    this.onClick()
+  class: class TodoLinkComponent {
+    handleClick (e) {
+      e.preventDefault()
+      this.onClick()
+    }
   }
 })
 
 Melt.container('filter-link', {
-  inputs: ['filter'],
+  props: ['filter'],
   template: '<todo-link active="{filter === model.visibilityFilter}" on-click="setVisibilityFilter(filter)">{children}</todo-link>'
 })
 
@@ -108,17 +112,18 @@ Melt.container('add-todo', {
       <input key="111" ref="input">
       <button type="submit"> Add Todo </button>
     </form>`,
+  class: class AddTodoComponent {
+    onSubmit (e) {
+      e.preventDefault()
+      const input = this.refs.input
+      var text = input.value
+      if (!text.trim()) {
+        return
+      }
+      input.value = ''
 
-  onSubmit: function (e) {
-    e.preventDefault()
-    const input = this.refs.input
-    var text = input.value
-    if (!text.trim()) {
-      return
+      this.addTodo(text)
     }
-    input.value = ''
-
-    this.addTodo(text)
   }
 })
 
