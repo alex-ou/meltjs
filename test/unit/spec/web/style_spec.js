@@ -1,5 +1,5 @@
-import {Component, clearComponenetRegistry} from 'src/web/component'
 import Melt from 'src/index'
+import {Component, clearComponenetRegistry} from 'src/web/component'
 
 describe('style', () => {
   beforeEach(() => {
@@ -7,19 +7,24 @@ describe('style', () => {
   })
 
   it('should set styles of the dom element', () => {
-    const app = Melt({
-      el: document.body,
+    let _style = {color: 'red', height: '40px'}
+    const component = new Component({
       template: `
           <div>
-            <span style="{{'height': '20px', 'font-size': '40px'}}">test</span>
+            <span style="{getStyle()}">test</span>
           </div>
         `,
-      model: {},
-      update: {
-      }
+      getStyle: () => _style
     })
+    component.patch()
+    expect(component.elem).toBeDefined()
+    const span = component.elem.children[0]
+    expect(span.style.color).toEqual('red')
+    expect(span.style.height).toEqual('40px')
 
-    //expect(app.component.elem).toBeDefined()
-    //expect(app.component.elem.style.height).toEqual('red')
+    _style = {color: 'black', height: '20px'}
+    component.patch()
+    expect(span.style.color).toEqual('black')
+    expect(span.style.height).toEqual('20px')
   })
 })
