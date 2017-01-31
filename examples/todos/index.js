@@ -33,7 +33,7 @@ Melt.component('todo', {
   props: ['text', 'completed', 'onClick'],
   template: `<li
     on-click="{onClick()}"
-    style="{{'text-decoration': completed ? 'line-through' : 'none'}}">{text}</li>`
+    bind-style="{'text-decoration': completed ? 'line-through' : 'none'}">{text}</li>`
 })
 
 Melt.component('todo-list', {
@@ -108,8 +108,8 @@ Melt.component('footer', {
 
 Melt.container('add-todo', {
   template:
-    `<form on-submit="{onSubmit}">
-      <input key="111" ref="input">
+    `<form on-submit="onSubmit">
+      <input ref="input">
       <button type="submit"> Add Todo </button>
     </form>`,
   class: class AddTodoComponent {

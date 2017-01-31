@@ -79,18 +79,18 @@ export default class VNode {
     })
   }
 
-  onMount (domElem) {
+  mounted (domElem) {
     this.elem = domElem
-    this._callback('onMount', this)
+    this._callback('mounted', this)
   }
 
-  onUnmount () {
-    this._callback('onUnmount', this)
+  unmounted () {
+    this._callback('unmounted', this)
   }
 
-  onUpdate (domElem, oldVnode) {
+  updated (domElem, oldVnode) {
     this.elem = domElem
-    this._callback('onUpdate', this, oldVnode)
+    this._callback('updated', this, oldVnode)
   }
 }
 

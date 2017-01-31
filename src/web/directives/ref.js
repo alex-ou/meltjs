@@ -17,16 +17,16 @@ function updateRef (vnode, isRemoving) {
 }
 
 export default class RefDirective {
-  onMount (vnode) {
+  mounted (vnode) {
     updateRef(vnode)
   }
 
-  onUpdate (newVnode, oldVnode) {
+  updated (newVnode, oldVnode) {
     updateRef(oldVnode, true)
     updateRef(newVnode)
   }
 
-  onUnmount (vnode) {
+  unmounted (vnode) {
     updateRef(vnode, true)
   }
 }

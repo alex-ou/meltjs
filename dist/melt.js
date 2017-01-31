@@ -689,7 +689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/;
-
+	var bindPrefix = 'bind-';
 	/**
 	 * Parse the template into an AST tree
 	 * @param template, the html template
@@ -788,7 +788,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	function toAttributeMap(attrList) {
 	  var map = {};
 	  (0, _index2.each)(attrList, function (attr) {
-	    var attrName = (0, _index2.camelize)(attr.name);
+	    var attrName = void 0,
+	        tokens = void 0;
+	    // direct binding format: bind-prop="a"
+	    if (attr.name.lastIndexOf(bindPrefix, 0) === 0) {
+	      attrName = attr.name.substring(bindPrefix.length);
+	      tokens = [{ type: _ast_type.AstTokenType.Expr, token: attr.value.trim() }];
+	    } else {
+	      // string interpolation format: prop="{aa}"
+	      attrName = attr.name;
+	      tokens = (0, _text_parser2.default)(attr.value.trim());
+	    }
+
+	    attrName = (0, _index2.camelize)(attrName);
 	    if ((0, _index2.has)(map, attrName)) {
 	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
 	    }
@@ -796,7 +808,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var attrInfo = {
 	      rawName: attr.name,
 	      rawValue: attr.value,
-	      tokens: (0, _text_parser2.default)(attr.value.trim())
+	      tokens: tokens
 	    };
 
 	    map[attrName] = attrInfo;
@@ -1522,7 +1534,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      domElem = createThunk(vnode, context);
 	      break;
 	  }
-	  vnode.onMount(domElem);
+	  vnode.mounted(domElem);
 	  return domElem;
 	}
 
@@ -1680,21 +1692,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
-	    key: 'onMount',
-	    value: function onMount(domElem) {
+	    key: 'mounted',
+	    value: function mounted(domElem) {
 	      this.elem = domElem;
-	      this._callback('onMount', this);
+	      this._callback('mounted', this);
 	    }
 	  }, {
-	    key: 'onUnmount',
-	    value: function onUnmount() {
-	      this._callback('onUnmount', this);
+	    key: 'unmounted',
+	    value: function unmounted() {
+	      this._callback('unmounted', this);
 	    }
 	  }, {
-	    key: 'onUpdate',
-	    value: function onUpdate(domElem, oldVnode) {
+	    key: 'updated',
+	    value: function updated(domElem, oldVnode) {
 	      this.elem = domElem;
-	      this._callback('onUpdate', this, oldVnode);
+	      this._callback('updated', this, oldVnode);
 	    }
 	  }]);
 
@@ -2013,7 +2025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      // Same tagName, update the attributes
 	      updateAttributes(domElem, oldVnode, newVnode);
-	      newVnode.onUpdate(domElem, oldVnode);
+	      newVnode.updated(domElem, oldVnode);
 	      patchChildren(domElem, oldVnode, newVnode, context);
 	    }
 	  } else if (newVnode.isText()) {
@@ -2085,14 +2097,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var newDomElem = patchNode(domElem, oldThunkVnode, newThunkVnode, context);
 	  context.component = currentComponent;
 
-	  newNode.onUpdate(newDomElem, oldNode);
+	  newNode.updated(newDomElem, oldNode);
 
 	  return newDomElem;
 	}
 
 	function unmountThunk(vnode) {
 	  // Call the lifecycle hook
-	  vnode.onUnmount();
+	  vnode.unmounted();
 
 	  if (vnode.isThunk()) {
 	    unmountThunk(vnode.thunkVnode);
@@ -2698,19 +2710,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  _createClass(RefDirective, [{
-	    key: "onMount",
-	    value: function onMount(vnode) {
+	    key: "mounted",
+	    value: function mounted(vnode) {
 	      updateRef(vnode);
 	    }
 	  }, {
-	    key: "onUpdate",
-	    value: function onUpdate(newVnode, oldVnode) {
+	    key: "updated",
+	    value: function updated(newVnode, oldVnode) {
 	      updateRef(oldVnode, true);
 	      updateRef(newVnode);
 	    }
 	  }, {
-	    key: "onUnmount",
-	    value: function onUnmount(vnode) {
+	    key: "unmounted",
+	    value: function unmounted(vnode) {
 	      updateRef(vnode, true);
 	    }
 	  }]);
@@ -2778,13 +2790,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  _createClass(StyleDirective, [{
-	    key: 'onMount',
-	    value: function onMount(vnode) {
+	    key: 'mounted',
+	    value: function mounted(vnode) {
 	      updateStyle(vnode);
 	    }
 	  }, {
-	    key: 'onUpdate',
-	    value: function onUpdate(newVnode) {
+	    key: 'updated',
+	    value: function updated(newVnode) {
 	      updateStyle(newVnode);
 	    }
 	  }]);

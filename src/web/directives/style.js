@@ -12,11 +12,11 @@ function updateStyle (vnode) {
 }
 
 export default class StyleDirective {
-  onMount (vnode) {
+  mounted (vnode) {
     updateStyle(vnode)
   }
 
-  onUpdate (newVnode) {
+  updated (newVnode) {
     updateStyle(newVnode)
   }
 }

@@ -2,10 +2,10 @@ import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
 import {each, has, warn, error, camelize} from '../util/index'
 import parseText from './text_parser'
-import {AstElementType, AstDirective} from './ast_type'
+import {AstElementType, AstDirective, AstTokenType} from './ast_type'
 
 const eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/
-
+const bindPrefix = 'bind-'
 /**
  * Parse the template into an AST tree
  * @param template, the html template
@@ -103,7 +103,18 @@ export function parse (template) {
 function toAttributeMap (attrList) {
   var map = {}
   each(attrList, attr => {
-    const attrName = camelize(attr.name)
+    let attrName, tokens
+    // direct binding format: bind-prop="a"
+    if (attr.name.lastIndexOf(bindPrefix, 0) === 0) {
+      attrName = attr.name.substring(bindPrefix.length)
+      tokens = [{type: AstTokenType.Expr, token: attr.value.trim()}]
+    } else {
+      // string interpolation format: prop="{aa}"
+      attrName = attr.name
+      tokens = parseText(attr.value.trim())
+    }
+
+    attrName = camelize(attrName)
     if (has(map, attrName)) {
       warn(`Found a duplicated attribute, name: ${attr.name}, value:${attr.value}`)
     }
@@ -111,7 +122,7 @@ function toAttributeMap (attrList) {
     let attrInfo = {
       rawName: attr.name,
       rawValue: attr.value,
-      tokens: parseText(attr.value.trim())
+      tokens: tokens
     }
 
     map[attrName] = attrInfo

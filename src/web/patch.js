@@ -41,7 +41,7 @@ export default function patchNode (domElem, oldVnode, newVnode, context) {
     } else {
       // Same tagName, update the attributes
       updateAttributes(domElem, oldVnode, newVnode)
-      newVnode.onUpdate(domElem, oldVnode)
+      newVnode.updated(domElem, oldVnode)
       patchChildren(domElem, oldVnode, newVnode, context)
     }
   } else if (newVnode.isText()) {
@@ -103,14 +103,14 @@ function updateThunk (domElem, oldNode, newNode, context) {
   const newDomElem = patchNode(domElem, oldThunkVnode, newThunkVnode, context)
   context.component = currentComponent
 
-  newNode.onUpdate(newDomElem, oldNode)
+  newNode.updated(newDomElem, oldNode)
 
   return newDomElem
 }
 
 function unmountThunk (vnode) {
   // Call the lifecycle hook
-  vnode.onUnmount()
+  vnode.unmounted()
 
   if (vnode.isThunk()) {
     unmountThunk(vnode.thunkVnode)

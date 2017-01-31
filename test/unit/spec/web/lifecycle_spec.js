@@ -3,34 +3,34 @@ import createElement from 'src/web/create_element'
 import h from 'src/vdom/create'
 
 describe('lifecycle', () => {
-  it('onMount should be called when the component is rendered', () => {
+  it('mounted should be called when the component is rendered', () => {
     const Parent = {
       render: function () {
         return h('div', {})
       },
-      onMount: jasmine.createSpy('onMount')
+      mounted: jasmine.createSpy('mounted')
     }
 
     let oldNode = h('div', {},
       h(Parent, {key: 1, data: 'abc'})
     )
     createElement(oldNode)
-    expect(Parent.onMount).toHaveBeenCalled()
+    expect(Parent.mounted).toHaveBeenCalled()
   })
 
-  it('onMount should be called when child components are rendered', () => {
+  it('mounted should be called when child components are rendered', () => {
     const Child1 = {
       render: function () {
         return h('i', {}, 'child')
       },
-      onMount: jasmine.createSpy('onMount')
+      mounted: jasmine.createSpy('mounted')
     }
 
     const Child2 = {
       render: function () {
         return h('i', {}, 'child2')
       },
-      onMount: jasmine.createSpy('onMount')
+      mounted: jasmine.createSpy('mounted')
     }
 
     const Parent = {
@@ -40,23 +40,23 @@ describe('lifecycle', () => {
           h(Child2, {})
         ])
       },
-      onMount: jasmine.createSpy('onMount')
+      mounted: jasmine.createSpy('mounted')
     }
 
     let oldNode = h('div', {},
       h(Parent, {key: 1, data: 'abc'})
     )
     createElement(oldNode)
-    expect(Child1.onMount).toHaveBeenCalled()
-    expect(Child2.onMount).toHaveBeenCalled()
+    expect(Child1.mounted).toHaveBeenCalled()
+    expect(Child2.mounted).toHaveBeenCalled()
   })
 
-  it('onUnmount should be called when the node is removed', () => {
+  it('unmounted should be called when the node is removed', () => {
     const Parent = {
       render: function () {
         return h('div', {})
       },
-      onUnmount: jasmine.createSpy('onUnmount')
+      unmounted: jasmine.createSpy('unmounted')
     }
 
     let oldNode = h('div', {},
@@ -67,15 +67,15 @@ describe('lifecycle', () => {
     let newNode = h('div', {})
     const domElem = createElement(oldNode)
     patch(domElem, oldNode, newNode)
-    expect(Parent.onUnmount).toHaveBeenCalled()
+    expect(Parent.unmounted).toHaveBeenCalled()
   })
 
-  it('onUnmount should be called when the node is replaced', () => {
+  it('unmounted should be called when the node is replaced', () => {
     const Parent = {
       render: function () {
         return h('div', {})
       },
-      onUnmount: jasmine.createSpy('onUnmount')
+      unmounted: jasmine.createSpy('unmounted')
     }
 
     let oldNode = h('div', {},
@@ -90,15 +90,15 @@ describe('lifecycle', () => {
     )
     const domElem = createElement(oldNode)
     patch(domElem, oldNode, newNode)
-    expect(Parent.onUnmount).toHaveBeenCalled()
+    expect(Parent.unmounted).toHaveBeenCalled()
   })
 
-  it('onUnmount should be called when the node is removed from the children', () => {
+  it('unmounted should be called when the node is removed from the children', () => {
     const Parent = {
       render: function () {
         return h('div', {})
       },
-      onUnmount: jasmine.createSpy('onUnmount')
+      unmounted: jasmine.createSpy('unmounted')
     }
 
     let oldNode = h('div', {},
@@ -114,15 +114,15 @@ describe('lifecycle', () => {
     )
     const domElem = createElement(oldNode)
     patch(domElem, oldNode, newNode)
-    expect(Parent.onUnmount).toHaveBeenCalled()
+    expect(Parent.unmounted).toHaveBeenCalled()
   })
 
-  it('onUpdate should be called when the node is re-rendered', () => {
+  it('updated should be called when the node is re-rendered', () => {
     const Parent = {
       render: function () {
         return h('div', {})
       },
-      onUpdate: jasmine.createSpy('onUpdate')
+      updated: jasmine.createSpy('updated')
     }
 
     let oldNode = h('div', {},
@@ -136,10 +136,10 @@ describe('lifecycle', () => {
       ])
     )
     const domElem = createElement(oldNode)
-    expect(Parent.onUpdate).not.toHaveBeenCalled()
+    expect(Parent.updated).not.toHaveBeenCalled()
 
     patch(domElem, oldNode, newNode)
-    expect(Parent.onUpdate).toHaveBeenCalled()
+    expect(Parent.updated).toHaveBeenCalled()
   })
 
   it('lifecycle hooks should be called when the component is replaced', () => {
@@ -147,16 +147,16 @@ describe('lifecycle', () => {
       render: function () {
         return h('div', {})
       },
-      onMount: jasmine.createSpy('ComponentA_onMount'),
-      onUnmount: jasmine.createSpy('ComponentA_onUnmount')
+      mounted: jasmine.createSpy('ComponentA_mounted'),
+      unmounted: jasmine.createSpy('ComponentA_unmounted')
     }
     const ComponentB = {
       render: function () {
         return h('div', {})
       },
-      onMount: jasmine.createSpy('ComponentB_onMount'),
-      onUpdate: jasmine.createSpy('ComponentB_onUpdate'),
-      onUnmount: jasmine.createSpy('ComponentB_onUnmount')
+      mounted: jasmine.createSpy('ComponentB_mounted'),
+      updated: jasmine.createSpy('ComponentB_updated'),
+      unmounted: jasmine.createSpy('ComponentB_unmounted')
     }
 
     let oldNode = h('div', {},
@@ -170,12 +170,12 @@ describe('lifecycle', () => {
       ])
     )
     let domElem = createElement(oldNode)
-    expect(ComponentA.onMount).toHaveBeenCalled()
+    expect(ComponentA.mounted).toHaveBeenCalled()
 
     domElem = patch(domElem, oldNode, newNode)
-    expect(ComponentA.onUnmount).toHaveBeenCalled()
-    expect(ComponentB.onMount).toHaveBeenCalled()
-    expect(ComponentB.onUpdate).not.toHaveBeenCalled()
+    expect(ComponentA.unmounted).toHaveBeenCalled()
+    expect(ComponentB.mounted).toHaveBeenCalled()
+    expect(ComponentB.updated).not.toHaveBeenCalled()
 
     let anotherNewNode = h('div', {},
       h('div', {}, [
@@ -184,6 +184,6 @@ describe('lifecycle', () => {
       ])
     )
     patch(domElem, newNode, anotherNewNode)
-    expect(ComponentB.onUpdate).toHaveBeenCalled()
+    expect(ComponentB.updated).toHaveBeenCalled()
   })
 })
