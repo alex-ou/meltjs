@@ -1,10 +1,11 @@
 import compile from '../compiler/index'
-import createDomElement from './create_element'
+import createDomElement from './create_dom'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {warn, isString, isArray, extend, each, range, getKeys, isObject, noop} from '../util/index'
+import {isArray, each, range, getKeys, isObject, noop} from '../util/index'
 import {renderCollection} from './util/index'
-import buildInDirectives from './directives'
+import {createDirective} from './directives'
+import {getComponent} from './component_registry'
 
 export function createComponent (options) {
   if (!options.render && !options.template) {
@@ -85,31 +86,6 @@ export function createComponent (options) {
   return new Component(options)
 }
 
-// Component Management
-var componentRegistry = {}
-
-export function isRegisteredComponent (tag) {
-  return isString(tag) && componentRegistry[tag]
-}
-
-export function clearRegistry () {
-  componentRegistry = {}
-}
-
-export function registerComponent (name, options, isContainer) {
-  if (componentRegistry[name]) {
-    warn(`Component ${name} is already registered`)
-  }
-  options.isContainer = isContainer
-  options.selector = name
-  componentRegistry[name] = options
-  return options
-}
-
-export function registerContainer (name, options) {
-  return registerComponent(name, options, true)
-}
-
 export default function createElement (tag, attributes, ...children) {
   let elemTag = instantiateComponent(tag)
   if (elemTag === null) {
@@ -120,9 +96,9 @@ export default function createElement (tag, attributes, ...children) {
   if (attributes) {
     let directives = []
     each(getKeys(attributes), name => {
-      const DirConstructor = buildInDirectives[name]
-      if (DirConstructor) {
-        directives.push(new DirConstructor())
+      const dirInstance = instantiateComponent(name)
+      if (dirInstance) {
+        directives.push(dirInstance)
       }
     })
 
@@ -135,11 +111,10 @@ export default function createElement (tag, attributes, ...children) {
 }
 
 function instantiateComponent (tag) {
-  let options
-  if (isObject(tag)) {
-    options = tag
-  } else if (isString(tag) && isRegisteredComponent(tag)) {
-    options = componentRegistry[tag]
+  let options = isObject(tag) ? tag : getComponent(tag)
+  if (!options) {
+    return null
   }
-  return options ? createComponent(options) : null
+
+  return options.isDirective ? createDirective(options) : createComponent(options)
 }

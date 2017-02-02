@@ -60,6 +60,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _component2 = _interopRequireDefault(_component);
 
+	var _component_registry = __webpack_require__(31);
+
 	var _app = __webpack_require__(23);
 
 	var _app2 = _interopRequireDefault(_app);
@@ -71,8 +73,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	Melt.createElement = _component2.default;
-	Melt.component = _component.registerComponent;
-	Melt.container = _component.registerContainer;
+	Melt.component = _component_registry.registerComponent;
+	Melt.container = _component_registry.registerContainer;
 	Melt.app = Melt;
 
 	module.exports = Melt;
@@ -87,19 +89,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	exports.createComponent = createComponent;
-	exports.isRegisteredComponent = isRegisteredComponent;
-	exports.clearRegistry = clearRegistry;
-	exports.registerComponent = registerComponent;
-	exports.registerContainer = registerContainer;
 	exports.default = createElement;
 
 	var _index = __webpack_require__(2);
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _create_element = __webpack_require__(16);
+	var _create_dom = __webpack_require__(32);
 
-	var _create_element2 = _interopRequireDefault(_create_element);
+	var _create_dom2 = _interopRequireDefault(_create_dom);
 
 	var _patch = __webpack_require__(20);
 
@@ -115,7 +113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _directives = __webpack_require__(29);
 
-	var _directives2 = _interopRequireDefault(_directives);
+	var _component_registry = __webpack_require__(31);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -188,7 +186,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var domElem = this.elem;
 	    if (!domElem) {
 	      // First time rendering
-	      domElem = (0, _create_element2.default)(vnode, context);
+	      domElem = (0, _create_dom2.default)(vnode, context);
 	    } else {
 	      // Patch the DOM
 	      domElem = (0, _patch2.default)(domElem, oldVnode, vnode, context);
@@ -202,31 +200,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return new Component(options);
 	}
 
-	// Component Management
-	var componentRegistry = {};
-
-	function isRegisteredComponent(tag) {
-	  return (0, _index3.isString)(tag) && componentRegistry[tag];
-	}
-
-	function clearRegistry() {
-	  componentRegistry = {};
-	}
-
-	function registerComponent(name, options, isContainer) {
-	  if (componentRegistry[name]) {
-	    (0, _index3.warn)('Component ' + name + ' is already registered');
-	  }
-	  options.isContainer = isContainer;
-	  options.selector = name;
-	  componentRegistry[name] = options;
-	  return options;
-	}
-
-	function registerContainer(name, options) {
-	  return registerComponent(name, options, true);
-	}
-
 	function createElement(tag, attributes) {
 	  var elemTag = instantiateComponent(tag);
 	  if (elemTag === null) {
@@ -238,9 +211,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    (function () {
 	      var directives = [];
 	      (0, _index3.each)((0, _index3.getKeys)(attributes), function (name) {
-	        var DirConstructor = _directives2.default[name];
-	        if (DirConstructor) {
-	          directives.push(new DirConstructor());
+	        var dirInstance = instantiateComponent(name);
+	        if (dirInstance) {
+	          directives.push(dirInstance);
 	        }
 	      });
 
@@ -258,13 +231,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function instantiateComponent(tag) {
-	  var options = void 0;
-	  if ((0, _index3.isObject)(tag)) {
-	    options = tag;
-	  } else if ((0, _index3.isString)(tag) && isRegisteredComponent(tag)) {
-	    options = componentRegistry[tag];
+	  var options = (0, _index3.isObject)(tag) ? tag : (0, _component_registry.getComponent)(tag);
+	  if (!options) {
+	    return null;
 	  }
-	  return options ? createComponent(options) : null;
+
+	  return options.isDirective ? (0, _directives.createDirective)(options) : createComponent(options);
 	}
 
 /***/ },
@@ -1490,98 +1462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = createElement;
-
-	var _vnode = __webpack_require__(17);
-
-	var _vnode2 = _interopRequireDefault(_vnode);
-
-	var _index = __webpack_require__(3);
-
-	var _nodeOp = __webpack_require__(18);
-
-	var nodeOp = _interopRequireWildcard(_nodeOp);
-
-	var _set_attribute = __webpack_require__(19);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function createElement(vnode, context) {
-	  context = context || {};
-	  var domElem;
-	  vnode.parentComponent = context.component;
-	  switch (vnode.type) {
-	    case _vnode2.default.Element:
-	      domElem = createHtmlElement(vnode, context);
-	      break;
-	    case _vnode2.default.Empty:
-	      domElem = createEmptyNode();
-	      break;
-	    case _vnode2.default.Text:
-	      domElem = createTextNode(vnode);
-	      break;
-	    case _vnode2.default.Thunk:
-	      domElem = createThunk(vnode, context);
-	      break;
-	  }
-	  vnode.mounted(domElem);
-	  return domElem;
-	}
-
-	function createThunk(vnode, context) {
-	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
-	  var currentComponent = context.component;
-
-	  context.component = vnode.component;
-	  var domElem = createElement(vnode.thunkVnode, context);
-
-	  // recover the component context
-	  context.component = currentComponent;
-	  return domElem;
-	}
-
-	function createHtmlElement(vnode, context) {
-	  var tagName = vnode.tagName,
-	      children = vnode.children,
-	      attributes = vnode.attributes;
-
-
-	  var elem = nodeOp.createElement(tagName);
-
-	  for (var name in attributes) {
-	    (0, _set_attribute.setAttribute)(elem, name, attributes[name]);
-	  }
-
-	  children.forEach(function (child) {
-	    if ((0, _index.isNull)(child) || (0, _index.isUndefined)(child)) {
-	      return;
-	    }
-
-	    nodeOp.appendChild(elem, createElement(child, context));
-	  });
-	  return elem;
-	}
-
-	function createTextNode(vnode) {
-	  var text = (0, _index.isNumber)(vnode.nodeValue) || (0, _index.isString)(vnode.nodeValue) ? vnode.nodeValue : '';
-	  return nodeOp.createTextNode(text);
-	}
-
-	function createEmptyNode() {
-	  return nodeOp.createElement('noscript');
-	}
-
-/***/ },
+/* 16 */,
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -1969,9 +1850,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _set_attribute = __webpack_require__(19);
 
-	var _create_element = __webpack_require__(16);
+	var _create_dom = __webpack_require__(32);
 
-	var _create_element2 = _interopRequireDefault(_create_element);
+	var _create_dom2 = _interopRequireDefault(_create_dom);
 
 	var _vnode = __webpack_require__(17);
 
@@ -2058,7 +1939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    switch (type) {
 	      case CREATE:
 	        {
-	          var newDomElem = (0, _create_element2.default)(next.vnode, context);
+	          var newDomElem = (0, _create_dom2.default)(next.vnode, context);
 	          nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos));
 	          break;
 	        }
@@ -2139,7 +2020,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function replaceNode(domElem, oldNode, newNode, context) {
 	  unmountThunk(oldNode);
-	  var newDomElem = (0, _create_element2.default)(newNode, context);
+	  var newDomElem = (0, _create_dom2.default)(newNode, context);
 	  nodeOp.replaceNode(newDomElem, domElem);
 	  return newDomElem;
 	}
@@ -2741,6 +2622,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.createDirective = createDirective;
 
 	var _ref = __webpack_require__(28);
 
@@ -2750,12 +2632,53 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _style2 = _interopRequireDefault(_style);
 
+	var _index = __webpack_require__(3);
+
+	var _component_registry = __webpack_require__(31);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	exports.default = {
-	  ref: _ref2.default,
-	  style: _style2.default
-	};
+	(0, _index.each)({ ref: _ref2.default, style: _style2.default }, function (dirClass, dirName) {
+	  return (0, _component_registry.registerDirective)(dirName, {
+	    class: dirClass,
+	    isBuildIn: true,
+	    isDirective: true
+	  });
+	});
+
+	function createDirective(options) {
+	  var DirectiveClass = void 0;
+	  if ((0, _index.isFunction)(options)) {
+	    DirectiveClass = options;
+	  } else {
+	    DirectiveClass = options.class || _index.noop;
+	  }
+
+	  function Directive(options) {
+	    var _this = this;
+
+	    this._options = options;
+
+	    var propsSpec = options.props || {};
+	    // Convert props spec to map if is array: ['foo', 'bar']
+	    this._propsSpec = {};
+	    if ((0, _index.isArray)(propsSpec)) {
+	      (0, _index.each)(propsSpec, function (name) {
+	        _this._propsSpec[name] = true;
+	      });
+	    } else {
+	      this._propsSpec = propsSpec;
+	    }
+
+	    DirectiveClass.call(this);
+	  }
+
+	  Directive.prototype = Object.create(DirectiveClass.prototype, {
+	    constructor: Directive
+	  });
+
+	  return new Directive(options);
+	}
 
 /***/ },
 /* 30 */
@@ -2805,6 +2728,155 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 	exports.default = StyleDirective;
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.clearRegistry = clearRegistry;
+	exports.registerComponent = registerComponent;
+	exports.registerContainer = registerContainer;
+	exports.registerDirective = registerDirective;
+	exports.getComponent = getComponent;
+	exports.isRegistered = isRegistered;
+
+	var _index = __webpack_require__(3);
+
+	// Component Management
+	var componentRegistry = {};
+
+	function clearRegistry() {
+	  (0, _index.each)(componentRegistry, function (componentOptions, name) {
+	    if (!componentOptions.isBuildIn) {
+	      delete componentRegistry[name]; // only remove the non-build-in components
+	    }
+	  });
+	}
+
+	function registerComponent(name, options, isContainer) {
+	  if (componentRegistry[name]) {
+	    (0, _index.warn)('Component ' + name + ' is already registered');
+	  }
+	  options.isContainer = isContainer;
+	  options.selector = name;
+	  componentRegistry[name] = options;
+	  return options;
+	}
+
+	function registerContainer(name, options) {
+	  return registerComponent(name, options, true);
+	}
+
+	function registerDirective(name, options) {
+	  var compOptions = registerComponent(name, options);
+	  compOptions.isDirective = true;
+	  return compOptions;
+	}
+
+	function getComponent(tag) {
+	  return (0, _index.isString)(tag) && componentRegistry[tag];
+	}
+
+	function isRegistered(name) {
+	  return !!getComponent(name);
+	}
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = createElement;
+
+	var _vnode = __webpack_require__(17);
+
+	var _vnode2 = _interopRequireDefault(_vnode);
+
+	var _index = __webpack_require__(3);
+
+	var _nodeOp = __webpack_require__(18);
+
+	var nodeOp = _interopRequireWildcard(_nodeOp);
+
+	var _set_attribute = __webpack_require__(19);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function createElement(vnode, context) {
+	  context = context || {};
+	  var domElem;
+	  vnode.parentComponent = context.component;
+	  switch (vnode.type) {
+	    case _vnode2.default.Element:
+	      domElem = createHtmlElement(vnode, context);
+	      break;
+	    case _vnode2.default.Empty:
+	      domElem = createEmptyNode();
+	      break;
+	    case _vnode2.default.Text:
+	      domElem = createTextNode(vnode);
+	      break;
+	    case _vnode2.default.Thunk:
+	      domElem = createThunk(vnode, context);
+	      break;
+	  }
+	  vnode.mounted(domElem);
+	  return domElem;
+	}
+
+	function createThunk(vnode, context) {
+	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
+	  var currentComponent = context.component;
+
+	  context.component = vnode.component;
+	  var domElem = createElement(vnode.thunkVnode, context);
+
+	  // recover the component context
+	  context.component = currentComponent;
+	  return domElem;
+	}
+
+	function createHtmlElement(vnode, context) {
+	  var tagName = vnode.tagName,
+	      children = vnode.children,
+	      attributes = vnode.attributes;
+
+
+	  var elem = nodeOp.createElement(tagName);
+
+	  for (var name in attributes) {
+	    (0, _set_attribute.setAttribute)(elem, name, attributes[name]);
+	  }
+
+	  children.forEach(function (child) {
+	    if ((0, _index.isNull)(child) || (0, _index.isUndefined)(child)) {
+	      return;
+	    }
+
+	    nodeOp.appendChild(elem, createElement(child, context));
+	  });
+	  return elem;
+	}
+
+	function createTextNode(vnode) {
+	  var text = (0, _index.isNumber)(vnode.nodeValue) || (0, _index.isString)(vnode.nodeValue) ? vnode.nodeValue : '';
+	  return nodeOp.createTextNode(text);
+	}
+
+	function createEmptyNode() {
+	  return nodeOp.createElement('noscript');
+	}
 
 /***/ }
 /******/ ])

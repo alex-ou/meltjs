@@ -1,5 +1,6 @@
-import createElement from 'src/web/create_element'
-import h, {registerComponent, registerContainer, clearRegistry, createComponent} from 'src/web/component'
+import createDomElement from 'src/web/create_dom'
+import h, {createComponent} from 'src/web/component'
+import {registerComponent, registerContainer, clearRegistry} from 'src/web/index'
 
 describe('Component', () => {
   beforeEach(() => {
@@ -20,7 +21,7 @@ describe('Component', () => {
     var vtree = h('div', {'class': 'test'},
       h('counter')
     )
-    createElement(vtree)
+    createDomElement(vtree)
   })
 
   it('should create the components', () => {
@@ -39,7 +40,7 @@ describe('Component', () => {
       h('counter'),
       h('counter1')
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.tagName).toBe('DIV')
     expect(node.className).toBe('test')
     expect(node.children.length).toBe(2)
@@ -66,7 +67,7 @@ describe('Component', () => {
     var vtree = h('div', {'class': 'test'},
       h('counter', {'foo': 'foo', 'bar': bar})
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.tagName).toBe('DIV')
     expect(node.className).toBe('test')
     expect(node.children.length).toBe(1)
@@ -86,7 +87,7 @@ describe('Component', () => {
     var vtree = h('div', {'class': 'test'},
       h('counter', {'foo': 'foo', 'bar': bar})
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.tagName).toBe('DIV')
     expect(node.className).toBe('test')
     expect(node.children.length).toBe(1)

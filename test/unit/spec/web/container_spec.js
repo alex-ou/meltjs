@@ -1,4 +1,5 @@
-import {registerComponent, registerContainer, clearRegistry, createComponent} from 'src/web/component'
+import {createComponent} from 'src/web/component'
+import {registerComponent, registerContainer, clearRegistry} from 'src/web/component_registry'
 
 describe('Container', () => {
   beforeEach(() => {

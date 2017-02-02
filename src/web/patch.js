@@ -1,5 +1,5 @@
 import {setAttribute, removeAttribute} from './set_attribute'
-import createElement from './create_element'
+import createDomElement from './create_dom'
 import {groupByKey, renderThunk} from '../vdom/vnode'
 import diff, * as diffActions from '../vdom/diff'
 import {has, isUndefined, isNull, each} from '../util/index'
@@ -67,7 +67,7 @@ export function patchChildren (parentElem, oldNode, newNode, context) {
   function effect (type, prev, next, pos) {
     switch (type) {
       case CREATE: {
-        let newDomElem = createElement(next.vnode, context)
+        let newDomElem = createDomElement(next.vnode, context)
         nodeOp.insertBefore(parentElem, newDomElem, nodeOp.childNode(parentElem, pos))
         break
       }
@@ -143,7 +143,7 @@ function updateAttributes (domElem, oldNode, newNode) {
 
 function replaceNode (domElem, oldNode, newNode, context) {
   unmountThunk(oldNode)
-  let newDomElem = createElement(newNode, context)
+  let newDomElem = createDomElement(newNode, context)
   nodeOp.replaceNode(newDomElem, domElem)
   return newDomElem
 }

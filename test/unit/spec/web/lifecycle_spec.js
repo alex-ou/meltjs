@@ -1,5 +1,5 @@
 import patch from 'src/web/patch'
-import createElement from 'src/web/create_element'
+import createDomElement from 'src/web/create_dom'
 import h from 'src/vdom/create'
 
 describe('lifecycle', () => {
@@ -14,7 +14,7 @@ describe('lifecycle', () => {
     let oldNode = h('div', {},
       h(Parent, {key: 1, data: 'abc'})
     )
-    createElement(oldNode)
+    createDomElement(oldNode)
     expect(Parent.mounted).toHaveBeenCalled()
   })
 
@@ -46,7 +46,7 @@ describe('lifecycle', () => {
     let oldNode = h('div', {},
       h(Parent, {key: 1, data: 'abc'})
     )
-    createElement(oldNode)
+    createDomElement(oldNode)
     expect(Child1.mounted).toHaveBeenCalled()
     expect(Child2.mounted).toHaveBeenCalled()
   })
@@ -65,7 +65,7 @@ describe('lifecycle', () => {
       ])
     )
     let newNode = h('div', {})
-    const domElem = createElement(oldNode)
+    const domElem = createDomElement(oldNode)
     patch(domElem, oldNode, newNode)
     expect(Parent.unmounted).toHaveBeenCalled()
   })
@@ -88,7 +88,7 @@ describe('lifecycle', () => {
         h('span', {data: 'abc'})
       ])
     )
-    const domElem = createElement(oldNode)
+    const domElem = createDomElement(oldNode)
     patch(domElem, oldNode, newNode)
     expect(Parent.unmounted).toHaveBeenCalled()
   })
@@ -112,7 +112,7 @@ describe('lifecycle', () => {
         h('span', {key: '2'})
       ])
     )
-    const domElem = createElement(oldNode)
+    const domElem = createDomElement(oldNode)
     patch(domElem, oldNode, newNode)
     expect(Parent.unmounted).toHaveBeenCalled()
   })
@@ -135,7 +135,7 @@ describe('lifecycle', () => {
         h(Parent)
       ])
     )
-    const domElem = createElement(oldNode)
+    const domElem = createDomElement(oldNode)
     expect(Parent.updated).not.toHaveBeenCalled()
 
     patch(domElem, oldNode, newNode)
@@ -169,7 +169,7 @@ describe('lifecycle', () => {
         h(ComponentB)
       ])
     )
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     expect(ComponentA.mounted).toHaveBeenCalled()
 
     domElem = patch(domElem, oldNode, newNode)

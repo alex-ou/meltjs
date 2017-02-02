@@ -1,10 +1,10 @@
-import createElement from 'src/web/create_element'
+import createDomElement from 'src/web/create_dom'
 import h from 'src/vdom/create'
 
-describe('createElement', () => {
+describe('createDomElement', () => {
   it('should create a single element', () => {
     var vtree = h('div', {'class': 'test'})
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.tagName).toBe('DIV')
     expect(node.className).toBe('test')
   })
@@ -14,7 +14,7 @@ describe('createElement', () => {
       h('span', {'color': 'red'}, 'span text'),
       h('a', {'href': '/link'})
     ])
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.tagName).toBe('DIV')
     expect(node.className).toBe('test')
     expect(node.childNodes.length).toBe(2)
@@ -31,13 +31,13 @@ describe('createElement', () => {
 
   it('should create an element with null', () => {
     var vtree = h('div', {}, null)
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.innerHTML).toBe('<noscript></noscript>')
   })
 
   it('should create an input with value', () => {
     var vtree = h('input', {value: 10})
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.value).toBe('10')
   })
 
@@ -47,7 +47,7 @@ describe('createElement', () => {
       h(Counter),
       h(Counter)
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.childNodes.length).toBe(2)
     expect(node.childNodes[0].outerHTML).toBe('<span>1</span>')
     expect(node.childNodes[1].outerHTML).toBe('<span>1</span>')
@@ -59,7 +59,7 @@ describe('createElement', () => {
       h(Counter, {count: 2}),
       h(Counter, {count: 3})
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.childNodes.length).toBe(2)
     expect(node.childNodes[0].outerHTML).toBe('<span>2</span>')
     expect(node.childNodes[1].outerHTML).toBe('<span>3</span>')
@@ -71,7 +71,7 @@ describe('createElement', () => {
       h(Counter, {}, h('span', {}, 2)),
       h(Counter, {}, h('span', {}, 3))
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.childNodes.length).toBe(2)
     expect(node.childNodes[0].outerHTML).toBe('<div><span>2</span></div>')
     expect(node.childNodes[1].outerHTML).toBe('<div><span>3</span></div>')
@@ -88,7 +88,7 @@ describe('createElement', () => {
       h(Counter, {count: 1}),
       h(Counter, {count: 2})
     )
-    var node = createElement(vtree)
+    var node = createDomElement(vtree)
     expect(node.childNodes.length).toBe(2)
     expect(node.childNodes[0].outerHTML).toBe('<span>2</span>')
     expect(node.childNodes[1].outerHTML).toBe('<span>3</span>')

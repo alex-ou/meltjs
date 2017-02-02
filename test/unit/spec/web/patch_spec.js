@@ -1,5 +1,5 @@
 import patch from 'src/web/patch'
-import createElement from 'src/web/create_element'
+import createDomElement from 'src/web/create_dom'
 import h from 'src/vdom/create'
 
 function map (list, func) {
@@ -23,7 +23,7 @@ describe('patch', () => {
     let oldNode = h('div', {'class': 'c1'})
     let newNode = h('div', {'class': 'c2 c3'})
 
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     expect(domElem.className).toBe('c1')
     patch(domElem, oldNode, newNode)
     expect(domElem.className).toBe('c2 c3')
@@ -35,7 +35,7 @@ describe('patch', () => {
       h('span', {}, 'text')
     ])
 
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     expect(domElem.className).toBe('c1')
 
     var newDomElem = patch(domElem, oldNode, newNode)
@@ -53,7 +53,7 @@ describe('patch', () => {
       h('li', {key: 2}, '2'),
       h('li', {key: 1}, '1')
     ])
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['2', '1'])
   })
@@ -68,7 +68,7 @@ describe('patch', () => {
       h('li', {key: 3}, '3'),
       h('li', {key: 4}, '4')
     ])
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['1', '2', '3', '4'])
   })
@@ -82,7 +82,7 @@ describe('patch', () => {
       h('li', {key: 2}, '2'),
       h('li', {key: 1}, '1')
     ])
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['3', '2', '1'])
   })
@@ -96,7 +96,7 @@ describe('patch', () => {
       h('span', {key: 1}, '3'),
       h('div', {key: 2}, '4')
     ])
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, tagName)).toEqual(['SPAN', 'DIV'])
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['3', '4'])
@@ -112,7 +112,7 @@ describe('patch', () => {
       h('span', {}, '1'),
       h('div', {}, '4')
     ])
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, tagName)).toEqual(['SPAN', 'SPAN', 'DIV'])
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['2', '1', '4'])
@@ -127,7 +127,7 @@ describe('patch', () => {
     let newNode = h('ul', {}, [
       h('li', {key: 2}, '2')
     ])
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, innerHtml)).toEqual(['2'])
   })
@@ -139,7 +139,7 @@ describe('patch', () => {
       h('li', {key: 3}, '3')
     ])
     let newNode = h('ul', {})
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(newDomElem.childNodes.length).toBe(0)
   })
@@ -151,7 +151,7 @@ describe('patch', () => {
 
     let Counter = () => h('i', {}, 2)
     let newNode = h('div', {}, h(Counter, {key: 1}))
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<i>2</i>'])
   })
@@ -165,7 +165,7 @@ describe('patch', () => {
     let newNode = h('div', {},
       h(Counter, {key: 1, data: 'cde'})
     )
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<i>cde</i>'])
   })
@@ -180,7 +180,7 @@ describe('patch', () => {
       h('span', {}, 'abc'),
       h(Counter, {key: 1, data: 'cde'})
     )
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<span>abc</span>', '<i>cde</i>'])
   })
@@ -195,7 +195,7 @@ describe('patch', () => {
       h('span', {}, 'abc'),
       h(Counter, {data: 'cde'})
     )
-    let domElem = createElement(oldNode)
+    let domElem = createDomElement(oldNode)
     var newDomElem = patch(domElem, oldNode, newNode)
     expect(map(newDomElem.childNodes, outerHtml)).toEqual(['<span>abc</span>', '<i>cde</i>'])
   })
