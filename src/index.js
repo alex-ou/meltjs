@@ -1,5 +1,5 @@
 import createElement from './web/component'
-import {registerComponent, registerContainer} from './web/component_registry'
+import {registerComponent, registerContainer, registerDirective} from './web/component_registry'
 import createApp from './app'
 
 function Melt (options) {
@@ -9,6 +9,7 @@ function Melt (options) {
 Melt.createElement = createElement
 Melt.component = registerComponent
 Melt.container = registerContainer
+Melt.directive = registerDirective
 Melt.app = Melt
 
 module.exports = Melt

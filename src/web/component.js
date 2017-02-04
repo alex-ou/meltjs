@@ -2,9 +2,9 @@ import compile from '../compiler/index'
 import createDomElement from './create_dom'
 import patchDomElement from './patch'
 import create from '../vdom/create'
-import {isArray, each, range, getKeys, isObject, noop} from '../util/index'
+import {isArray, each, range, isObject, noop} from '../util/index'
 import {renderCollection} from './util/index'
-import {createDirective} from './directives'
+import {DirectiveHandler} from './directives/index'
 import {getComponent} from './component_registry'
 
 export function createComponent (options) {
@@ -87,34 +87,12 @@ export function createComponent (options) {
 }
 
 export default function createElement (tag, attributes, ...children) {
-  let elemTag = instantiateComponent(tag)
-  if (elemTag === null) {
-    elemTag = tag
-  }
-
-  // process the attribute directives
-  if (attributes) {
-    let directives = []
-    each(getKeys(attributes), name => {
-      const dirInstance = instantiateComponent(name)
-      if (dirInstance) {
-        directives.push(dirInstance)
-      }
-    })
-
-    if (directives.length > 0) {
-      attributes.directives = directives
-    }
-  }
-
-  return create(elemTag, attributes, children)
-}
-
-function instantiateComponent (tag) {
   let options = isObject(tag) ? tag : getComponent(tag)
-  if (!options) {
-    return null
-  }
+  let elemTag = options ? createComponent(options) : tag
 
-  return options.isDirective ? createDirective(options) : createComponent(options)
+  const vnode = create(elemTag, attributes, children)
+  if (attributes) {
+    vnode.addLifecycleEventListener(new DirectiveHandler())
+  }
+  return vnode
 }

@@ -75,6 +75,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Melt.createElement = _component2.default;
 	Melt.component = _component_registry.registerComponent;
 	Melt.container = _component_registry.registerContainer;
+	Melt.directive = _component_registry.registerDirective;
 	Melt.app = Melt;
 
 	module.exports = Melt;
@@ -111,7 +112,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index4 = __webpack_require__(10);
 
-	var _directives = __webpack_require__(29);
+	var _index5 = __webpack_require__(29);
 
 	var _component_registry = __webpack_require__(31);
 
@@ -201,42 +202,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function createElement(tag, attributes) {
-	  var elemTag = instantiateComponent(tag);
-	  if (elemTag === null) {
-	    elemTag = tag;
-	  }
-
-	  // process the attribute directives
-	  if (attributes) {
-	    (function () {
-	      var directives = [];
-	      (0, _index3.each)((0, _index3.getKeys)(attributes), function (name) {
-	        var dirInstance = instantiateComponent(name);
-	        if (dirInstance) {
-	          directives.push(dirInstance);
-	        }
-	      });
-
-	      if (directives.length > 0) {
-	        attributes.directives = directives;
-	      }
-	    })();
-	  }
+	  var options = (0, _index3.isObject)(tag) ? tag : (0, _component_registry.getComponent)(tag);
+	  var elemTag = options ? createComponent(options) : tag;
 
 	  for (var _len = arguments.length, children = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
 	    children[_key - 2] = arguments[_key];
 	  }
 
-	  return (0, _create2.default)(elemTag, attributes, children);
-	}
-
-	function instantiateComponent(tag) {
-	  var options = (0, _index3.isObject)(tag) ? tag : (0, _component_registry.getComponent)(tag);
-	  if (!options) {
-	    return null;
+	  var vnode = (0, _create2.default)(elemTag, attributes, children);
+	  if (attributes) {
+	    vnode.addLifecycleEventListener(new _index5.DirectiveHandler());
 	  }
-
-	  return options.isDirective ? (0, _directives.createDirective)(options) : createComponent(options);
+	  return vnode;
 	}
 
 /***/ },
@@ -661,7 +638,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/;
-	var bindPrefix = 'bind-';
+	// special attributes that should not be camelized
+	var specialAttrRE = /^data-|^aria-/;
+	var argSeparator = '.';
 	/**
 	 * Parse the template into an AST tree
 	 * @param template, the html template
@@ -760,19 +739,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	function toAttributeMap(attrList) {
 	  var map = {};
 	  (0, _index2.each)(attrList, function (attr) {
-	    var attrName = void 0,
-	        tokens = void 0;
-	    // direct binding format: bind-prop="a"
-	    if (attr.name.lastIndexOf(bindPrefix, 0) === 0) {
-	      attrName = attr.name.substring(bindPrefix.length);
-	      tokens = [{ type: _ast_type.AstTokenType.Expr, token: attr.value.trim() }];
-	    } else {
-	      // string interpolation format: prop="{aa}"
-	      attrName = attr.name;
-	      tokens = (0, _text_parser2.default)(attr.value.trim());
-	    }
+	    var tokens = (0, _text_parser2.default)(attr.value.trim());
 
-	    attrName = (0, _index2.camelize)(attrName);
+	    var attrName = void 0;
+	    if (specialAttrRE.test(attr.name)) {
+	      attrName = attr.name;
+	    } else if (attr.name.indexOf('.') !== -1) {
+	      // binding attribute e.g. my-class.*={completed: a > 0} or style.color={'red'}
+	      // camelize the first part which is the directive name
+	      var parts = attr.name.split(argSeparator);
+	      parts[0] = (0, _index2.camelize)(parts[0]);
+	      attrName = parts.join(argSeparator);
+	    } else {
+	      attrName = (0, _index2.camelize)(attr.name);
+	    }
 	    if ((0, _index2.has)(map, attrName)) {
 	      (0, _index2.warn)('Found a duplicated attribute, name: ' + attr.name + ', value:' + attr.value);
 	    }
@@ -785,6 +765,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    map[attrName] = attrInfo;
 	  });
+
 	  return map;
 	}
 
@@ -860,9 +841,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _index2 = __webpack_require__(10);
 
 	// Regular Expressions for parsing tags and attributes
-	var startTagRE = /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/;
+	var startTagRE = /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.*]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/;
 	var endTagRE = /^<\/([-A-Za-z0-9_]+)[^>]*>/;
-	var attrRE = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
+	var attrRE = /([a-zA-Z_:][-a-zA-Z0-9_:.*]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
 
 	// Elements without close Tag
 	var unaryTag = (0, _index.makeMap)('area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr');
@@ -1505,14 +1486,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      children: []
 	    }, settings);
 
+	    this._lifecycleEventListeners = [];
+	    this.addLifecycleEventListener(this.component);
+
 	    var attributes = settings.attributes || {};
 	    if ((0, _index.isString)(attributes.key) || (0, _index.isNumber)(attributes.key)) {
 	      this.key = attributes.key;
 	    }
 	    delete attributes.key;
-
-	    this.directives = attributes.directives;
-	    delete attributes.directives;
 
 	    this.attributes = attributes;
 	    this.props = attributes;
@@ -1554,21 +1535,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.type === VNode.Thunk;
 	    }
 	  }, {
-	    key: '_callback',
-	    value: function _callback(callbackName) {
+	    key: 'addLifecycleEventListener',
+	    value: function addLifecycleEventListener(listener) {
+	      if (!listener) {
+	        return;
+	      }
+	      var listeners = this._lifecycleEventListeners;
+	      if (listeners.indexOf(listener) === -1) {
+	        listeners.push(listener);
+	      }
+	    }
+	  }, {
+	    key: '_notifyListeners',
+	    value: function _notifyListeners(callbackName) {
 	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
 	        args[_key - 1] = arguments[_key];
 	      }
 
-	      var receivers = this.component ? [this.component] : [];
-	      if (this.directives) {
-	        receivers = receivers.concat(this.directives);
-	      }
-
-	      (0, _index.each)(receivers, function (receiver) {
-	        var callback = receiver[callbackName];
+	      (0, _index.each)(this._lifecycleEventListeners, function (listener) {
+	        var callback = listener[callbackName];
 	        if (callback) {
-	          callback.apply(receiver, args);
+	          callback.apply(listener, args);
 	        }
 	      });
 	    }
@@ -1576,18 +1563,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'mounted',
 	    value: function mounted(domElem) {
 	      this.elem = domElem;
-	      this._callback('mounted', this);
+	      this._notifyListeners('mounted', this);
 	    }
 	  }, {
 	    key: 'unmounted',
 	    value: function unmounted() {
-	      this._callback('unmounted', this);
+	      this._notifyListeners('unmounted', this);
 	    }
 	  }, {
 	    key: 'updated',
 	    value: function updated(domElem, oldVnode) {
 	      this.elem = domElem;
-	      this._callback('updated', this, oldVnode);
+	      this._notifyListeners('updated', this, oldVnode);
 	    }
 	  }]);
 
@@ -2591,19 +2578,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  _createClass(RefDirective, [{
-	    key: "mounted",
-	    value: function mounted(vnode) {
+	    key: "attached",
+	    value: function attached(_, vnode) {
 	      updateRef(vnode);
 	    }
 	  }, {
 	    key: "updated",
-	    value: function updated(newVnode, oldVnode) {
+	    value: function updated(_, newVnode, oldVnode) {
 	      updateRef(oldVnode, true);
 	      updateRef(newVnode);
 	    }
 	  }, {
-	    key: "unmounted",
-	    value: function unmounted(vnode) {
+	    key: "detached",
+	    value: function detached(vnode) {
 	      updateRef(vnode, true);
 	    }
 	  }]);
@@ -2622,6 +2609,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.DirectiveHandler = undefined;
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 	exports.createDirective = createDirective;
 
 	var _ref = __webpack_require__(28);
@@ -2638,15 +2629,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	(0, _index.each)({ ref: _ref2.default, style: _style2.default }, function (dirClass, dirName) {
 	  return (0, _component_registry.registerDirective)(dirName, {
 	    class: dirClass,
-	    isBuildIn: true,
-	    isDirective: true
+	    isBuildIn: true
 	  });
 	});
 
-	function createDirective(options) {
+	function createDirective(options, binding) {
 	  var DirectiveClass = void 0;
 	  if ((0, _index.isFunction)(options)) {
 	    DirectiveClass = options;
@@ -2670,15 +2662,115 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this._propsSpec = propsSpec;
 	    }
 
-	    DirectiveClass.call(this);
+	    DirectiveClass.call(this, binding);
 	  }
 
 	  Directive.prototype = Object.create(DirectiveClass.prototype, {
 	    constructor: Directive
 	  });
 
-	  return new Directive(options);
+	  return new Directive(options, binding);
 	}
+
+	var LifecycleEvent = {
+	  ATTACHED: 'attached',
+	  UPDATED: 'updated',
+	  DETACHED: 'detached'
+	};
+
+	var DirectiveHandler = exports.DirectiveHandler = function () {
+	  function DirectiveHandler() {
+	    _classCallCheck(this, DirectiveHandler);
+	  }
+
+	  _createClass(DirectiveHandler, [{
+	    key: '_parseDirectives',
+	    value: function _parseDirectives(attrs) {
+	      var directives = {};
+	      (0, _index.each)(attrs || [], function (attrValue, attrName) {
+	        var parts = attrName.split('.');
+	        var dirName = parts[0];
+	        parts.shift();
+	        if ((0, _component_registry.isRegistered)(dirName)) {
+	          directives[attrName] = {
+	            name: dirName,
+	            value: attrValue,
+	            args: parts
+	          };
+	        }
+	      });
+	      return directives;
+	    }
+	  }, {
+	    key: '_createDirective',
+	    value: function _createDirective(binding) {
+	      var dirOption = (0, _component_registry.getComponent)(binding.name);
+	      return createDirective(dirOption, binding);
+	    }
+	  }, {
+	    key: '_callback',
+	    value: function _callback(dir, name) {
+	      var callback = dir[name];
+	      if (callback) {
+	        for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+	          args[_key - 2] = arguments[_key];
+	        }
+
+	        callback.apply(dir, args);
+	      }
+	    }
+	  }, {
+	    key: 'mounted',
+	    value: function mounted(vnode) {
+	      var _this2 = this;
+
+	      vnode.directives = {};
+	      (0, _index.each)(this._parseDirectives(vnode.attributes), function (dirBinding, attrName) {
+	        var dir = _this2._createDirective(dirBinding);
+	        vnode.directives[attrName] = dir;
+	        _this2._callback(dir, LifecycleEvent.ATTACHED, dirBinding, vnode);
+	      });
+	    }
+	  }, {
+	    key: 'updated',
+	    value: function updated(newVnode, oldVnode) {
+	      var _this3 = this;
+
+	      var newDirBindings = this._parseDirectives(newVnode.attributes);
+	      var oldDirs = oldVnode.directives;
+	      var newDirs = [];
+	      (0, _index.each)(newDirBindings, function (dirBinding, attrName) {
+	        var dir = oldDirs[attrName];
+	        if (dir) {
+	          // existing directives, copy them over and call updated lifecycle hook
+	          newDirs[attrName] = dir;
+	          _this3._callback(dir, LifecycleEvent.UPDATED, dirBinding, newVnode, oldVnode);
+	        } else {
+	          newDirs[attrName] = _this3._createDirective(dirBinding);
+	          _this3._callback(dir, LifecycleEvent.ATTACHED, dirBinding, newVnode);
+	        }
+	      });
+	      (0, _index.each)(oldDirs, function (dir, attrName) {
+	        if (!newDirs[attrName]) {
+	          // call detached
+	          _this3._callback(dir, LifecycleEvent.DETACHED, oldVnode);
+	        }
+	      });
+	      newVnode.directives = newDirs;
+	    }
+	  }, {
+	    key: 'unmounted',
+	    value: function unmounted(vnode) {
+	      var _this4 = this;
+
+	      (0, _index.each)(vnode.directives, function (dir) {
+	        _this4._callback(dir, LifecycleEvent.DETACHED, vnode);
+	      });
+	    }
+	  }]);
+
+	  return DirectiveHandler;
+	}();
 
 /***/ },
 /* 30 */
@@ -2696,31 +2788,57 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function updateStyle(vnode) {
-	  var domElem = vnode.elem;
-	  var style = vnode.props.style;
-	  if (!style) {
-	    return;
-	  }
-	  (0, _index.each)(style, function (value, key) {
-	    domElem.style[key] = value;
-	  });
-	}
-
 	var StyleDirective = function () {
 	  function StyleDirective() {
 	    _classCallCheck(this, StyleDirective);
 	  }
 
 	  _createClass(StyleDirective, [{
-	    key: 'mounted',
-	    value: function mounted(vnode) {
-	      updateStyle(vnode);
+	    key: 'updateStyle',
+	    value: function updateStyle(binding, domElem) {
+	      if (binding.args.length === 0) {
+	        throw new Error('Invalid style binding');
+	      }
+
+	      this.clearStyle(domElem);
+
+	      var style = {};
+	      if (binding.args[0] === '*') {
+	        style = binding.value;
+	      } else {
+	        var styleKey = binding.args[0];
+	        style[styleKey] = binding.value;
+	      }
+	      (0, _index.each)(style, function (value, key) {
+	        domElem.style[key] = value;
+	      });
+
+	      this.style = style;
+	    }
+	  }, {
+	    key: 'clearStyle',
+	    value: function clearStyle(domElem) {
+	      if (!this.style) {
+	        return;
+	      }
+	      (0, _index.each)(this.style, function (value, key) {
+	        domElem.style.setProperty(key, '');
+	      });
+	    }
+	  }, {
+	    key: 'attached',
+	    value: function attached(binding, vnode) {
+	      this.updateStyle(binding, vnode.elem);
 	    }
 	  }, {
 	    key: 'updated',
-	    value: function updated(newVnode) {
-	      updateStyle(newVnode);
+	    value: function updated(binding, newVnode) {
+	      this.updateStyle(binding, newVnode.elem, this.style);
+	    }
+	  }, {
+	    key: 'detached',
+	    value: function detached(vnode) {
+	      this.clearStyle(vnode.elem);
 	    }
 	  }]);
 
@@ -2773,6 +2891,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function registerDirective(name, options) {
+	  if ((0, _index.isFunction)(options)) {
+	    // shorthand syntax
+	    options = {
+	      class: options
+	    };
+	  }
 	  var compOptions = registerComponent(name, options);
 	  compOptions.isDirective = true;
 	  return compOptions;

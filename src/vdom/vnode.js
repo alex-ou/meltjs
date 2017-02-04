@@ -21,14 +21,14 @@ export default class VNode {
       children: []
     }, settings)
 
+    this._lifecycleEventListeners = []
+    this.addLifecycleEventListener(this.component)
+
     let attributes = settings.attributes || {}
     if (isString(attributes.key) || isNumber(attributes.key)) {
       this.key = attributes.key
     }
     delete attributes.key
-
-    this.directives = attributes.directives
-    delete attributes.directives
 
     this.attributes = attributes
     this.props = attributes
@@ -65,32 +65,37 @@ export default class VNode {
     return this.type === VNode.Thunk
   }
 
-  _callback (callbackName, ...args) {
-    let receivers = this.component ? [this.component] : []
-    if (this.directives) {
-      receivers = receivers.concat(this.directives)
+  addLifecycleEventListener (listener) {
+    if (!listener) {
+      return
     }
+    const listeners = this._lifecycleEventListeners
+    if (listeners.indexOf(listener) === -1) {
+      listeners.push(listener)
+    }
+  }
 
-    each(receivers, receiver => {
-      let callback = receiver[callbackName]
+  _notifyListeners (callbackName, ...args) {
+    each(this._lifecycleEventListeners, listener => {
+      let callback = listener[callbackName]
       if (callback) {
-        callback.apply(receiver, args)
+        callback.apply(listener, args)
       }
     })
   }
 
   mounted (domElem) {
     this.elem = domElem
-    this._callback('mounted', this)
+    this._notifyListeners('mounted', this)
   }
 
   unmounted () {
-    this._callback('unmounted', this)
+    this._notifyListeners('unmounted', this)
   }
 
   updated (domElem, oldVnode) {
     this.elem = domElem
-    this._callback('updated', this, oldVnode)
+    this._notifyListeners('updated', this, oldVnode)
   }
 }
 

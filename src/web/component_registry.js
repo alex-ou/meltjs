@@ -1,4 +1,4 @@
-import {warn, isString, each} from '../util/index'
+import {warn, isString, each, isFunction} from '../util/index'
 
 // Component Management
 let componentRegistry = {}
@@ -26,6 +26,12 @@ export function registerContainer (name, options) {
 }
 
 export function registerDirective (name, options) {
+  if (isFunction(options)) {
+    // shorthand syntax
+    options = {
+      class: options
+    }
+  }
   const compOptions = registerComponent(name, options)
   compOptions.isDirective = true
   return compOptions

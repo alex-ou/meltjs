@@ -54,4 +54,10 @@ describe('AST parser', () => {
     var code = generate(ast)
     expect(code).toBe('_c(array,function(n){return _h("span",{},[n])})')
   })
+
+  it('can generate code for special attributes', () => {
+    let ast = parse('<span my-style.font-size="{a>0?10:20}" data-foo="foo" aria-busy="false">1</span>')
+    var code = generate(ast)
+    expect(code).toBe('_h("span",{"myStyle.font-size":a>0?10:20,"data-foo":"foo","aria-busy":"false"},["1"])')
+  })
 })

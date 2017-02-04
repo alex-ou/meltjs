@@ -1,11 +1,13 @@
 import {parseHtml} from './html_parser'
 import {isSpecialTag} from '../web/util/index'
-import {each, has, warn, error, camelize} from '../util/index'
+import {each, has, warn, error, camelize, getKeys} from '../util/index'
 import parseText from './text_parser'
-import {AstElementType, AstDirective, AstTokenType} from './ast_type'
+import {AstElementType, AstDirective} from './ast_type'
 
 const eachRE = /^\s*\(?(\s*\w*\s*,?\s*\w*\s*)\)?\s+in\s+(.+)$/
-const bindPrefix = 'bind-'
+// special attributes that should not be camelized
+const specialAttrRE = /^data-|^aria-/
+const argSeparator = '.'
 /**
  * Parse the template into an AST tree
  * @param template, the html template
@@ -101,20 +103,22 @@ export function parse (template) {
  * @param attrList
  */
 function toAttributeMap (attrList) {
-  var map = {}
+  const map = {}
   each(attrList, attr => {
-    let attrName, tokens
-    // direct binding format: bind-prop="a"
-    if (attr.name.lastIndexOf(bindPrefix, 0) === 0) {
-      attrName = attr.name.substring(bindPrefix.length)
-      tokens = [{type: AstTokenType.Expr, token: attr.value.trim()}]
-    } else {
-      // string interpolation format: prop="{aa}"
-      attrName = attr.name
-      tokens = parseText(attr.value.trim())
-    }
+    const tokens = parseText(attr.value.trim())
 
-    attrName = camelize(attrName)
+    let attrName
+    if (specialAttrRE.test(attr.name)) {
+      attrName = attr.name
+    } else if (attr.name.indexOf('.') !== -1) {
+      // binding attribute e.g. my-class.*={completed: a > 0} or style.color={'red'}
+      // camelize the first part which is the directive name
+      const parts = attr.name.split(argSeparator)
+      parts[0] = camelize(parts[0])
+      attrName = parts.join(argSeparator)
+    } else {
+      attrName = camelize(attr.name)
+    }
     if (has(map, attrName)) {
       warn(`Found a duplicated attribute, name: ${attr.name}, value:${attr.value}`)
     }
@@ -127,6 +131,7 @@ function toAttributeMap (attrList) {
 
     map[attrName] = attrInfo
   })
+
   return map
 }
 
