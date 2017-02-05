@@ -2829,8 +2829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'updateStyle',
 	    value: function updateStyle(binding, domElem) {
 	      if (binding.args.length === 0) {
-	        // normal style attribute, don't apply the binding
-	        return;
+	        throw new Error('Invalid style binding');
 	      }
 
 	      this.clearStyle(domElem);
@@ -3170,8 +3169,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'updateClasses',
 	    value: function updateClasses(binding, domElem) {
 	      if (binding.args.length === 0) {
-	        // normal class attribute, don't apply the binding
-	        return;
+	        throw new Error('Invalid class binding');
 	      }
 	      var value = {};
 	      if (binding.args[0] === '*') {

@@ -55,8 +55,7 @@ function removeClass (domElem, ...classesToRemove) {
 export default class ClassDirective {
   updateClasses (binding, domElem) {
     if (binding.args.length === 0) {
-      // normal class attribute, don't apply the binding
-      return
+      throw new Error('Invalid class binding')
     }
     let value = {}
     if (binding.args[0] === '*') {

@@ -3,8 +3,7 @@ import {each} from '../../util/index'
 export default class StyleDirective {
   updateStyle (binding, domElem) {
     if (binding.args.length === 0) {
-      // normal style attribute, don't apply the binding
-      return
+      throw new Error('Invalid style binding')
     }
 
     this.clearStyle(domElem)
