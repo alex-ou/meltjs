@@ -32,7 +32,6 @@ describe('Custom directive', () => {
     component.patch()
     expect(component.elem).toBeDefined()
     let span = component.elem.children[0]
-    console.log(span)
     expect(span.style.color).toBe('red')
 
     component.highlight(false)

@@ -7,6 +7,7 @@ export default function createElement (vnode, context) {
   context = context || {}
   var domElem
   vnode.parentComponent = context.component
+  vnode.beforeMount()
   switch (vnode.type) {
     case VNode.Element:
       domElem = createHtmlElement(vnode, context)

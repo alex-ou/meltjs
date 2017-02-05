@@ -1,32 +1,30 @@
-function updateRef (vnode, isRemoving) {
-  const name = vnode.props.ref
-  if (!name) {
-    return
-  }
-  const ref = vnode.component || vnode.elem
-
-  let refs = vnode.parentComponent.refs
-  if (!refs) {
-    refs = vnode.parentComponent.refs = {}
-  }
-  if (isRemoving) {
-    delete refs[name]
-  } else {
-    refs[name] = ref
-  }
-}
-
 export default class RefDirective {
-  attached (_, vnode) {
-    updateRef(vnode)
+  updateRef (refName, vnode) {
+    let refs = vnode.parentComponent.refs
+    if (!refs) {
+      refs = vnode.parentComponent.refs = {}
+    }
+
+    // remove the old ref
+    if (this._refName) {
+      delete refs[this._refName]
+    }
+
+    if (refName) {
+      refs[refName] = vnode.component || vnode.elem
+      this._refName = refName
+    }
   }
 
-  updated (_, newVnode, oldVnode) {
-    updateRef(oldVnode, true)
-    updateRef(newVnode)
+  attached (binding, vnode) {
+    this.updateRef(binding.value, vnode)
+  }
+
+  updated (binding, newVnode) {
+    this.updateRef(binding.value, newVnode)
   }
 
   detached (vnode) {
-    updateRef(vnode, true)
+    this.updateRef(null, vnode)
   }
 }

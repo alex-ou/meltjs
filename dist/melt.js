@@ -60,7 +60,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _component2 = _interopRequireDefault(_component);
 
-	var _component_registry = __webpack_require__(31);
+	var _index = __webpack_require__(33);
 
 	var _app = __webpack_require__(23);
 
@@ -73,9 +73,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	Melt.createElement = _component2.default;
-	Melt.component = _component_registry.registerComponent;
-	Melt.container = _component_registry.registerContainer;
-	Melt.directive = _component_registry.registerDirective;
+	Melt.component = _index.registerComponent;
+	Melt.container = _index.registerContainer;
+	Melt.directive = _index.registerDirective;
 	Melt.app = Melt;
 
 	module.exports = Melt;
@@ -1560,6 +1560,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: 'beforeMount',
+	    value: function beforeMount() {
+	      this._notifyListeners('beforeMount', this);
+	    }
+	  }, {
 	    key: 'mounted',
 	    value: function mounted(domElem) {
 	      this.elem = domElem;
@@ -2554,44 +2559,43 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function updateRef(vnode, isRemoving) {
-	  var name = vnode.props.ref;
-	  if (!name) {
-	    return;
-	  }
-	  var ref = vnode.component || vnode.elem;
-
-	  var refs = vnode.parentComponent.refs;
-	  if (!refs) {
-	    refs = vnode.parentComponent.refs = {};
-	  }
-	  if (isRemoving) {
-	    delete refs[name];
-	  } else {
-	    refs[name] = ref;
-	  }
-	}
-
 	var RefDirective = function () {
 	  function RefDirective() {
 	    _classCallCheck(this, RefDirective);
 	  }
 
 	  _createClass(RefDirective, [{
+	    key: "updateRef",
+	    value: function updateRef(refName, vnode) {
+	      var refs = vnode.parentComponent.refs;
+	      if (!refs) {
+	        refs = vnode.parentComponent.refs = {};
+	      }
+
+	      // remove the old ref
+	      if (this._refName) {
+	        delete refs[this._refName];
+	      }
+
+	      if (refName) {
+	        refs[refName] = vnode.component || vnode.elem;
+	        this._refName = refName;
+	      }
+	    }
+	  }, {
 	    key: "attached",
-	    value: function attached(_, vnode) {
-	      updateRef(vnode);
+	    value: function attached(binding, vnode) {
+	      this.updateRef(binding.value, vnode);
 	    }
 	  }, {
 	    key: "updated",
-	    value: function updated(_, newVnode, oldVnode) {
-	      updateRef(oldVnode, true);
-	      updateRef(newVnode);
+	    value: function updated(binding, newVnode) {
+	      this.updateRef(binding.value, newVnode);
 	    }
 	  }, {
 	    key: "detached",
 	    value: function detached(vnode) {
-	      updateRef(vnode, true);
+	      this.updateRef(null, vnode);
 	    }
 	  }]);
 
@@ -2623,6 +2627,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _style2 = _interopRequireDefault(_style);
 
+	var _css_class = __webpack_require__(34);
+
+	var _css_class2 = _interopRequireDefault(_css_class);
+
 	var _index = __webpack_require__(3);
 
 	var _component_registry = __webpack_require__(31);
@@ -2631,7 +2639,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	(0, _index.each)({ ref: _ref2.default, style: _style2.default }, function (dirClass, dirName) {
+	var specialAttrNames = ['class', 'style'];
+	var directives = {
+	  ref: _ref2.default,
+	  style: _style2.default,
+	  class: _css_class2.default
+	};
+
+	(0, _index.each)(directives, function (dirClass, dirName) {
 	  return (0, _component_registry.registerDirective)(dirName, {
 	    class: dirClass,
 	    isBuildIn: true
@@ -2688,10 +2703,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function _parseDirectives(attrs) {
 	      var directives = {};
 	      (0, _index.each)(attrs || [], function (attrValue, attrName) {
+	        if (specialAttrNames.indexOf(attrName) >= 0) {
+	          // Normal attribute binding, not a directive
+	          return;
+	        }
 	        var parts = attrName.split('.');
 	        var dirName = parts[0];
 	        parts.shift();
-	        if ((0, _component_registry.isRegistered)(dirName)) {
+	        if ((0, _component_registry.isRegistered)(dirName) || (0, _component_registry.isRegistered)((0, _index.camelize)(dirName))) {
 	          directives[attrName] = {
 	            name: dirName,
 	            value: attrValue,
@@ -2705,7 +2724,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: '_createDirective',
 	    value: function _createDirective(binding) {
 	      var dirOption = (0, _component_registry.getComponent)(binding.name);
-	      return createDirective(dirOption, binding);
+	      var dir = createDirective(dirOption, binding);
+	      dir.binding = binding;
+	      return dir;
 	    }
 	  }, {
 	    key: '_callback',
@@ -2720,40 +2741,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: 'mounted',
-	    value: function mounted(vnode) {
+	    key: 'beforeMount',
+	    value: function beforeMount(vnode) {
 	      var _this2 = this;
 
 	      vnode.directives = {};
 	      (0, _index.each)(this._parseDirectives(vnode.attributes), function (dirBinding, attrName) {
 	        var dir = _this2._createDirective(dirBinding);
 	        vnode.directives[attrName] = dir;
-	        _this2._callback(dir, LifecycleEvent.ATTACHED, dirBinding, vnode);
+	        delete vnode.attributes[attrName];
+	      });
+	    }
+	  }, {
+	    key: 'mounted',
+	    value: function mounted(vnode) {
+	      var _this3 = this;
+
+	      (0, _index.each)(vnode.directives || {}, function (dir) {
+	        _this3._callback(dir, LifecycleEvent.ATTACHED, dir.binding, vnode);
 	      });
 	    }
 	  }, {
 	    key: 'updated',
 	    value: function updated(newVnode, oldVnode) {
-	      var _this3 = this;
+	      var _this4 = this;
 
 	      var newDirBindings = this._parseDirectives(newVnode.attributes);
 	      var oldDirs = oldVnode.directives;
-	      var newDirs = [];
+	      var newDirs = {};
 	      (0, _index.each)(newDirBindings, function (dirBinding, attrName) {
 	        var dir = oldDirs[attrName];
 	        if (dir) {
 	          // existing directives, copy them over and call updated lifecycle hook
+	          // update the binding
+	          dir.binding = dirBinding;
 	          newDirs[attrName] = dir;
-	          _this3._callback(dir, LifecycleEvent.UPDATED, dirBinding, newVnode, oldVnode);
+	          _this4._callback(dir, LifecycleEvent.UPDATED, dirBinding, newVnode, oldVnode);
 	        } else {
-	          newDirs[attrName] = _this3._createDirective(dirBinding);
-	          _this3._callback(dir, LifecycleEvent.ATTACHED, dirBinding, newVnode);
+	          newDirs[attrName] = _this4._createDirective(dirBinding);
+	          _this4._callback(dir, LifecycleEvent.ATTACHED, dirBinding, newVnode);
 	        }
 	      });
 	      (0, _index.each)(oldDirs, function (dir, attrName) {
 	        if (!newDirs[attrName]) {
 	          // call detached
-	          _this3._callback(dir, LifecycleEvent.DETACHED, oldVnode);
+	          _this4._callback(dir, LifecycleEvent.DETACHED, oldVnode);
 	        }
 	      });
 	      newVnode.directives = newDirs;
@@ -2761,10 +2793,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'unmounted',
 	    value: function unmounted(vnode) {
-	      var _this4 = this;
+	      var _this5 = this;
 
 	      (0, _index.each)(vnode.directives, function (dir) {
-	        _this4._callback(dir, LifecycleEvent.DETACHED, vnode);
+	        _this5._callback(dir, LifecycleEvent.DETACHED, vnode);
 	      });
 	    }
 	  }]);
@@ -2797,7 +2829,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'updateStyle',
 	    value: function updateStyle(binding, domElem) {
 	      if (binding.args.length === 0) {
-	        throw new Error('Invalid style binding');
+	        // normal style attribute, don't apply the binding
+	        return;
 	      }
 
 	      this.clearStyle(domElem);
@@ -2941,6 +2974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  context = context || {};
 	  var domElem;
 	  vnode.parentComponent = context.component;
+	  vnode.beforeMount();
 	  switch (vnode.type) {
 	    case _vnode2.default.Element:
 	      domElem = createHtmlElement(vnode, context);
@@ -3001,6 +3035,180 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createEmptyNode() {
 	  return nodeOp.createElement('noscript');
 	}
+
+/***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _component_registry = __webpack_require__(31);
+
+	Object.keys(_component_registry).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _component_registry[key];
+	    }
+	  });
+	});
+
+	var _component = __webpack_require__(1);
+
+	Object.keys(_component).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _component[key];
+	    }
+	  });
+	});
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _index = __webpack_require__(3);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	// takes any number of arguments (string/number or object) and add them into the the array according to the following rules:
+	// Object: keys will be added to the array if their value evaluates to a truthy value
+	// strings are shorthand for {str: true}, thus will be added
+	function classNames() {
+	  var classes = [];
+
+	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	    args[_key] = arguments[_key];
+	  }
+
+	  (0, _index.each)(args, function (value) {
+	    if ((0, _index.isString)(value) || (0, _index.isNumber)(value)) {
+	      classes.push(value);
+	    } else if ((0, _index.isArray)(value)) {
+	      Array.prototype.push.apply(classes, classNames.apply(null, value));
+	    } else if ((0, _index.isObject)(value)) {
+	      (0, _index.each)(value, function (v, k) {
+	        if (v) {
+	          classes.push(k);
+	        }
+	      });
+	    }
+	  });
+	  return classes;
+	}
+
+	function addClass(domElem) {
+	  for (var _len2 = arguments.length, classesToAdd = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+	    classesToAdd[_key2 - 1] = arguments[_key2];
+	  }
+
+	  if (classesToAdd.length === 0) {
+	    return;
+	  }
+
+	  if (domElem.classList) {
+	    (0, _index.each)(classesToAdd, function (cls) {
+	      return domElem.classList.add(cls);
+	    });
+	  } else {
+	    (function () {
+	      var currentClasses = domElem.className.split(/\s+/);
+	      (0, _index.each)(classesToAdd, function (cls) {
+	        cls = cls.trim();
+	        if (currentClasses.indexOf(cls) === -1) {
+	          currentClasses.push(cls);
+	        }
+	      });
+	      domElem.className = currentClasses.join(' ');
+	    })();
+	  }
+	}
+
+	function removeClass(domElem) {
+	  for (var _len3 = arguments.length, classesToRemove = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+	    classesToRemove[_key3 - 1] = arguments[_key3];
+	  }
+
+	  if (!classesToRemove) {
+	    return;
+	  }
+	  if (domElem.classList) {
+	    (0, _index.each)(classesToRemove, function (cls) {
+	      return domElem.classList.remove(cls);
+	    });
+	  } else {
+	    var currentClasses = domElem.className.split(/\s+/);
+	    domElem.className = currentClasses.filter(function (cls) {
+	      return classesToRemove.indexOf(cls.trim()) === -1;
+	    }).join(' ');
+	  }
+	}
+
+	var ClassDirective = function () {
+	  function ClassDirective() {
+	    _classCallCheck(this, ClassDirective);
+	  }
+
+	  _createClass(ClassDirective, [{
+	    key: 'updateClasses',
+	    value: function updateClasses(binding, domElem) {
+	      if (binding.args.length === 0) {
+	        // normal class attribute, don't apply the binding
+	        return;
+	      }
+	      var value = {};
+	      if (binding.args[0] === '*') {
+	        value = binding.value;
+	        if ((0, _index.isString)(value)) {
+	          value = value.split(/\s+/);
+	        }
+	      } else {
+	        value[binding.args[0]] = binding.value;
+	      }
+	      removeClass.apply(undefined, [domElem].concat(_toConsumableArray(this._oldClasses || [])));
+	      var classes = classNames(value);
+	      addClass.apply(undefined, [domElem].concat(_toConsumableArray(classes)));
+
+	      this._oldClasses = classes;
+	    }
+	  }, {
+	    key: 'attached',
+	    value: function attached(binding, vnode) {
+	      this.updateClasses(binding, vnode.elem);
+	    }
+	  }, {
+	    key: 'updated',
+	    value: function updated(binding, newVnode) {
+	      this.updateClasses(binding, newVnode.elem);
+	    }
+	  }, {
+	    key: 'detached',
+	    value: function detached(vnode) {
+	      removeClass.apply(undefined, [vnode.elem].concat(_toConsumableArray(this._oldClasses || [])));
+	    }
+	  }]);
+
+	  return ClassDirective;
+	}();
+
+	exports.default = ClassDirective;
 
 /***/ }
 /******/ ])

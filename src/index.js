@@ -1,5 +1,5 @@
 import createElement from './web/component'
-import {registerComponent, registerContainer, registerDirective} from './web/component_registry'
+import {registerComponent, registerContainer, registerDirective} from './web/index'
 import createApp from './app'
 
 function Melt (options) {

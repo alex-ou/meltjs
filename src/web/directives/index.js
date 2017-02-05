@@ -1,9 +1,17 @@
-import ref from './ref'
-import style from './style'
-import {isArray, isFunction, each, noop} from '../../util/index'
+import RefDirective from './ref'
+import StyleDirective from './style'
+import ClassDirective from './css_class'
+import {isArray, isFunction, each, noop, camelize} from '../../util/index'
 import {registerDirective, isRegistered, getComponent} from '../component_registry'
 
-each({ref, style}, (dirClass, dirName) => registerDirective(dirName, {
+const specialAttrNames = ['class', 'style']
+const directives = {
+  ref: RefDirective,
+  style: StyleDirective,
+  class: ClassDirective
+}
+
+each(directives, (dirClass, dirName) => registerDirective(dirName, {
   class: dirClass,
   isBuildIn: true
 }))
@@ -50,10 +58,14 @@ export class DirectiveHandler {
   _parseDirectives (attrs) {
     const directives = {}
     each(attrs || [], (attrValue, attrName) => {
+      if (specialAttrNames.indexOf(attrName) >= 0) {
+        // Normal attribute binding, not a directive
+        return
+      }
       const parts = attrName.split('.')
       const dirName = parts[0]
       parts.shift()
-      if (isRegistered(dirName)) {
+      if (isRegistered(dirName) || isRegistered(camelize(dirName))) {
         directives[attrName] = ({
           name: dirName,
           value: attrValue,
@@ -66,7 +78,9 @@ export class DirectiveHandler {
 
   _createDirective (binding) {
     const dirOption = getComponent(binding.name)
-    return createDirective(dirOption, binding)
+    const dir = createDirective(dirOption, binding)
+    dir.binding = binding
+    return dir
   }
 
   _callback (dir, name, ...args) {
@@ -76,23 +90,31 @@ export class DirectiveHandler {
     }
   }
 
-  mounted (vnode) {
+  beforeMount (vnode) {
     vnode.directives = {}
     each(this._parseDirectives(vnode.attributes), (dirBinding, attrName) => {
       const dir = this._createDirective(dirBinding)
       vnode.directives[attrName] = dir
-      this._callback(dir, LifecycleEvent.ATTACHED, dirBinding, vnode)
+       delete vnode.attributes[attrName]
+    })
+  }
+
+  mounted (vnode) {
+    each(vnode.directives || {}, dir => {
+      this._callback(dir, LifecycleEvent.ATTACHED, dir.binding, vnode)
     })
   }
 
   updated (newVnode, oldVnode) {
     const newDirBindings = this._parseDirectives(newVnode.attributes)
     const oldDirs = oldVnode.directives
-    const newDirs = []
+    const newDirs = {}
     each(newDirBindings, (dirBinding, attrName) => {
       const dir = oldDirs[attrName]
       if (dir) {
         // existing directives, copy them over and call updated lifecycle hook
+        // update the binding
+        dir.binding = dirBinding
         newDirs[attrName] = dir
         this._callback(dir, LifecycleEvent.UPDATED, dirBinding, newVnode, oldVnode)
       } else {

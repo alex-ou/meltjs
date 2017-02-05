@@ -84,6 +84,10 @@ export default class VNode {
     })
   }
 
+  beforeMount () {
+    this._notifyListeners('beforeMount', this)
+  }
+
   mounted (domElem) {
     this.elem = domElem
     this._notifyListeners('mounted', this)
