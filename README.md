@@ -3,6 +3,7 @@ A minimalistic yet powerful Javascript library for building web user interfaces.
 * **Model**: the state of the whole application
 * **Update**: the only place the model can be mutated
 * **Template**: the way to render the model as HTML
+
 ## Features
 ### Template-based
 Write expressive and concise views in pure HTML with react-like binding syntax and built-in directives e.g. `each`, `if`, `ref` etc.
