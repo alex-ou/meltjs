@@ -1,21 +1,32 @@
 # MeltJS
-
-MeltJS is a very light framework that allows you to create web applications that have predicable behaviors and are easy to test. It has three essential parts:
-
+A minimalistic yet powerful Javascript library for building web user interfaces. MeltJS has three essential parts:
 * **Model**: the state of the whole application
 * **Update**: the only place the model can be mutated
-* **Template/Render**: the way to render the model as HTML
+* **Template**: the way to render the model as HTML
+## Features
+### Template-based
+Write expressive and concise views in pure HTML with react-like binding syntax and built-in directives e.g. `each`, `if`, `ref` etc.
+```html
+<ul>
+  <li each="item in items" if='item > 0' class.completed="{isCompleted}"></li>
+</ul>
+```
+### Component/Container support
+Better separation of concerns and code reusability with presentational components and container components. Connect views to the model easily via containers to get a clean component structure.
+### One-way data flow
+Predicable application state with a single model and one-way root-to-leaf data flow. Hassle-free way to dispatch the action and data to the model update functions.
+### Custom directives
+Wrap DOM interactions inside custom directives to create more expressive views and achieve more code reusability 
 
 ## Example
 [jsfiddle Demo](https://jsfiddle.net/alex_ou/fomL88qw/)
 
 ```javascript
-// The pure functons that update the model
-// Notice that the model is passed in as the argument
-function increase (model) {
+// The pure functons that take the model as the argument, and return a new model
+function increase ({model}) {
   return model + 1
 }
-function decrease (model) {
+function decrease ({model}) {
   return model - 1
 }
 
@@ -26,29 +37,10 @@ Melt.app({
   	increase,
     decrease
   },
-  template:
+  template: 
   `<div>{model}
   	<button on-click='{increase()}'>+</button>
     <button on-click='{decrease()}'>-</button>
   </div>`
 })
-
 ```
-## Why another JS framework
-Melt was created with the following three purposes:
-### Makes component design easier
-Melt supports two kinds of components: stateless function components and components with states
-
-### Enforces one way data flow
-In Melt, data only flows in one way. In the view, if you want to change the model, actions have to be used to dispatch the data to the application's update method. After the model is changed, Melt propagates the changes from the root component to the leaf ones. This is to help maintain a predicable application state and improve the performance
-
-### Provides two kinds of view rendering methods- JSX and templates
-On one hand, JSX allows you to describe the view using JavaScript, this makes it really flexible as you can utilize all the build-in JS language features, that's why a lot of developers like it. Melt uses virtual DOM to represent the DOM as well, and the `Melt.createElement` function used to create virtual elements is fully compatible with JSX.
-On the other hand, writing views using templates with some framework provided directives, e.g. `each`, `if`, `ref` etc, you will end up with very expressive and concise views. Consider the following example, with a glimpse, you can tell that it'll render into a list:
-
-```html
-<ul>
-  <li each="{item in items}" if='item > 0'></li>
-</ul>
-```
-All the templates in Melt will be compiled into virtual DOM so it'll be transparent to developers.
