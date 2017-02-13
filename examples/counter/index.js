@@ -20,7 +20,7 @@ Melt.container('app', {
 })
 
 Melt.app({
-  el: '#app',
+  elem: '#app',
   template: '<app></app>',
   model: 0,
   update: {

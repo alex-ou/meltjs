@@ -2287,7 +2287,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 
 	  // The root element the the component will be mounted to
-	  rootEl = options.el && (0, _nodeOp.query)(options.el);
+	  rootEl = options.elem && (0, _nodeOp.query)(options.elem);
 	  (0, _nodeOp.emptyElement)(rootEl);
 
 	  // the root component which needs to access the model and actions, make it a container
@@ -2345,7 +2345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  updateView();
 
 	  return (0, _index.extend)({
-	    el: rootEl,
+	    elem: rootEl,
 	    component: component,
 	    update: updateView,
 	    getModel: function getModel() {

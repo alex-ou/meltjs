@@ -137,7 +137,7 @@ Melt.container('app', {
 })
 
 Melt.app({
-  el: '#app',
+  elem: '#app',
   template: '<app></app>',
   model: {
     todos: [],

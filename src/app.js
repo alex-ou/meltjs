@@ -10,7 +10,7 @@ export default function createApp (options) {
   const dispatch = action => store.dispatch(action)
 
   // The root element the the component will be mounted to
-  rootEl = options.el && query(options.el)
+  rootEl = options.elem && query(options.elem)
   emptyElement(rootEl)
 
   // the root component which needs to access the model and actions, make it a container
@@ -65,7 +65,7 @@ export default function createApp (options) {
 
   return extend(
     {
-      el: rootEl,
+      elem: rootEl,
       component,
       update: updateView,
       getModel: () => store.getModel()

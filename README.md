@@ -32,7 +32,7 @@ function decrease ({model}) {
 }
 
 Melt.app({
-  el: '#app', //the root DOM element
+  elem: '#app', //the root DOM element
   model: 0,
   update: {
   	increase,

@@ -11,7 +11,7 @@ describe('Melt app', () => {
     }
 
     const app = Melt({
-      el: document.body,
+      elem: document.body,
       template: '<div></div>',
       model: initialModel,
       update: {
@@ -36,7 +36,7 @@ describe('Melt app', () => {
     }
 
     const app = Melt({
-      el: document.body,
+      elem: document.body,
       template: '<div></div>',
       model: {count: 0},
       update: {
