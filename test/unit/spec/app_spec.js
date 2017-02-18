@@ -52,4 +52,13 @@ describe('Melt app', () => {
     app.decrease(4)
     expect(app.getModel()).toEqual({count: 0})
   })
+
+  it('should use the innerHtml of the root element as template when the template is not passed in', () => {
+    document.body.innerHTML = '<span>{model.count}</span>'
+    Melt({
+      elem: document.body,
+      model: {count: 2}
+    })
+    expect(document.body.innerHTML).toBe('<span>2</span>')
+  })
 })

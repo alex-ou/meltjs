@@ -1292,7 +1292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    // Has If directive, if="a > 0"
 	    if (element.if) {
-	      createElemCode = element.if.condition + '?' + createElemCode + ':null';
+	      createElemCode = '(' + element.if.condition + ')?' + createElemCode + ':null';
 	    }
 	    return createElemCode;
 	  }
@@ -1337,7 +1337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// will be converted to '11' + name
 	function genText(tokens) {
 	  return (tokens || []).map(function (item) {
-	    return item.type === _ast_type.AstTokenType.Literal ? JSON.stringify(item.token) : item.token;
+	    return item.type === _ast_type.AstTokenType.Literal ? JSON.stringify(item.token) : '(' + item.token + ')';
 	  }).join('+');
 	}
 
@@ -2288,6 +2288,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  // The root element the the component will be mounted to
 	  rootEl = options.elem && (0, _nodeOp.query)(options.elem);
+	  if (!options.template) {
+	    options.template = rootEl.innerHTML;
+	  }
 	  (0, _nodeOp.emptyElement)(rootEl);
 
 	  // the root component which needs to access the model and actions, make it a container

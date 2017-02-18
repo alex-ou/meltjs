@@ -11,7 +11,7 @@ describe('AST parser', () => {
   it('can generate code for the interpolated text', () => {
     let ast = parse('<span>Hello {name}</span>')
     var code = generate(ast)
-    expect(code).toBe('_h("span",{},["Hello "+name])')
+    expect(code).toBe('_h("span",{},["Hello "+(name)])')
   })
 
   it('can generate code for the event handler', () => {
@@ -35,7 +35,7 @@ describe('AST parser', () => {
     )
     let code = generate(ast)
     expect(code).toBe(
-      '_h("div",{"class":"text "+color},' +
+      '_h("div",{"class":"text "+(color)},' +
         '[' +
           '_h("input",{"value":"1","disabled":"disabled"},[]),' +
           '_h("a",{"href":"/link"},["link"])' +
@@ -46,18 +46,18 @@ describe('AST parser', () => {
   it('can generate code for the if directive', () => {
     let ast = parse('<span if="{a>0}">1</span>')
     var code = generate(ast)
-    expect(code).toBe('a>0?_h("span",{},["1"]):null')
+    expect(code).toBe('(a>0)?_h("span",{},["1"]):null')
   })
 
   it('can generate code for the each directive', () => {
     let ast = parse('<span each="{n in array}">{n}</span>')
     var code = generate(ast)
-    expect(code).toBe('_c(array,function(n){return _h("span",{},[n])})')
+    expect(code).toBe('_c(array,function(n){return _h("span",{},[(n)])})')
   })
 
   it('can generate code for special attributes', () => {
     let ast = parse('<span my-style.font-size="{a>0?10:20}" data-foo="foo" aria-busy="false">1</span>')
     var code = generate(ast)
-    expect(code).toBe('_h("span",{"myStyle.font-size":a>0?10:20,"data-foo":"foo","aria-busy":"false"},["1"])')
+    expect(code).toBe('_h("span",{"myStyle.font-size":(a>0?10:20),"data-foo":"foo","aria-busy":"false"},["1"])')
   })
 })

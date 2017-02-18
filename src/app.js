@@ -11,6 +11,9 @@ export default function createApp (options) {
 
   // The root element the the component will be mounted to
   rootEl = options.elem && query(options.elem)
+  if (!options.template) {
+    options.template = rootEl.innerHTML
+  }
   emptyElement(rootEl)
 
   // the root component which needs to access the model and actions, make it a container

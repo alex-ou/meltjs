@@ -40,7 +40,7 @@ function genElement (element) {
 
     // Has If directive, if="a > 0"
     if (element.if) {
-      createElemCode = `${element.if.condition}?${createElemCode}:null`
+      createElemCode = `(${element.if.condition})?${createElemCode}:null`
     }
     return createElemCode
   }
@@ -83,7 +83,7 @@ function genChildren (element) {
 // will be converted to '11' + name
 function genText (tokens) {
   return (tokens || []).map(
-    item => item.type === AstTokenType.Literal ? JSON.stringify(item.token) : item.token
+    item => item.type === AstTokenType.Literal ? JSON.stringify(item.token) : `(${item.token})`
   ).join('+')
 }
 
