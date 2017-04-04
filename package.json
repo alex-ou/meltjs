@@ -1,8 +1,8 @@
 {
-  "name": "melt.js",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "meltjs",
+  "version": "0.1.1",
+  "description": "A minimalistic yet powerful Javascript library for building web user interfaces",
+  "main": "/dist/melt.js",
   "scripts": {
     "build": "webpack",
     "dev": "webpack --config webpack.config.js --watch & webpack --config webpack.dev.config.js --watch & npm run serve-test",
@@ -10,7 +10,7 @@
     "lint": "node ./node_modules/eslint/bin/eslint.js src/** test/unit/**; exit 0",
     "unit": "karma start"
   },
-  "author": "",
+  "author": "Alex Ou",
   "license": "MIT",
   "devDependencies": {
     "babel-core": "^6.7.6",

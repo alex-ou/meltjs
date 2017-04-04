@@ -60,9 +60,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _component2 = _interopRequireDefault(_component);
 
-	var _index = __webpack_require__(33);
+	var _index = __webpack_require__(28);
 
-	var _app = __webpack_require__(23);
+	var _app = __webpack_require__(29);
 
 	var _app2 = _interopRequireDefault(_app);
 
@@ -96,7 +96,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _create_dom = __webpack_require__(32);
+	var _create_dom = __webpack_require__(16);
 
 	var _create_dom2 = _interopRequireDefault(_create_dom);
 
@@ -112,9 +112,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _index4 = __webpack_require__(10);
 
-	var _index5 = __webpack_require__(29);
+	var _index5 = __webpack_require__(23);
 
-	var _component_registry = __webpack_require__(31);
+	var _component_registry = __webpack_require__(27);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1443,7 +1443,99 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 16 */,
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = createElement;
+
+	var _vnode = __webpack_require__(17);
+
+	var _vnode2 = _interopRequireDefault(_vnode);
+
+	var _index = __webpack_require__(3);
+
+	var _nodeOp = __webpack_require__(18);
+
+	var nodeOp = _interopRequireWildcard(_nodeOp);
+
+	var _set_attribute = __webpack_require__(19);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function createElement(vnode, context) {
+	  context = context || {};
+	  var domElem;
+	  vnode.parentComponent = context.component;
+	  vnode.beforeMount();
+	  switch (vnode.type) {
+	    case _vnode2.default.Element:
+	      domElem = createHtmlElement(vnode, context);
+	      break;
+	    case _vnode2.default.Empty:
+	      domElem = createEmptyNode();
+	      break;
+	    case _vnode2.default.Text:
+	      domElem = createTextNode(vnode);
+	      break;
+	    case _vnode2.default.Thunk:
+	      domElem = createThunk(vnode, context);
+	      break;
+	  }
+	  vnode.mounted(domElem);
+	  return domElem;
+	}
+
+	function createThunk(vnode, context) {
+	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
+	  var currentComponent = context.component;
+
+	  context.component = vnode.component;
+	  var domElem = createElement(vnode.thunkVnode, context);
+
+	  // recover the component context
+	  context.component = currentComponent;
+	  return domElem;
+	}
+
+	function createHtmlElement(vnode, context) {
+	  var tagName = vnode.tagName,
+	      children = vnode.children,
+	      attributes = vnode.attributes;
+
+
+	  var elem = nodeOp.createElement(tagName);
+
+	  for (var name in attributes) {
+	    (0, _set_attribute.setAttribute)(elem, name, attributes[name]);
+	  }
+
+	  children.forEach(function (child) {
+	    if ((0, _index.isNull)(child) || (0, _index.isUndefined)(child)) {
+	      return;
+	    }
+
+	    nodeOp.appendChild(elem, createElement(child, context));
+	  });
+	  return elem;
+	}
+
+	function createTextNode(vnode) {
+	  var text = (0, _index.isNumber)(vnode.nodeValue) || (0, _index.isString)(vnode.nodeValue) ? vnode.nodeValue : '';
+	  return nodeOp.createTextNode(text);
+	}
+
+	function createEmptyNode() {
+	  return nodeOp.createElement('noscript');
+	}
+
+/***/ },
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -1842,7 +1934,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _set_attribute = __webpack_require__(19);
 
-	var _create_dom = __webpack_require__(32);
+	var _create_dom = __webpack_require__(16);
 
 	var _create_dom2 = _interopRequireDefault(_create_dom);
 
@@ -2260,383 +2352,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.default = createApp;
-
-	var _index = __webpack_require__(3);
-
-	var _nodeOp = __webpack_require__(18);
-
-	var _index2 = __webpack_require__(24);
-
-	var _index3 = _interopRequireDefault(_index2);
-
-	var _action = __webpack_require__(26);
-
-	var _component = __webpack_require__(1);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function createApp(options) {
-	  var store = void 0,
-	      component = void 0,
-	      actions = void 0,
-	      rootEl = void 0;
-
-	  var dispatch = function dispatch(action) {
-	    return store.dispatch(action);
-	  };
-
-	  // The root element the the component will be mounted to
-	  rootEl = options.elem && (0, _nodeOp.query)(options.elem);
-	  if (!options.template) {
-	    options.template = rootEl.innerHTML;
-	  }
-	  (0, _nodeOp.emptyElement)(rootEl);
-
-	  // the root component which needs to access the model and actions, make it a container
-	  options.isContainer = true;
-	  component = (0, _component.createComponent)(options);
-
-	  // Generate the action creators
-	  actions = {};
-	  if (!(0, _index.isFunction)(options.update)) {
-	    actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
-	    actions = (0, _action.bindActionCreators)(actions, dispatch);
-	  }
-
-	  var update = options.update || {};
-	  if (!(0, _index.isFunction)(update)) {
-	    update = enhanceHandler(update);
-	  }
-	  store = (0, _index3.default)(options.model, update);
-	  store.subscribe(function () {
-	    updateView();
-	  });
-
-	  function updateView() {
-	    var domElem = component.patch(getAppContext());
-	    (0, _nodeOp.appendChild)(rootEl, domElem);
-	  }
-
-	  /**
-	   * Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
-	   */
-	  function enhanceHandler(actionHandlerMap) {
-	    var enhanced = {};
-	    (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
-	      var newHandler = function newHandler() {
-	        for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
-	          params[_key] = arguments[_key];
-	        }
-
-	        // inject 1 more param to the handler, and execute the original handler in the application context
-	        return actionHandler.apply(undefined, [getAppContext()].concat(params));
-	      };
-	      enhanced[actionType] = newHandler;
-	    });
-	    return enhanced;
-	  }
-
-	  function getAppContext() {
-	    return (0, _index.extend)({
-	      model: store.getModel(),
-	      dispatch: dispatch,
-	      component: component
-	    }, actions);
-	  }
-
-	  updateView();
-
-	  return (0, _index.extend)({
-	    elem: rootEl,
-	    component: component,
-	    update: updateView,
-	    getModel: function getModel() {
-	      return store.getModel();
-	    }
-	  }, actions);
-	}
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _store = __webpack_require__(25);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = _store2.default;
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.Store = undefined;
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	exports.default = createStore;
-
-	var _index = __webpack_require__(3);
-
-	var _action = __webpack_require__(26);
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Store = exports.Store = function () {
-	  function Store(initialModel, updater) {
-	    _classCallCheck(this, Store);
-
-	    this.model = initialModel;
-	    this.modelUpdater = updater;
-
-	    this.listeners = [];
-	  }
-
-	  _createClass(Store, [{
-	    key: 'getModel',
-	    value: function getModel() {
-	      return this.model;
-	    }
-	  }, {
-	    key: 'dispatch',
-	    value: function dispatch(action) {
-	      var update = this.modelUpdater;
-	      var oldModel = this.model;
-
-	      this.model = update(oldModel, action);
-
-	      this.listeners.forEach(function (listener) {
-	        listener();
-	      });
-	    }
-	  }, {
-	    key: 'subscribe',
-	    value: function subscribe(listener) {
-	      if (!(0, _index.isFunction)(listener)) {
-	        throw new Error('Invalid argument: listener needs to be a function');
-	      }
-
-	      var allListeners = this.listeners;
-	      allListeners.push(listener);
-
-	      return function unsubscribe() {
-	        var index = allListeners.indexOf(listener);
-
-	        if (index >= 0) {
-	          allListeners.splice(index, 1);
-	        }
-	      };
-	    }
-	  }]);
-
-	  return Store;
-	}();
-
-	function createStore(model, update) {
-	  var modelUpdater = update || _index.noop;
-	  if (!(0, _index.isFunction)(modelUpdater)) {
-	    modelUpdater = (0, _action.createModelUpdater)(update);
-	  }
-	  return new Store(model, modelUpdater);
-	}
-
-/***/ },
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.bindActionCreator = bindActionCreator;
-	exports.bindActionCreators = bindActionCreators;
-	exports.createActionCreator = createActionCreator;
-	exports.createActionCreators = createActionCreators;
-	exports.createModelUpdater = createModelUpdater;
-
-	var _index = __webpack_require__(3);
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	function bindActionCreator(action, dispatch) {
-	  return function () {
-	    return dispatch(action.apply(undefined, arguments));
-	  };
-	}
-
-	function bindActionCreators(actions, dispatch) {
-	  if (!(0, _index.isObject)(actions) || (0, _index.isNull)(actions)) {
-	    throw Error('actions must be an object');
-	  }
-
-	  var result = {};
-	  var keys = (0, _index.getKeys)(actions);
-	  for (var i = 0; i < keys.length; i++) {
-	    var key = keys[i];
-	    result[key] = bindActionCreator(actions[key], dispatch);
-	  }
-	  return result;
-	}
-
-	/**
-	 * Create an action creator given the action type. the returned action creator can take any parameters
-	 * @param actionType
-	 * @returns {function()}
-	 */
-	function createActionCreator(actionType) {
-	  return function () {
-	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	      args[_key] = arguments[_key];
-	    }
-
-	    return {
-	      type: actionType,
-	      params: args
-	    };
-	  };
-	}
-	/**
-	 * Create an object whose keys are actions types and values the action creators. And all the actions creators will be
-	 * wrapped with the dispatch call, so they can be called directly to dispatch an action
-	 * @param actionTypes, array of action types
-	 */
-	function createActionCreators(actionTypes) {
-	  var actionCreators = {};
-	  (0, _index.each)(actionTypes, function (actionType) {
-	    if ((0, _index.has)(actionCreators, actionType)) {
-	      throw new Error('Duplicated action type found in' + actionType);
-	    }
-	    actionCreators[actionType] = createActionCreator(actionType);
-	  });
-	  return actionCreators;
-	}
-
-	/**
-	 * Create an update function which will handle the actions created by calling createActionCreator
-	 * @param actionHandlerMap, an object which has all the action handlers in format of {actionType: handler}, e.g.
-	 * {
-	   *  'Increase': (model) => model + 1,
-	   *  'Decrease': (model) => model - 1
-	   *  }
-	 * @returns {update}, the update function used by the MeltStore
-	 */
-	function createModelUpdater(actionHandlerMap) {
-	  return function update(model, action) {
-	    var newModel = model;
-	    // Only update the model if the action type exists
-	    if ((0, _index.has)(actionHandlerMap, action.type)) {
-	      var handler = actionHandlerMap[action.type];
-	      newModel = handler.apply(undefined, _toConsumableArray(action.params).concat([model]));
-	    }
-	    return newModel;
-	  };
-	}
-
-/***/ },
-/* 27 */,
-/* 28 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var RefDirective = function () {
-	  function RefDirective() {
-	    _classCallCheck(this, RefDirective);
-	  }
-
-	  _createClass(RefDirective, [{
-	    key: "updateRef",
-	    value: function updateRef(refName, vnode) {
-	      var refs = vnode.parentComponent.refs;
-	      if (!refs) {
-	        refs = vnode.parentComponent.refs = {};
-	      }
-
-	      // remove the old ref
-	      if (this._refName) {
-	        delete refs[this._refName];
-	      }
-
-	      if (refName) {
-	        refs[refName] = vnode.component || vnode.elem;
-	        this._refName = refName;
-	      }
-	    }
-	  }, {
-	    key: "attached",
-	    value: function attached(binding, vnode) {
-	      this.updateRef(binding.value, vnode);
-	    }
-	  }, {
-	    key: "updated",
-	    value: function updated(binding, newVnode) {
-	      this.updateRef(binding.value, newVnode);
-	    }
-	  }, {
-	    key: "detached",
-	    value: function detached(vnode) {
-	      this.updateRef(null, vnode);
-	    }
-	  }]);
-
-	  return RefDirective;
-	}();
-
-	exports.default = RefDirective;
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
 	exports.DirectiveHandler = undefined;
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	exports.createDirective = createDirective;
 
-	var _ref = __webpack_require__(28);
+	var _ref = __webpack_require__(24);
 
 	var _ref2 = _interopRequireDefault(_ref);
 
-	var _style = __webpack_require__(30);
+	var _style = __webpack_require__(25);
 
 	var _style2 = _interopRequireDefault(_style);
 
-	var _css_class = __webpack_require__(34);
+	var _css_class = __webpack_require__(26);
 
 	var _css_class2 = _interopRequireDefault(_css_class);
 
 	var _index = __webpack_require__(3);
 
-	var _component_registry = __webpack_require__(31);
+	var _component_registry = __webpack_require__(27);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2808,7 +2544,66 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 /***/ },
-/* 30 */
+/* 24 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var RefDirective = function () {
+	  function RefDirective() {
+	    _classCallCheck(this, RefDirective);
+	  }
+
+	  _createClass(RefDirective, [{
+	    key: "updateRef",
+	    value: function updateRef(refName, vnode) {
+	      var refs = vnode.parentComponent.refs;
+	      if (!refs) {
+	        refs = vnode.parentComponent.refs = {};
+	      }
+
+	      // remove the old ref
+	      if (this._refName) {
+	        delete refs[this._refName];
+	      }
+
+	      if (refName) {
+	        refs[refName] = vnode.component || vnode.elem;
+	        this._refName = refName;
+	      }
+	    }
+	  }, {
+	    key: "attached",
+	    value: function attached(binding, vnode) {
+	      this.updateRef(binding.value, vnode);
+	    }
+	  }, {
+	    key: "updated",
+	    value: function updated(binding, newVnode) {
+	      this.updateRef(binding.value, newVnode);
+	    }
+	  }, {
+	    key: "detached",
+	    value: function detached(vnode) {
+	      this.updateRef(null, vnode);
+	    }
+	  }]);
+
+	  return RefDirective;
+	}();
+
+	exports.default = RefDirective;
+
+/***/ },
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2883,197 +2678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = StyleDirective;
 
 /***/ },
-/* 31 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.clearRegistry = clearRegistry;
-	exports.registerComponent = registerComponent;
-	exports.registerContainer = registerContainer;
-	exports.registerDirective = registerDirective;
-	exports.getComponent = getComponent;
-	exports.isRegistered = isRegistered;
-
-	var _index = __webpack_require__(3);
-
-	// Component Management
-	var componentRegistry = {};
-
-	function clearRegistry() {
-	  (0, _index.each)(componentRegistry, function (componentOptions, name) {
-	    if (!componentOptions.isBuildIn) {
-	      delete componentRegistry[name]; // only remove the non-build-in components
-	    }
-	  });
-	}
-
-	function registerComponent(name, options, isContainer) {
-	  if (componentRegistry[name]) {
-	    (0, _index.warn)('Component ' + name + ' is already registered');
-	  }
-	  options.isContainer = isContainer;
-	  options.selector = name;
-	  componentRegistry[name] = options;
-	  return options;
-	}
-
-	function registerContainer(name, options) {
-	  return registerComponent(name, options, true);
-	}
-
-	function registerDirective(name, options) {
-	  if ((0, _index.isFunction)(options)) {
-	    // shorthand syntax
-	    options = {
-	      class: options
-	    };
-	  }
-	  var compOptions = registerComponent(name, options);
-	  compOptions.isDirective = true;
-	  return compOptions;
-	}
-
-	function getComponent(tag) {
-	  return (0, _index.isString)(tag) && componentRegistry[tag];
-	}
-
-	function isRegistered(name) {
-	  return !!getComponent(name);
-	}
-
-/***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = createElement;
-
-	var _vnode = __webpack_require__(17);
-
-	var _vnode2 = _interopRequireDefault(_vnode);
-
-	var _index = __webpack_require__(3);
-
-	var _nodeOp = __webpack_require__(18);
-
-	var nodeOp = _interopRequireWildcard(_nodeOp);
-
-	var _set_attribute = __webpack_require__(19);
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function createElement(vnode, context) {
-	  context = context || {};
-	  var domElem;
-	  vnode.parentComponent = context.component;
-	  vnode.beforeMount();
-	  switch (vnode.type) {
-	    case _vnode2.default.Element:
-	      domElem = createHtmlElement(vnode, context);
-	      break;
-	    case _vnode2.default.Empty:
-	      domElem = createEmptyNode();
-	      break;
-	    case _vnode2.default.Text:
-	      domElem = createTextNode(vnode);
-	      break;
-	    case _vnode2.default.Thunk:
-	      domElem = createThunk(vnode, context);
-	      break;
-	  }
-	  vnode.mounted(domElem);
-	  return domElem;
-	}
-
-	function createThunk(vnode, context) {
-	  vnode.thunkVnode = (0, _vnode.renderThunk)(vnode, context);
-	  var currentComponent = context.component;
-
-	  context.component = vnode.component;
-	  var domElem = createElement(vnode.thunkVnode, context);
-
-	  // recover the component context
-	  context.component = currentComponent;
-	  return domElem;
-	}
-
-	function createHtmlElement(vnode, context) {
-	  var tagName = vnode.tagName,
-	      children = vnode.children,
-	      attributes = vnode.attributes;
-
-
-	  var elem = nodeOp.createElement(tagName);
-
-	  for (var name in attributes) {
-	    (0, _set_attribute.setAttribute)(elem, name, attributes[name]);
-	  }
-
-	  children.forEach(function (child) {
-	    if ((0, _index.isNull)(child) || (0, _index.isUndefined)(child)) {
-	      return;
-	    }
-
-	    nodeOp.appendChild(elem, createElement(child, context));
-	  });
-	  return elem;
-	}
-
-	function createTextNode(vnode) {
-	  var text = (0, _index.isNumber)(vnode.nodeValue) || (0, _index.isString)(vnode.nodeValue) ? vnode.nodeValue : '';
-	  return nodeOp.createTextNode(text);
-	}
-
-	function createEmptyNode() {
-	  return nodeOp.createElement('noscript');
-	}
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _component_registry = __webpack_require__(31);
-
-	Object.keys(_component_registry).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _component_registry[key];
-	    }
-	  });
-	});
-
-	var _component = __webpack_require__(1);
-
-	Object.keys(_component).forEach(function (key) {
-	  if (key === "default" || key === "__esModule") return;
-	  Object.defineProperty(exports, key, {
-	    enumerable: true,
-	    get: function get() {
-	      return _component[key];
-	    }
-	  });
-	});
-
-/***/ },
-/* 34 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3210,6 +2815,399 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 	exports.default = ClassDirective;
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.clearRegistry = clearRegistry;
+	exports.registerComponent = registerComponent;
+	exports.registerContainer = registerContainer;
+	exports.registerDirective = registerDirective;
+	exports.getComponent = getComponent;
+	exports.isRegistered = isRegistered;
+
+	var _index = __webpack_require__(3);
+
+	// Component Management
+	var componentRegistry = {};
+
+	function clearRegistry() {
+	  (0, _index.each)(componentRegistry, function (componentOptions, name) {
+	    if (!componentOptions.isBuildIn) {
+	      delete componentRegistry[name]; // only remove the non-build-in components
+	    }
+	  });
+	}
+
+	function registerComponent(name, options, isContainer) {
+	  if (componentRegistry[name]) {
+	    (0, _index.warn)('Component ' + name + ' is already registered');
+	  }
+	  options.isContainer = isContainer;
+	  options.selector = name;
+	  componentRegistry[name] = options;
+	  return options;
+	}
+
+	function registerContainer(name, options) {
+	  return registerComponent(name, options, true);
+	}
+
+	function registerDirective(name, options) {
+	  if ((0, _index.isFunction)(options)) {
+	    // shorthand syntax
+	    options = {
+	      class: options
+	    };
+	  }
+	  var compOptions = registerComponent(name, options);
+	  compOptions.isDirective = true;
+	  return compOptions;
+	}
+
+	function getComponent(tag) {
+	  return (0, _index.isString)(tag) && componentRegistry[tag];
+	}
+
+	function isRegistered(name) {
+	  return !!getComponent(name);
+	}
+
+/***/ },
+/* 28 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _component_registry = __webpack_require__(27);
+
+	Object.keys(_component_registry).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _component_registry[key];
+	    }
+	  });
+	});
+
+	var _component = __webpack_require__(1);
+
+	Object.keys(_component).forEach(function (key) {
+	  if (key === "default" || key === "__esModule") return;
+	  Object.defineProperty(exports, key, {
+	    enumerable: true,
+	    get: function get() {
+	      return _component[key];
+	    }
+	  });
+	});
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = createApp;
+
+	var _index = __webpack_require__(3);
+
+	var _nodeOp = __webpack_require__(18);
+
+	var _index2 = __webpack_require__(30);
+
+	var _index3 = _interopRequireDefault(_index2);
+
+	var _action = __webpack_require__(32);
+
+	var _component = __webpack_require__(1);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function createApp(options) {
+	  var store = void 0,
+	      component = void 0,
+	      actions = void 0,
+	      rootEl = void 0;
+
+	  var dispatch = function dispatch(action) {
+	    return store.dispatch(action);
+	  };
+
+	  // The root element the the component will be mounted to
+	  rootEl = options.elem && (0, _nodeOp.query)(options.elem);
+	  if (!options.template) {
+	    options.template = rootEl.innerHTML;
+	  }
+	  (0, _nodeOp.emptyElement)(rootEl);
+
+	  // the root component which needs to access the model and actions, make it a container
+	  options.isContainer = true;
+	  component = (0, _component.createComponent)(options);
+
+	  // Generate the action creators
+	  actions = {};
+	  if (!(0, _index.isFunction)(options.update)) {
+	    actions = (0, _action.createActionCreators)((0, _index.getKeys)(options.update));
+	    actions = (0, _action.bindActionCreators)(actions, dispatch);
+	  }
+
+	  var update = options.update || {};
+	  if (!(0, _index.isFunction)(update)) {
+	    update = enhanceHandler(update);
+	  }
+	  store = (0, _index3.default)(options.model, update);
+	  store.subscribe(function () {
+	    updateView();
+	  });
+
+	  function updateView() {
+	    var domElem = component.patch(getAppContext());
+	    (0, _nodeOp.appendChild)(rootEl, domElem);
+	  }
+
+	  /**
+	   * Enhances the action handler to allow this.actions to be injected to the handler function as the last argument
+	   */
+	  function enhanceHandler(actionHandlerMap) {
+	    var enhanced = {};
+	    (0, _index.each)(actionHandlerMap, function (actionHandler, actionType) {
+	      var newHandler = function newHandler() {
+	        for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+	          params[_key] = arguments[_key];
+	        }
+
+	        // inject 1 more param to the handler, and execute the original handler in the application context
+	        return actionHandler.apply(undefined, [getAppContext()].concat(params));
+	      };
+	      enhanced[actionType] = newHandler;
+	    });
+	    return enhanced;
+	  }
+
+	  function getAppContext() {
+	    return (0, _index.extend)({
+	      model: store.getModel(),
+	      dispatch: dispatch,
+	      component: component
+	    }, actions);
+	  }
+
+	  updateView();
+
+	  return (0, _index.extend)({
+	    elem: rootEl,
+	    component: component,
+	    update: updateView,
+	    getModel: function getModel() {
+	      return store.getModel();
+	    }
+	  }, actions);
+	}
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(31);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = _store2.default;
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.Store = undefined;
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	exports.default = createStore;
+
+	var _index = __webpack_require__(3);
+
+	var _action = __webpack_require__(32);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Store = exports.Store = function () {
+	  function Store(initialModel, updater) {
+	    _classCallCheck(this, Store);
+
+	    this.model = initialModel;
+	    this.modelUpdater = updater;
+
+	    this.listeners = [];
+	  }
+
+	  _createClass(Store, [{
+	    key: 'getModel',
+	    value: function getModel() {
+	      return this.model;
+	    }
+	  }, {
+	    key: 'dispatch',
+	    value: function dispatch(action) {
+	      var update = this.modelUpdater;
+	      var oldModel = this.model;
+
+	      this.model = update(oldModel, action);
+
+	      this.listeners.forEach(function (listener) {
+	        listener();
+	      });
+	    }
+	  }, {
+	    key: 'subscribe',
+	    value: function subscribe(listener) {
+	      if (!(0, _index.isFunction)(listener)) {
+	        throw new Error('Invalid argument: listener needs to be a function');
+	      }
+
+	      var allListeners = this.listeners;
+	      allListeners.push(listener);
+
+	      return function unsubscribe() {
+	        var index = allListeners.indexOf(listener);
+
+	        if (index >= 0) {
+	          allListeners.splice(index, 1);
+	        }
+	      };
+	    }
+	  }]);
+
+	  return Store;
+	}();
+
+	function createStore(model, update) {
+	  var modelUpdater = update || _index.noop;
+	  if (!(0, _index.isFunction)(modelUpdater)) {
+	    modelUpdater = (0, _action.createModelUpdater)(update);
+	  }
+	  return new Store(model, modelUpdater);
+	}
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.bindActionCreator = bindActionCreator;
+	exports.bindActionCreators = bindActionCreators;
+	exports.createActionCreator = createActionCreator;
+	exports.createActionCreators = createActionCreators;
+	exports.createModelUpdater = createModelUpdater;
+
+	var _index = __webpack_require__(3);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	function bindActionCreator(action, dispatch) {
+	  return function () {
+	    return dispatch(action.apply(undefined, arguments));
+	  };
+	}
+
+	function bindActionCreators(actions, dispatch) {
+	  if (!(0, _index.isObject)(actions) || (0, _index.isNull)(actions)) {
+	    throw Error('actions must be an object');
+	  }
+
+	  var result = {};
+	  var keys = (0, _index.getKeys)(actions);
+	  for (var i = 0; i < keys.length; i++) {
+	    var key = keys[i];
+	    result[key] = bindActionCreator(actions[key], dispatch);
+	  }
+	  return result;
+	}
+
+	/**
+	 * Create an action creator given the action type. the returned action creator can take any parameters
+	 * @param actionType
+	 * @returns {function()}
+	 */
+	function createActionCreator(actionType) {
+	  return function () {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+
+	    return {
+	      type: actionType,
+	      params: args
+	    };
+	  };
+	}
+	/**
+	 * Create an object whose keys are actions types and values the action creators. And all the actions creators will be
+	 * wrapped with the dispatch call, so they can be called directly to dispatch an action
+	 * @param actionTypes, array of action types
+	 */
+	function createActionCreators(actionTypes) {
+	  var actionCreators = {};
+	  (0, _index.each)(actionTypes, function (actionType) {
+	    if ((0, _index.has)(actionCreators, actionType)) {
+	      throw new Error('Duplicated action type found in' + actionType);
+	    }
+	    actionCreators[actionType] = createActionCreator(actionType);
+	  });
+	  return actionCreators;
+	}
+
+	/**
+	 * Create an update function which will handle the actions created by calling createActionCreator
+	 * @param actionHandlerMap, an object which has all the action handlers in format of {actionType: handler}, e.g.
+	 * {
+	   *  'Increase': (model) => model + 1,
+	   *  'Decrease': (model) => model - 1
+	   *  }
+	 * @returns {update}, the update function used by the MeltStore
+	 */
+	function createModelUpdater(actionHandlerMap) {
+	  return function update(model, action) {
+	    var newModel = model;
+	    // Only update the model if the action type exists
+	    if ((0, _index.has)(actionHandlerMap, action.type)) {
+	      var handler = actionHandlerMap[action.type];
+	      newModel = handler.apply(undefined, _toConsumableArray(action.params).concat([model]));
+	    }
+	    return newModel;
+	  };
+	}
 
 /***/ }
 /******/ ])
