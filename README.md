@@ -14,13 +14,15 @@ Write expressive and concise views in pure HTML with react-like binding syntax a
 ```
 ### Component/Container support
 Better separation of concerns and code reusability with presentational components and container components. Connect views to the model easily via containers to get a clean component structure.
+
 ### One-way data flow
 Predicable application state with a single model and one-way root-to-leaf data flow. Hassle-free way to dispatch the action and data to the model update functions.
+
 ### Custom directives
 Wrap DOM interactions inside custom directives to create more expressive views and achieve more code reusability 
 
 ## Example
-[jsfiddle Demo](https://jsfiddle.net/alex_ou/fomL88qw/)
+[jsfiddle Demo](https://jsfiddle.net/alex_ou/xLf7mjtw/)
 
 ```javascript
 // The pure functons that take the model as the argument, and return a new model
